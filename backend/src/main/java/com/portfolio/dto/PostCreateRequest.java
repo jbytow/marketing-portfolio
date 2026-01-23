@@ -1,0 +1,45 @@
+package com.portfolio.dto;
+
+import com.portfolio.entity.Category;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PostCreateRequest {
+
+    @NotNull(message = "Category is required")
+    private Category category;
+
+    @NotBlank(message = "English title is required")
+    private String titleEn;
+
+    @NotBlank(message = "Polish title is required")
+    private String titlePl;
+
+    private String slug;
+
+    private String excerptEn;
+    private String excerptPl;
+
+    private Map<String, Object> contentEn;
+    private Map<String, Object> contentPl;
+
+    private String featuredImage;
+    private Boolean published;
+    private Integer displayOrder;
+
+    // Category-specific details
+    private ExperienceDetailsDto experienceDetails;
+    private CampaignDetailsDto campaignDetails;
+    private CaseStudyDetailsDto caseStudyDetails;
+    private InfluenceMarketingDetailsDto influenceMarketingDetails;
+}

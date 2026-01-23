@@ -1,0 +1,271 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
+import { adminPostsApi } from '@/services/api';
+import { Category, PostCreateRequest, PostUpdateRequest } from '@/types';
+import LoadingSpinner from '@/components/LoadingSpinner';
+
+export default function AdminPostForm() {
+  const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isEditing = !!id;
+
+  const [formData, setFormData] = useState<PostCreateRequest>({
+    category: Category.CAMPAIGNS,
+    titleEn: '',
+    titlePl: '',
+    slug: '',
+    excerptEn: '',
+    excerptPl: '',
+    contentEn: {},
+    contentPl: {},
+    featuredImage: '',
+    published: false,
+  });
+
+  const { data: postData, isLoading: postLoading } = useQuery({
+    queryKey: ['admin', 'post', id],
+    queryFn: () => adminPostsApi.getById(id!),
+    enabled: isEditing,
+  });
+
+  useEffect(() => {
+    if (postData?.data) {
+      const post = postData.data;
+      setFormData({
+        category: post.category,
+        titleEn: post.titleEn,
+        titlePl: post.titlePl,
+        slug: post.slug,
+        excerptEn: post.excerptEn || '',
+        excerptPl: post.excerptPl || '',
+        contentEn: post.contentEn || {},
+        contentPl: post.contentPl || {},
+        featuredImage: post.featuredImage || '',
+        published: post.published,
+        experienceDetails: post.experienceDetails,
+        campaignDetails: post.campaignDetails,
+        caseStudyDetails: post.caseStudyDetails,
+        influenceMarketingDetails: post.influenceMarketingDetails,
+      });
+    }
+  }, [postData]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      toast.success('Post created successfully');
+      navigate('/admin/posts');
+    },
+    onError: () => {
+      toast.error('Failed to create post');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'post', id] });
+      toast.success('Post updated successfully');
+      navigate('/admin/posts');
+    },
+    onError: () => {
+      toast.error('Failed to update post');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isEditing) {
+      updateMutation.mutate(formData);
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  if (postLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/admin/posts')}
+            className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-3xl font-display font-bold text-dark-100">
+            {isEditing ? t('admin.posts.editPost') : t('admin.posts.newPost')}
+          </h1>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => setFormData((prev) => ({ ...prev, published: !prev.published }))}
+            className={`btn-secondary ${formData.published ? 'bg-green-500/20 text-green-400' : ''}`}
+          >
+            {formData.published ? (
+              <>
+                <Eye className="w-5 h-5 mr-2" />
+                {t('common.published')}
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-5 h-5 mr-2" />
+                {t('common.draft')}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Category */}
+        <div className="card">
+          <label className="label">Category</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="input"
+            required
+          >
+            {Object.values(Category).map((cat) => (
+              <option key={cat} value={cat}>
+                {t(`categories.${cat}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Titles */}
+        <div className="card space-y-4">
+          <h3 className="text-lg font-semibold text-dark-100">Titles</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Title (English)</label>
+              <input
+                type="text"
+                name="titleEn"
+                value={formData.titleEn}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label className="label">Title (Polish)</label>
+              <input
+                type="text"
+                name="titlePl"
+                value={formData.titlePl}
+                onChange={handleChange}
+                className="input"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="label">Slug (URL)</label>
+            <input
+              type="text"
+              name="slug"
+              value={formData.slug}
+              onChange={handleChange}
+              className="input"
+              placeholder="auto-generated-from-title"
+            />
+          </div>
+        </div>
+
+        {/* Excerpts */}
+        <div className="card space-y-4">
+          <h3 className="text-lg font-semibold text-dark-100">Excerpts</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Excerpt (English)</label>
+              <textarea
+                name="excerptEn"
+                value={formData.excerptEn}
+                onChange={handleChange}
+                className="input"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="label">Excerpt (Polish)</label>
+              <textarea
+                name="excerptPl"
+                value={formData.excerptPl}
+                onChange={handleChange}
+                className="input"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Image */}
+        <div className="card">
+          <label className="label">Featured Image URL</label>
+          <input
+            type="text"
+            name="featuredImage"
+            value={formData.featuredImage}
+            onChange={handleChange}
+            className="input"
+            placeholder="https://..."
+          />
+          {formData.featuredImage && (
+            <img
+              src={formData.featuredImage}
+              alt="Preview"
+              className="mt-4 max-h-48 rounded-lg object-cover"
+            />
+          )}
+        </div>
+
+        {/* Submit */}
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/posts')}
+            className="btn-secondary"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            type="submit"
+            disabled={createMutation.isPending || updateMutation.isPending}
+            className="btn-primary disabled:opacity-50"
+          >
+            <Save className="w-5 h-5 mr-2" />
+            {t('common.save')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

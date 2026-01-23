@@ -1,0 +1,169 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "published": "Published",
+    "draft": "Draft",
+    "actions": "Actions",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "viewMore": "View More",
+    "readMore": "Read More",
+    "learnMore": "Learn More",
+    "contactMe": "Contact Me",
+    "downloadCV": "Download CV"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "experience": "Experience",
+    "projects": "Projects",
+    "influence": "Influence",
+    "caseStudies": "Case Studies",
+    "content": "Content",
+    "skills": "Skills",
+    "contact": "Contact",
+    "admin": "Admin"
+  },
+  "home": {
+    "hero": {
+      "greeting": "Hello, I'm",
+      "tagline": "Creating impactful marketing campaigns that drive results",
+      "cta": "View My Work"
+    },
+    "featured": {
+      "title": "Featured Work",
+      "subtitle": "A selection of my recent projects and campaigns"
+    },
+    "stats": {
+      "campaigns": "Campaigns",
+      "clients": "Happy Clients",
+      "reach": "Audience Reach",
+      "experience": "Years Experience"
+    }
+  },
+  "about": {
+    "title": "About Me",
+    "subtitle": "Get to know me better"
+  },
+  "experience": {
+    "title": "Experience",
+    "subtitle": "My professional journey",
+    "present": "Present"
+  },
+  "projects": {
+    "title": "Projects & Campaigns",
+    "subtitle": "Explore my marketing campaigns and projects",
+    "viewProject": "View Project"
+  },
+  "influence": {
+    "title": "Influence Marketing",
+    "subtitle": "Partnerships and collaborations",
+    "communitySize": "Community Size",
+    "engagementRate": "Engagement Rate",
+    "platforms": "Platforms"
+  },
+  "caseStudies": {
+    "title": "Case Studies",
+    "subtitle": "Deep dive into my successful campaigns",
+    "problem": "The Challenge",
+    "solution": "The Solution",
+    "results": "The Results",
+    "testimonial": "Client Testimonial"
+  },
+  "content": {
+    "title": "Content & Copy",
+    "subtitle": "Writing that converts and engages"
+  },
+  "skills": {
+    "title": "Soft Skills",
+    "subtitle": "What I bring to the table"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "subtitle": "Let's work together on your next project",
+    "form": {
+      "name": "Your Name",
+      "email": "Your Email",
+      "subject": "Subject",
+      "message": "Your Message",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent successfully!",
+      "error": "Failed to send message. Please try again."
+    },
+    "info": {
+      "email": "Email",
+      "phone": "Phone",
+      "location": "Location",
+      "social": "Follow Me"
+    }
+  },
+  "categories": {
+    "ABOUT_ME": "About Me",
+    "EXPERIENCE": "Experience",
+    "CAMPAIGNS": "Campaigns",
+    "INFLUENCE_MARKETING": "Influence Marketing",
+    "CASE_STUDY": "Case Studies",
+    "CONTENT_COPY": "Content & Copy",
+    "SOFT_SKILLS": "Soft Skills"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome back",
+      "totalPosts": "Total Posts",
+      "publishedPosts": "Published",
+      "draftPosts": "Drafts",
+      "totalMedia": "Media Files",
+      "recentActivity": "Recent Activity"
+    },
+    "posts": {
+      "title": "Posts",
+      "newPost": "New Post",
+      "editPost": "Edit Post",
+      "noPostsYet": "No posts yet",
+      "createFirst": "Create your first post"
+    },
+    "media": {
+      "title": "Media Library",
+      "upload": "Upload Media",
+      "dragDrop": "Drag and drop files here",
+      "or": "or",
+      "browse": "Browse Files",
+      "noMedia": "No media files yet"
+    },
+    "settings": {
+      "title": "Site Settings",
+      "hero": "Hero Section",
+      "about": "About Section",
+      "contact": "Contact Information",
+      "social": "Social Links",
+      "seo": "SEO Settings"
+    },
+    "auth": {
+      "login": "Login",
+      "logout": "Logout",
+      "loginWith": "Login with",
+      "google": "Google",
+      "github": "GitHub",
+      "notAuthorized": "You are not authorized to access the admin panel"
+    }
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "madeWith": "Made with",
+    "by": "by"
+  }
+}

@@ -1,0 +1,85 @@
+package com.portfolio.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.OffsetDateTime;
+import java.util.Map;
+
+@Entity
+@Table(name = "site_settings")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SiteSettings {
+
+    @Id
+    @Column(name = "id")
+    @Builder.Default
+    private Integer id = 1;
+
+    @Column(name = "hero_title_en")
+    private String heroTitleEn;
+
+    @Column(name = "hero_title_pl")
+    private String heroTitlePl;
+
+    @Column(name = "hero_subtitle_en", columnDefinition = "TEXT")
+    private String heroSubtitleEn;
+
+    @Column(name = "hero_subtitle_pl", columnDefinition = "TEXT")
+    private String heroSubtitlePl;
+
+    @Column(name = "about_text_en", columnDefinition = "TEXT")
+    private String aboutTextEn;
+
+    @Column(name = "about_text_pl", columnDefinition = "TEXT")
+    private String aboutTextPl;
+
+    @Column(name = "profile_image")
+    private String profileImage;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "social_links", columnDefinition = "jsonb")
+    private Map<String, String> socialLinks;
+
+    @Column(name = "meta_description_en", columnDefinition = "TEXT")
+    private String metaDescriptionEn;
+
+    @Column(name = "meta_description_pl", columnDefinition = "TEXT")
+    private String metaDescriptionPl;
+
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt;
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = OffsetDateTime.now();
+    }
+
+    public String getHeroTitle(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? heroTitlePl : heroTitleEn;
+    }
+
+    public String getHeroSubtitle(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? heroSubtitlePl : heroSubtitleEn;
+    }
+
+    public String getAboutText(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? aboutTextPl : aboutTextEn;
+    }
+
+    public String getMetaDescription(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? metaDescriptionPl : metaDescriptionEn;
+    }
+}

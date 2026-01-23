@@ -1,0 +1,169 @@
+{
+  "common": {
+    "loading": "Ładowanie...",
+    "error": "Wystąpił błąd",
+    "retry": "Spróbuj ponownie",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "delete": "Usuń",
+    "edit": "Edytuj",
+    "create": "Utwórz",
+    "search": "Szukaj",
+    "filter": "Filtruj",
+    "all": "Wszystkie",
+    "published": "Opublikowane",
+    "draft": "Szkic",
+    "actions": "Akcje",
+    "confirm": "Potwierdź",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "previous": "Poprzedni",
+    "viewMore": "Zobacz więcej",
+    "readMore": "Czytaj więcej",
+    "learnMore": "Dowiedz się więcej",
+    "contactMe": "Skontaktuj się",
+    "downloadCV": "Pobierz CV"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "about": "O mnie",
+    "experience": "Doświadczenie",
+    "projects": "Projekty",
+    "influence": "Influence",
+    "caseStudies": "Case Studies",
+    "content": "Treści",
+    "skills": "Umiejętności",
+    "contact": "Kontakt",
+    "admin": "Admin"
+  },
+  "home": {
+    "hero": {
+      "greeting": "Cześć, jestem",
+      "tagline": "Tworzę skuteczne kampanie marketingowe, które przynoszą rezultaty",
+      "cta": "Zobacz moje prace"
+    },
+    "featured": {
+      "title": "Wyróżnione prace",
+      "subtitle": "Wybór moich ostatnich projektów i kampanii"
+    },
+    "stats": {
+      "campaigns": "Kampanii",
+      "clients": "Zadowolonych klientów",
+      "reach": "Zasięg",
+      "experience": "Lat doświadczenia"
+    }
+  },
+  "about": {
+    "title": "O mnie",
+    "subtitle": "Poznaj mnie bliżej"
+  },
+  "experience": {
+    "title": "Doświadczenie",
+    "subtitle": "Moja ścieżka zawodowa",
+    "present": "Obecnie"
+  },
+  "projects": {
+    "title": "Projekty i kampanie",
+    "subtitle": "Poznaj moje kampanie marketingowe i projekty",
+    "viewProject": "Zobacz projekt"
+  },
+  "influence": {
+    "title": "Influence Marketing",
+    "subtitle": "Partnerstwa i współprace",
+    "communitySize": "Wielkość społeczności",
+    "engagementRate": "Wskaźnik zaangażowania",
+    "platforms": "Platformy"
+  },
+  "caseStudies": {
+    "title": "Case Studies",
+    "subtitle": "Szczegółowa analiza moich udanych kampanii",
+    "problem": "Wyzwanie",
+    "solution": "Rozwiązanie",
+    "results": "Rezultaty",
+    "testimonial": "Opinia klienta"
+  },
+  "content": {
+    "title": "Treści i Copywriting",
+    "subtitle": "Teksty, które konwertują i angażują"
+  },
+  "skills": {
+    "title": "Umiejętności miękkie",
+    "subtitle": "Co wnoszę do zespołu"
+  },
+  "contact": {
+    "title": "Skontaktuj się",
+    "subtitle": "Porozmawiajmy o Twoim następnym projekcie",
+    "form": {
+      "name": "Twoje imię",
+      "email": "Twój email",
+      "subject": "Temat",
+      "message": "Twoja wiadomość",
+      "send": "Wyślij wiadomość",
+      "sending": "Wysyłanie...",
+      "success": "Wiadomość wysłana pomyślnie!",
+      "error": "Nie udało się wysłać wiadomości. Spróbuj ponownie."
+    },
+    "info": {
+      "email": "Email",
+      "phone": "Telefon",
+      "location": "Lokalizacja",
+      "social": "Obserwuj mnie"
+    }
+  },
+  "categories": {
+    "ABOUT_ME": "O mnie",
+    "EXPERIENCE": "Doświadczenie",
+    "CAMPAIGNS": "Kampanie",
+    "INFLUENCE_MARKETING": "Influence Marketing",
+    "CASE_STUDY": "Case Studies",
+    "CONTENT_COPY": "Treści i Copywriting",
+    "SOFT_SKILLS": "Umiejętności miękkie"
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Panel",
+      "welcome": "Witaj ponownie",
+      "totalPosts": "Wszystkie posty",
+      "publishedPosts": "Opublikowane",
+      "draftPosts": "Szkice",
+      "totalMedia": "Pliki mediów",
+      "recentActivity": "Ostatnia aktywność"
+    },
+    "posts": {
+      "title": "Posty",
+      "newPost": "Nowy post",
+      "editPost": "Edytuj post",
+      "noPostsYet": "Brak postów",
+      "createFirst": "Utwórz swój pierwszy post"
+    },
+    "media": {
+      "title": "Biblioteka mediów",
+      "upload": "Prześlij media",
+      "dragDrop": "Przeciągnij i upuść pliki tutaj",
+      "or": "lub",
+      "browse": "Przeglądaj pliki",
+      "noMedia": "Brak plików mediów"
+    },
+    "settings": {
+      "title": "Ustawienia strony",
+      "hero": "Sekcja Hero",
+      "about": "Sekcja O mnie",
+      "contact": "Dane kontaktowe",
+      "social": "Linki społecznościowe",
+      "seo": "Ustawienia SEO"
+    },
+    "auth": {
+      "login": "Zaloguj się",
+      "logout": "Wyloguj się",
+      "loginWith": "Zaloguj przez",
+      "google": "Google",
+      "github": "GitHub",
+      "notAuthorized": "Nie masz uprawnień do panelu administracyjnego"
+    }
+  },
+  "footer": {
+    "rights": "Wszelkie prawa zastrzeżone",
+    "madeWith": "Stworzone z",
+    "by": "przez"
+  }
+}
