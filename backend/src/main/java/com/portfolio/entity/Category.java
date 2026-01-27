@@ -1,7 +1,6 @@
 package com.portfolio.entity;
 
 public enum Category {
-    ABOUT_ME("About Me", "O mnie"),
     EXPERIENCE("Experience", "Doświadczenie"),
     CAMPAIGNS("Campaigns", "Kampanie"),
     INFLUENCE_MARKETING("Influence Marketing", "Influence Marketing"),
