@@ -174,7 +174,7 @@ export interface PostCreateRequest {
   influenceMarketingDetails?: Partial<InfluenceMarketingDetails>;
 }
 
-export interface PostUpdateRequest extends Partial<PostCreateRequest> {}
+export type PostUpdateRequest = Partial<PostCreateRequest>;
 
 export interface ReorderItem {
   id: string;
