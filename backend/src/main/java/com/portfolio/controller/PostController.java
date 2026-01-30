@@ -23,16 +23,25 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PostDto>>> getPosts(
             @RequestParam(required = false) Category category,
+            @RequestParam(required = false) String hashtag,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         List<PostDto> posts;
-        if (category != null) {
+        if (hashtag != null && !hashtag.isBlank()) {
+            posts = postService.getPostsByHashtag(hashtag, extractLocale(locale));
+        } else if (category != null) {
             posts = postService.getPostsByCategory(category, extractLocale(locale));
         } else {
             posts = postService.getAllPublishedPosts(extractLocale(locale));
         }
 
         return ResponseEntity.ok(ApiResponse.success(posts));
+    }
+
+    @GetMapping("/hashtags")
+    public ResponseEntity<ApiResponse<List<String>>> getAllHashtags() {
+        List<String> hashtags = postService.getAllHashtags();
+        return ResponseEntity.ok(ApiResponse.success(hashtags));
     }
 
     @GetMapping("/paged")

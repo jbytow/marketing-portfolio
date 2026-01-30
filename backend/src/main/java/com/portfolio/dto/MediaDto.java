@@ -25,5 +25,7 @@ public class MediaDto {
     private String altText;
     private String altTextEn;
     private String altTextPl;
+    private Integer displayOrder;
+    private String videoUrl;
     private OffsetDateTime createdAt;
 }

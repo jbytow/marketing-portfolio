@@ -61,8 +61,10 @@ const api = createApiClient();
 
 // Public API
 export const postsApi = {
-  getAll: async (category?: Category): Promise<ApiResponse<Post[]>> => {
-    const params = category ? { category } : {};
+  getAll: async (category?: Category, hashtag?: string): Promise<ApiResponse<Post[]>> => {
+    const params: Record<string, string> = {};
+    if (category) params.category = category;
+    if (hashtag) params.hashtag = hashtag;
     const { data } = await api.get('/posts', { params });
     return data;
   },
@@ -84,6 +86,11 @@ export const postsApi = {
 
   getCaseStudies: async (): Promise<ApiResponse<Post[]>> => {
     const { data } = await api.get('/posts/case-studies');
+    return data;
+  },
+
+  getHashtags: async (): Promise<ApiResponse<string[]>> => {
+    const { data } = await api.get('/posts/hashtags');
     return data;
   },
 };
@@ -263,6 +270,20 @@ export const adminMediaApi = {
     return data;
   },
 
+  createYouTube: async (
+    videoUrl: string,
+    postId?: string,
+    altTextEn?: string,
+    altTextPl?: string
+  ): Promise<ApiResponse<Media>> => {
+    const params: Record<string, string> = { videoUrl };
+    if (postId) params.postId = postId;
+    if (altTextEn) params.altTextEn = altTextEn;
+    if (altTextPl) params.altTextPl = altTextPl;
+    const { data } = await api.post('/admin/media/youtube', null, { params });
+    return data;
+  },
+
   update: async (
     id: string,
     altTextEn?: string,
@@ -276,6 +297,11 @@ export const adminMediaApi = {
 
   delete: async (id: string): Promise<ApiResponse<void>> => {
     const { data } = await api.delete(`/admin/media/${id}`);
+    return data;
+  },
+
+  reorder: async (postId: string, items: ReorderItem[]): Promise<ApiResponse<void>> => {
+    const { data } = await api.patch(`/admin/media/reorder?postId=${postId}`, { items });
     return data;
   },
 };

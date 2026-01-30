@@ -2,6 +2,7 @@ package com.portfolio.controller;
 
 import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.MediaDto;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.MediaType;
 import com.portfolio.service.MediaService;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,28 @@ public class AdminMediaController {
     public ResponseEntity<ApiResponse<Void>> deleteMedia(@PathVariable UUID id) throws IOException {
         mediaService.deleteMedia(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Media deleted successfully"));
+    }
+
+    @PostMapping("/youtube")
+    public ResponseEntity<ApiResponse<MediaDto>> createYouTubeMedia(
+            @RequestParam("videoUrl") String videoUrl,
+            @RequestParam(value = "postId", required = false) UUID postId,
+            @RequestParam(value = "altTextEn", required = false) String altTextEn,
+            @RequestParam(value = "altTextPl", required = false) String altTextPl,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
+
+        MediaDto media = mediaService.createYouTubeMedia(postId, videoUrl, altTextEn, altTextPl, extractLocale(locale));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(media, "YouTube media created successfully"));
+    }
+
+    @PatchMapping("/reorder")
+    public ResponseEntity<ApiResponse<Void>> reorderMedia(
+            @RequestParam UUID postId,
+            @RequestBody ReorderRequest request) {
+
+        mediaService.reorderMedia(postId, request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Media reordered successfully"));
     }
 
     private String extractLocale(String acceptLanguage) {

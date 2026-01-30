@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +44,16 @@ public class PostService {
     public Page<PostDto> getPostsByCategory(Category category, Pageable pageable, String locale) {
         return postRepository.findByCategoryAndPublishedTrue(category, pageable)
                 .map(post -> mapToDto(post, locale, false));
+    }
+
+    public List<PostDto> getPostsByHashtag(String hashtag, String locale) {
+        return postRepository.findByHashtagAndPublishedTrue(hashtag).stream()
+                .map(post -> mapToDto(post, locale, false))
+                .toList();
+    }
+
+    public List<String> getAllHashtags() {
+        return postRepository.findAllUniqueHashtags();
     }
 
     public List<PostDto> getCaseStudies(String locale) {
@@ -100,15 +112,12 @@ public class PostService {
                 .featuredImage(request.getFeaturedImage())
                 .published(request.getPublished() != null ? request.getPublished() : false)
                 .isCaseStudy(request.getIsCaseStudy() != null ? request.getIsCaseStudy() : false)
+                .hashtags(request.getHashtags() != null ? request.getHashtags().toArray(new String[0]) : new String[0])
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() :
                         postRepository.getMaxDisplayOrder(request.getCategory()) + 1)
                 .build();
 
         post = postRepository.save(post);
-
-        // Create category-specific details
-        createCategoryDetails(post, request);
-
         return mapToDto(post, locale, true);
     }
 
@@ -153,9 +162,9 @@ public class PostService {
         if (request.getIsCaseStudy() != null) {
             post.setIsCaseStudy(request.getIsCaseStudy());
         }
-
-        // Update category-specific details
-        updateCategoryDetails(post, request);
+        if (request.getHashtags() != null) {
+            post.setHashtags(request.getHashtags().toArray(new String[0]));
+        }
 
         post = postRepository.save(post);
         return mapToDto(post, locale, true);
@@ -197,94 +206,6 @@ public class PostService {
         return slug;
     }
 
-    private void createCategoryDetails(Post post, PostCreateRequest request) {
-        // Handle campaign details for CAMPAIGNS category
-        if (request.getCampaignDetails() != null) {
-            CampaignDetails details = mapCampaignDetails(request.getCampaignDetails());
-            details.setPost(post);
-            post.setCampaignDetails(details);
-        }
-
-        // Handle case study details if post is marked as case study
-        if (Boolean.TRUE.equals(request.getIsCaseStudy()) && request.getCaseStudyDetails() != null) {
-            CaseStudyDetails details = mapCaseStudyDetails(request.getCaseStudyDetails());
-            details.setPost(post);
-            post.setCaseStudyDetails(details);
-        }
-    }
-
-    private void updateCategoryDetails(Post post, PostUpdateRequest request) {
-        // Update campaign details
-        if (request.getCampaignDetails() != null) {
-            CampaignDetails details = post.getCampaignDetails();
-            if (details == null) {
-                details = new CampaignDetails();
-                details.setPost(post);
-                post.setCampaignDetails(details);
-            }
-            updateCampaignDetails(details, request.getCampaignDetails());
-        }
-
-        // Update case study details if post is marked as case study
-        if (request.getCaseStudyDetails() != null) {
-            CaseStudyDetails details = post.getCaseStudyDetails();
-            if (details == null) {
-                details = new CaseStudyDetails();
-                details.setPost(post);
-                post.setCaseStudyDetails(details);
-            }
-            updateCaseStudyDetails(details, request.getCaseStudyDetails());
-        }
-    }
-
-    private CampaignDetails mapCampaignDetails(CampaignDetailsDto dto) {
-        return CampaignDetails.builder()
-                .clientName(dto.getClientName())
-                .projectTypeEn(dto.getProjectTypeEn())
-                .projectTypePl(dto.getProjectTypePl())
-                .resultsEn(dto.getResultsEn())
-                .resultsPl(dto.getResultsPl())
-                .metrics(dto.getMetrics())
-                .build();
-    }
-
-    private void updateCampaignDetails(CampaignDetails details, CampaignDetailsDto dto) {
-        if (dto.getClientName() != null) details.setClientName(dto.getClientName());
-        if (dto.getProjectTypeEn() != null) details.setProjectTypeEn(dto.getProjectTypeEn());
-        if (dto.getProjectTypePl() != null) details.setProjectTypePl(dto.getProjectTypePl());
-        if (dto.getResultsEn() != null) details.setResultsEn(dto.getResultsEn());
-        if (dto.getResultsPl() != null) details.setResultsPl(dto.getResultsPl());
-        if (dto.getMetrics() != null) details.setMetrics(dto.getMetrics());
-    }
-
-    private CaseStudyDetails mapCaseStudyDetails(CaseStudyDetailsDto dto) {
-        return CaseStudyDetails.builder()
-                .problemEn(dto.getProblemEn())
-                .problemPl(dto.getProblemPl())
-                .solutionEn(dto.getSolutionEn())
-                .solutionPl(dto.getSolutionPl())
-                .resultsEn(dto.getResultsEn())
-                .resultsPl(dto.getResultsPl())
-                .metrics(dto.getMetrics())
-                .testimonialTextEn(dto.getTestimonialTextEn())
-                .testimonialTextPl(dto.getTestimonialTextPl())
-                .testimonialAuthor(dto.getTestimonialAuthor())
-                .build();
-    }
-
-    private void updateCaseStudyDetails(CaseStudyDetails details, CaseStudyDetailsDto dto) {
-        if (dto.getProblemEn() != null) details.setProblemEn(dto.getProblemEn());
-        if (dto.getProblemPl() != null) details.setProblemPl(dto.getProblemPl());
-        if (dto.getSolutionEn() != null) details.setSolutionEn(dto.getSolutionEn());
-        if (dto.getSolutionPl() != null) details.setSolutionPl(dto.getSolutionPl());
-        if (dto.getResultsEn() != null) details.setResultsEn(dto.getResultsEn());
-        if (dto.getResultsPl() != null) details.setResultsPl(dto.getResultsPl());
-        if (dto.getMetrics() != null) details.setMetrics(dto.getMetrics());
-        if (dto.getTestimonialTextEn() != null) details.setTestimonialTextEn(dto.getTestimonialTextEn());
-        if (dto.getTestimonialTextPl() != null) details.setTestimonialTextPl(dto.getTestimonialTextPl());
-        if (dto.getTestimonialAuthor() != null) details.setTestimonialAuthor(dto.getTestimonialAuthor());
-    }
-
     private PostDto mapToDto(Post post, String locale, boolean includeContent) {
         PostDto.PostDtoBuilder builder = PostDto.builder()
                 .id(post.getId())
@@ -301,6 +222,7 @@ public class PostService {
                 .published(post.getPublished())
                 .displayOrder(post.getDisplayOrder())
                 .isCaseStudy(post.getIsCaseStudy())
+                .hashtags(post.getHashtags() != null ? Arrays.asList(post.getHashtags()) : new ArrayList<>())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt());
 
@@ -309,55 +231,20 @@ public class PostService {
                     .contentEn(post.getContentEn())
                     .contentPl(post.getContentPl());
 
-            // Map category-specific details
-            if (post.getCampaignDetails() != null) {
-                builder.campaignDetails(mapCampaignDetailsToDto(post.getCampaignDetails(), locale));
-            }
-            if (post.getCaseStudyDetails() != null) {
-                builder.caseStudyDetails(mapCaseStudyDetailsToDto(post.getCaseStudyDetails(), locale));
-            }
-
-            // Map media
+            // Map media ordered by displayOrder
             if (post.getMedia() != null && !post.getMedia().isEmpty()) {
                 builder.media(post.getMedia().stream()
+                        .sorted((a, b) -> {
+                            int orderA = a.getDisplayOrder() != null ? a.getDisplayOrder() : 0;
+                            int orderB = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
+                            return Integer.compare(orderA, orderB);
+                        })
                         .map(media -> mapMediaToDto(media, locale))
                         .toList());
             }
         }
 
         return builder.build();
-    }
-
-    private CampaignDetailsDto mapCampaignDetailsToDto(CampaignDetails details, String locale) {
-        return CampaignDetailsDto.builder()
-                .clientName(details.getClientName())
-                .projectType(details.getProjectType(locale))
-                .projectTypeEn(details.getProjectTypeEn())
-                .projectTypePl(details.getProjectTypePl())
-                .results(details.getResults(locale))
-                .resultsEn(details.getResultsEn())
-                .resultsPl(details.getResultsPl())
-                .metrics(details.getMetrics())
-                .build();
-    }
-
-    private CaseStudyDetailsDto mapCaseStudyDetailsToDto(CaseStudyDetails details, String locale) {
-        return CaseStudyDetailsDto.builder()
-                .problem(details.getProblem(locale))
-                .problemEn(details.getProblemEn())
-                .problemPl(details.getProblemPl())
-                .solution(details.getSolution(locale))
-                .solutionEn(details.getSolutionEn())
-                .solutionPl(details.getSolutionPl())
-                .results(details.getResults(locale))
-                .resultsEn(details.getResultsEn())
-                .resultsPl(details.getResultsPl())
-                .metrics(details.getMetrics())
-                .testimonialText(details.getTestimonialText(locale))
-                .testimonialTextEn(details.getTestimonialTextEn())
-                .testimonialTextPl(details.getTestimonialTextPl())
-                .testimonialAuthor(details.getTestimonialAuthor())
-                .build();
     }
 
     private MediaDto mapMediaToDto(Media media, String locale) {
@@ -373,6 +260,8 @@ public class PostService {
                 .altText(media.getAltText(locale))
                 .altTextEn(media.getAltTextEn())
                 .altTextPl(media.getAltTextPl())
+                .displayOrder(media.getDisplayOrder())
+                .videoUrl(media.getVideoUrl())
                 .createdAt(media.getCreatedAt())
                 .build();
     }

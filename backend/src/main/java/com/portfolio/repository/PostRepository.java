@@ -58,4 +58,11 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     @Query("SELECT COUNT(p) FROM Post p WHERE p.isCaseStudy = true AND p.published = true")
     long countCaseStudiesPublished();
+
+    // Hashtag methods
+    @Query(value = "SELECT * FROM posts WHERE published = true AND :hashtag = ANY(hashtags) ORDER BY display_order", nativeQuery = true)
+    List<Post> findByHashtagAndPublishedTrue(@Param("hashtag") String hashtag);
+
+    @Query(value = "SELECT DISTINCT unnest(hashtags) FROM posts WHERE published = true", nativeQuery = true)
+    List<String> findAllUniqueHashtags();
 }

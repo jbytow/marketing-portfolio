@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Eye, EyeOff, BookOpen } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, BookOpen, X, Plus } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
-import { Category, PostCreateRequest, PostUpdateRequest } from '@/types';
+import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import MediaManager from '@/admin/components/MediaManager';
 
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +29,11 @@ export default function AdminPostForm() {
     featuredImage: '',
     published: false,
     isCaseStudy: false,
+    hashtags: [],
   });
+
+  const [media, setMedia] = useState<Media[]>([]);
+  const [newHashtag, setNewHashtag] = useState('');
 
   const { data: postData, isLoading: postLoading } = useQuery({
     queryKey: queryKeys.admin.post(id!),
@@ -51,9 +56,9 @@ export default function AdminPostForm() {
         featuredImage: post.featuredImage || '',
         published: post.published,
         isCaseStudy: post.isCaseStudy || false,
-        campaignDetails: post.campaignDetails,
-        caseStudyDetails: post.caseStudyDetails,
+        hashtags: post.hashtags || [],
       });
+      setMedia(post.media || []);
     }
   }, [postData]);
 
@@ -63,6 +68,7 @@ export default function AdminPostForm() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
+      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
@@ -79,6 +85,7 @@ export default function AdminPostForm() {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['post'] });
       queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
+      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },
@@ -104,6 +111,31 @@ export default function AdminPostForm() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+  };
+
+  const addHashtag = () => {
+    const tag = newHashtag.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (tag && !formData.hashtags?.includes(tag)) {
+      setFormData((prev) => ({
+        ...prev,
+        hashtags: [...(prev.hashtags || []), tag],
+      }));
+    }
+    setNewHashtag('');
+  };
+
+  const removeHashtag = (tagToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      hashtags: (prev.hashtags || []).filter((tag) => tag !== tagToRemove),
+    }));
+  };
+
+  const handleHashtagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addHashtag();
+    }
   };
 
   if (postLoading) {
@@ -185,7 +217,7 @@ export default function AdminPostForm() {
           </div>
           {formData.isCaseStudy && (
             <p className="text-sm text-dark-400">
-              This post will appear on the Case Studies page. You can add case study details below.
+              This post will appear on the Case Studies page.
             </p>
           )}
         </div>
@@ -228,6 +260,47 @@ export default function AdminPostForm() {
               placeholder="auto-generated-from-title"
             />
           </div>
+        </div>
+
+        {/* Hashtags */}
+        <div className="card space-y-4">
+          <h3 className="text-lg font-semibold text-dark-100">Hashtags</h3>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newHashtag}
+              onChange={(e) => setNewHashtag(e.target.value)}
+              onKeyDown={handleHashtagKeyDown}
+              placeholder="Add hashtag..."
+              className="input flex-1"
+            />
+            <button
+              type="button"
+              onClick={addHashtag}
+              className="btn-secondary"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
+          {formData.hashtags && formData.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.hashtags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-500/20 text-primary-400"
+                >
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => removeHashtag(tag)}
+                    className="hover:text-primary-300"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Excerpts */}
@@ -276,6 +349,21 @@ export default function AdminPostForm() {
             />
           )}
         </div>
+
+        {/* Media Manager - Only show when editing */}
+        {isEditing && id && (
+          <div className="card space-y-4">
+            <h3 className="text-lg font-semibold text-dark-100">Media Gallery</h3>
+            <p className="text-sm text-dark-400">
+              Upload images, videos, or add YouTube videos. Drag to reorder.
+            </p>
+            <MediaManager
+              postId={id}
+              media={media}
+              onMediaChange={setMedia}
+            />
+          </div>
+        )}
 
         {/* Submit */}
         <div className="flex justify-end space-x-4">

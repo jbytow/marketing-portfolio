@@ -1,6 +1,7 @@
 package com.portfolio.service;
 
 import com.portfolio.dto.MediaDto;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Media;
 import com.portfolio.entity.MediaType;
 import com.portfolio.entity.Post;
@@ -18,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +44,7 @@ public class MediaService {
     }
 
     public List<MediaDto> getMediaByPost(UUID postId, String locale) {
-        return mediaRepository.findByPostIdOrderByCreatedAtDesc(postId).stream()
+        return mediaRepository.findByPostIdOrderByDisplayOrderAsc(postId).stream()
                 .map(media -> mapToDto(media, locale))
                 .toList();
     }
@@ -67,9 +70,11 @@ public class MediaService {
         MediaType type = storageService.getMediaType(file.getContentType());
 
         Post post = null;
+        int displayOrder = 0;
         if (postId != null) {
             post = postRepository.findById(postId)
                     .orElseThrow(() -> new EntityNotFoundException("Post not found: " + postId));
+            displayOrder = mediaRepository.getMaxDisplayOrderForPost(postId) + 1;
         }
 
         Media media = Media.builder()
@@ -82,10 +87,66 @@ public class MediaService {
                 .url("/api/media/" + filename)
                 .altTextEn(altTextEn)
                 .altTextPl(altTextPl)
+                .displayOrder(displayOrder)
                 .build();
 
         media = mediaRepository.save(media);
         return mapToDto(media, locale);
+    }
+
+    @Transactional
+    public MediaDto createYouTubeMedia(UUID postId, String videoUrl, String altTextEn, String altTextPl, String locale) {
+        Post post = null;
+        int displayOrder = 0;
+        if (postId != null) {
+            post = postRepository.findById(postId)
+                    .orElseThrow(() -> new EntityNotFoundException("Post not found: " + postId));
+            displayOrder = mediaRepository.getMaxDisplayOrderForPost(postId) + 1;
+        }
+
+        // Extract YouTube video ID and create embed URL
+        String videoId = extractYouTubeVideoId(videoUrl);
+        String embedUrl = "https://www.youtube.com/embed/" + videoId;
+
+        Media media = Media.builder()
+                .post(post)
+                .type(MediaType.YOUTUBE)
+                .url(embedUrl)
+                .videoUrl(videoUrl)
+                .altTextEn(altTextEn)
+                .altTextPl(altTextPl)
+                .displayOrder(displayOrder)
+                .build();
+
+        media = mediaRepository.save(media);
+        return mapToDto(media, locale);
+    }
+
+    @Transactional
+    public void reorderMedia(UUID postId, ReorderRequest request) {
+        // Verify post exists
+        if (!postRepository.existsById(postId)) {
+            throw new EntityNotFoundException("Post not found: " + postId);
+        }
+
+        for (ReorderRequest.OrderItem item : request.getItems()) {
+            mediaRepository.updateDisplayOrder(item.getId(), item.getDisplayOrder());
+        }
+    }
+
+    private String extractYouTubeVideoId(String url) {
+        // Handle various YouTube URL formats
+        // https://www.youtube.com/watch?v=VIDEO_ID
+        // https://youtu.be/VIDEO_ID
+        // https://www.youtube.com/embed/VIDEO_ID
+        Pattern pattern = Pattern.compile(
+                "(?:youtube\\.com/(?:watch\\?v=|embed/)|youtu\\.be/)([a-zA-Z0-9_-]{11})"
+        );
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        throw new IllegalArgumentException("Invalid YouTube URL: " + url);
     }
 
     @Transactional
@@ -131,6 +192,8 @@ public class MediaService {
                 .altText(media.getAltText(locale))
                 .altTextEn(media.getAltTextEn())
                 .altTextPl(media.getAltTextPl())
+                .displayOrder(media.getDisplayOrder())
+                .videoUrl(media.getVideoUrl())
                 .createdAt(media.getCreatedAt())
                 .build();
     }

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -37,8 +38,5 @@ public class PostCreateRequest {
     private Boolean published;
     private Integer displayOrder;
     private Boolean isCaseStudy;
-
-    // Category-specific details
-    private CampaignDetailsDto campaignDetails;
-    private CaseStudyDetailsDto caseStudyDetails;
+    private List<String> hashtags;
 }

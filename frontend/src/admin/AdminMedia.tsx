@@ -3,17 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
-import { Upload, Trash2, Image, Film, FileText, X } from 'lucide-react';
+import { Upload, Trash2, Image, Film, FileText, X, Youtube } from 'lucide-react';
 import { clsx } from 'clsx';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-const mediaTypeIcons = {
+const mediaTypeIcons: Record<MediaType, typeof Image> = {
   [MediaType.IMAGE]: Image,
   [MediaType.VIDEO]: Film,
   [MediaType.PDF]: FileText,
+  [MediaType.YOUTUBE]: Youtube,
 };
 
 export default function AdminMedia() {
@@ -139,7 +140,7 @@ export default function AdminMedia() {
                 {item.type === MediaType.IMAGE ? (
                   <img
                     src={item.url}
-                    alt={item.altText || item.originalName}
+                    alt={item.altText || item.originalName || ''}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -181,7 +182,7 @@ export default function AdminMedia() {
             {selectedMedia.type === MediaType.IMAGE ? (
               <img
                 src={selectedMedia.url}
-                alt={selectedMedia.altText || selectedMedia.originalName}
+                alt={selectedMedia.altText || selectedMedia.originalName || ''}
                 className="w-full rounded-lg mb-6"
               />
             ) : selectedMedia.type === MediaType.VIDEO ? (
@@ -207,7 +208,7 @@ export default function AdminMedia() {
               </div>
               <div className="flex justify-between">
                 <span className="text-dark-500">Size:</span>
-                <span className="text-dark-200">{formatFileSize(selectedMedia.size)}</span>
+                <span className="text-dark-200">{selectedMedia.size ? formatFileSize(selectedMedia.size) : 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-dark-500">URL:</span>

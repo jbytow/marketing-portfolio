@@ -33,12 +33,9 @@ public class PostDto {
     private Boolean published;
     private Integer displayOrder;
     private Boolean isCaseStudy;
+    private List<String> hashtags;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
-
-    // Category-specific details
-    private CampaignDetailsDto campaignDetails;
-    private CaseStudyDetailsDto caseStudyDetails;
 
     // Related media
     private List<MediaDto> media;

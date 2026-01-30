@@ -5,10 +5,13 @@ export const queryKeys = {
   settings: (lang: string) => ['settings', lang] as const,
   posts: (lang: string, category?: Category | 'featured') =>
     ['posts', lang, category] as const,
+  postsByHashtag: (lang: string, hashtag: string) =>
+    ['posts', lang, 'hashtag', hashtag] as const,
   post: (lang: string, slug: string) => ['post', lang, slug] as const,
   caseStudies: (lang: string) => ['caseStudies', lang] as const,
   softSkills: (lang: string) => ['softSkills', lang] as const,
   experiences: (lang: string) => ['experiences', lang] as const,
+  hashtags: () => ['hashtags'] as const,
 
   // Admin queries (language-independent, manages all languages)
   admin: {

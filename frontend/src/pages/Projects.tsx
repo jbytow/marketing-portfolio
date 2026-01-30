@@ -2,24 +2,36 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowRight, X } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import HashtagList from '@/components/HashtagList';
 
 export default function Projects() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeHashtag = searchParams.get('hashtag');
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.posts(language, Category.CAMPAIGNS),
-    queryFn: () => postsApi.getAll(Category.CAMPAIGNS),
+    queryKey: activeHashtag
+      ? queryKeys.postsByHashtag(language, activeHashtag)
+      : queryKeys.posts(language, Category.CAMPAIGNS),
+    queryFn: () =>
+      activeHashtag
+        ? postsApi.getAll(undefined, activeHashtag)
+        : postsApi.getAll(Category.CAMPAIGNS),
   });
 
   const projects = data?.data || [];
+
+  const clearHashtagFilter = () => {
+    setSearchParams({});
+  };
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
@@ -42,6 +54,26 @@ export default function Projects() {
             <p className="section-subheading mx-auto">{t('projects.subtitle')}</p>
           </motion.div>
 
+          {/* Active hashtag filter */}
+          {activeHashtag && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 flex items-center justify-center gap-2"
+            >
+              <span className="text-dark-400">Filtered by:</span>
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 text-primary-400">
+                #{activeHashtag}
+                <button
+                  onClick={clearHashtagFilter}
+                  className="hover:text-primary-300 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </span>
+            </motion.div>
+          )}
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, index) => (
               <motion.article
@@ -61,25 +93,20 @@ export default function Projects() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mb-3">
-                  <span className="badge-primary">{project.campaignDetails?.projectType}</span>
-                  {project.campaignDetails?.clientName && (
-                    <span className="text-dark-500 text-sm">{project.campaignDetails.clientName}</span>
-                  )}
-                </div>
-
                 <h3 className="text-xl font-semibold text-dark-100 mb-2 group-hover:text-primary-400 transition-colors">
                   {project.title}
                 </h3>
 
                 <p className="text-dark-400 text-sm line-clamp-2 mb-4">{project.excerpt}</p>
 
-                {project.campaignDetails?.metrics && (
-                  <div className="flex items-center gap-4 text-sm text-dark-400 mb-4">
-                    <div className="flex items-center">
-                      <BarChart3 className="w-4 h-4 mr-1 text-primary-400" />
-                      <span>View Metrics</span>
-                    </div>
+                {/* Hashtags - non-clickable, limited to 3 */}
+                {project.hashtags && project.hashtags.length > 0 && (
+                  <div className="mb-4">
+                    <HashtagList
+                      hashtags={project.hashtags}
+                      clickable={false}
+                      limit={3}
+                    />
                   </div>
                 )}
 
@@ -96,7 +123,9 @@ export default function Projects() {
 
           {projects.length === 0 && (
             <div className="text-center text-dark-400 py-12">
-              No projects yet.
+              {activeHashtag
+                ? `No projects found with hashtag #${activeHashtag}`
+                : 'No projects yet.'}
             </div>
           )}
         </div>

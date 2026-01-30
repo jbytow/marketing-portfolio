@@ -186,8 +186,9 @@ class PostRepositoryTest {
             List<Post> result = postRepository
                     .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS);
 
-            assertThat(result).hasSize(1);
+            assertThat(result).hasSize(2);
             assertThat(result.get(0).getSlug()).isEqualTo("published-post-1");
+            assertThat(result.get(1).getSlug()).isEqualTo("published-post-2");
         }
 
         @Test
@@ -218,9 +219,9 @@ class PostRepositoryTest {
         void shouldReturnAllPostsIncludingDrafts() {
             List<Post> result = postRepository.findAllByCategory(Category.CAMPAIGNS);
 
-            assertThat(result).hasSize(2);
+            assertThat(result).hasSize(3);
             assertThat(result).extracting(Post::getSlug)
-                    .containsExactlyInAnyOrder("published-post-1", "draft-post");
+                    .containsExactlyInAnyOrder("published-post-1", "published-post-2", "draft-post");
         }
     }
 
@@ -233,7 +234,7 @@ class PostRepositoryTest {
         void shouldCountOnlyPublishedInCategory() {
             long count = postRepository.countByCategoryAndPublished(Category.CAMPAIGNS);
 
-            assertThat(count).isEqualTo(1);
+            assertThat(count).isEqualTo(2);
         }
     }
 

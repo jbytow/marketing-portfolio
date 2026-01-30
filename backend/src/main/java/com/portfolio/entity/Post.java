@@ -68,17 +68,14 @@ public class Post {
     @Builder.Default
     private Boolean isCaseStudy = false;
 
+    @Column(name = "hashtags", columnDefinition = "text[]")
+    private String[] hashtags = new String[0];
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
-
-    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private CampaignDetails campaignDetails;
-
-    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private CaseStudyDetails caseStudyDetails;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @Builder.Default

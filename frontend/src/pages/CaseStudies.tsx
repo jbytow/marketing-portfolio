@@ -8,6 +8,7 @@ import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import HashtagList from '@/components/HashtagList';
 
 export default function CaseStudies() {
   const { t } = useTranslation();
@@ -70,20 +71,9 @@ export default function CaseStudies() {
 
                     <p className="text-dark-400 mb-6">{study.excerpt}</p>
 
-                    {study.caseStudyDetails && (
-                      <div className="space-y-3 mb-6">
-                        <div className="flex">
-                          <span className="text-primary-400 font-medium w-24">{t('caseStudies.problem')}:</span>
-                          <span className="text-dark-400 flex-1 line-clamp-1">
-                            {study.caseStudyDetails.problem}
-                          </span>
-                        </div>
-                        <div className="flex">
-                          <span className="text-primary-400 font-medium w-24">{t('caseStudies.solution')}:</span>
-                          <span className="text-dark-400 flex-1 line-clamp-1">
-                            {study.caseStudyDetails.solution}
-                          </span>
-                        </div>
+                    {study.hashtags && study.hashtags.length > 0 && (
+                      <div className="mb-6">
+                        <HashtagList hashtags={study.hashtags} clickable={false} limit={5} />
                       </div>
                     )}
 

@@ -8,6 +8,7 @@ export enum MediaType {
   IMAGE = 'IMAGE',
   VIDEO = 'VIDEO',
   PDF = 'PDF',
+  YOUTUBE = 'YOUTUBE',
 }
 
 export interface Post {
@@ -28,10 +29,9 @@ export interface Post {
   published: boolean;
   displayOrder: number;
   isCaseStudy: boolean;
+  hashtags: string[];
   createdAt: string;
   updatedAt: string;
-  campaignDetails?: CampaignDetails;
-  caseStudyDetails?: CaseStudyDetails;
   media?: Media[];
 }
 
@@ -74,46 +74,21 @@ export interface Experience {
   updatedAt: string;
 }
 
-export interface CampaignDetails {
-  clientName: string;
-  projectType: string;
-  projectTypeEn: string;
-  projectTypePl: string;
-  results: Record<string, unknown>;
-  resultsEn: Record<string, unknown>;
-  resultsPl: Record<string, unknown>;
-  metrics: Record<string, unknown>;
-}
-
-export interface CaseStudyDetails {
-  problem: string;
-  problemEn: string;
-  problemPl: string;
-  solution: string;
-  solutionEn: string;
-  solutionPl: string;
-  results: string;
-  resultsEn: string;
-  resultsPl: string;
-  metrics: Record<string, unknown>;
-  testimonialText: string;
-  testimonialTextEn: string;
-  testimonialTextPl: string;
-  testimonialAuthor: string;
-}
 
 export interface Media {
   id: string;
   postId: string | null;
   type: MediaType;
-  filename: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
+  filename: string | null;
+  originalName: string | null;
+  mimeType: string | null;
+  size: number | null;
   url: string;
   altText: string;
   altTextEn: string;
   altTextPl: string;
+  displayOrder: number;
+  videoUrl: string | null;
   createdAt: string;
 }
 
@@ -183,8 +158,7 @@ export interface PostCreateRequest {
   published?: boolean;
   displayOrder?: number;
   isCaseStudy?: boolean;
-  campaignDetails?: Partial<CampaignDetails>;
-  caseStudyDetails?: Partial<CaseStudyDetails>;
+  hashtags?: string[];
 }
 
 export type PostUpdateRequest = Partial<PostCreateRequest>;
