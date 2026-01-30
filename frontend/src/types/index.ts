@@ -1,10 +1,7 @@
 export enum Category {
-  EXPERIENCE = 'EXPERIENCE',
   CAMPAIGNS = 'CAMPAIGNS',
-  INFLUENCE_MARKETING = 'INFLUENCE_MARKETING',
-  CASE_STUDY = 'CASE_STUDY',
   CONTENT_COPY = 'CONTENT_COPY',
-  SOFT_SKILLS = 'SOFT_SKILLS',
+  NEWSLETTER = 'NEWSLETTER',
 }
 
 export enum MediaType {
@@ -30,25 +27,51 @@ export interface Post {
   featuredImage: string | null;
   published: boolean;
   displayOrder: number;
+  isCaseStudy: boolean;
   createdAt: string;
   updatedAt: string;
-  experienceDetails?: ExperienceDetails;
   campaignDetails?: CampaignDetails;
   caseStudyDetails?: CaseStudyDetails;
-  influenceMarketingDetails?: InfluenceMarketingDetails;
   media?: Media[];
 }
 
-export interface ExperienceDetails {
-  companyName: string;
+export interface SoftSkill {
+  id: string;
+  name: string;
+  nameEn: string;
+  namePl: string;
+  description: string;
+  descriptionEn: string;
+  descriptionPl: string;
+  professionalUsage: string;
+  professionalUsageEn: string;
+  professionalUsagePl: string;
+  icon: string | null;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Experience {
+  id: string;
+  title: string;
+  titleEn: string;
+  titlePl: string;
+  company: string;
   role: string;
   roleEn: string;
   rolePl: string;
   startDate: string;
   endDate: string | null;
+  description: string;
+  descriptionEn: string;
+  descriptionPl: string;
   achievements: string[];
   achievementsEn: string[];
   achievementsPl: string[];
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CampaignDetails {
@@ -77,15 +100,6 @@ export interface CaseStudyDetails {
   testimonialTextEn: string;
   testimonialTextPl: string;
   testimonialAuthor: string;
-}
-
-export interface InfluenceMarketingDetails {
-  partnershipType: string;
-  partnershipTypeEn: string;
-  partnershipTypePl: string;
-  communitySize: number;
-  engagementRate: number;
-  platforms: string[];
 }
 
 export interface Media {
@@ -168,13 +182,42 @@ export interface PostCreateRequest {
   featuredImage?: string;
   published?: boolean;
   displayOrder?: number;
-  experienceDetails?: Partial<ExperienceDetails>;
+  isCaseStudy?: boolean;
   campaignDetails?: Partial<CampaignDetails>;
   caseStudyDetails?: Partial<CaseStudyDetails>;
-  influenceMarketingDetails?: Partial<InfluenceMarketingDetails>;
 }
 
 export type PostUpdateRequest = Partial<PostCreateRequest>;
+
+export interface SoftSkillCreateRequest {
+  nameEn: string;
+  namePl: string;
+  descriptionEn?: string;
+  descriptionPl?: string;
+  professionalUsageEn?: string;
+  professionalUsagePl?: string;
+  icon?: string;
+  displayOrder?: number;
+}
+
+export type SoftSkillUpdateRequest = Partial<SoftSkillCreateRequest>;
+
+export interface ExperienceCreateRequest {
+  titleEn: string;
+  titlePl: string;
+  company: string;
+  roleEn: string;
+  rolePl: string;
+  startDate: string;
+  endDate?: string;
+  descriptionEn?: string;
+  descriptionPl?: string;
+  achievementsEn?: string[];
+  achievementsPl?: string[];
+  displayOrder?: number;
+}
+
+export type ExperienceUpdateRequest = Partial<ExperienceCreateRequest>;
 
 export interface ReorderItem {
   id: string;

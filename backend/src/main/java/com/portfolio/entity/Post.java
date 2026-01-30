@@ -64,6 +64,10 @@ public class Post {
     @Builder.Default
     private Integer displayOrder = 0;
 
+    @Column(name = "is_case_study")
+    @Builder.Default
+    private Boolean isCaseStudy = false;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
@@ -71,16 +75,10 @@ public class Post {
     private OffsetDateTime updatedAt;
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ExperienceDetails experienceDetails;
-
-    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private CampaignDetails campaignDetails;
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private CaseStudyDetails caseStudyDetails;
-
-    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private InfluenceMarketingDetails influenceMarketingDetails;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     @Builder.Default

@@ -9,22 +9,42 @@ import {
   Target,
   Clock,
   Heart,
+  Zap,
+  Brain,
+  Handshake,
+  Rocket,
+  Sparkles,
+  Award,
 } from 'lucide-react';
-import { postsApi } from '@/services/api';
-import { Category } from '@/types';
+import { softSkillsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-const skillIcons = [Lightbulb, Users, MessageSquare, Target, Clock, Heart];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  lightbulb: Lightbulb,
+  users: Users,
+  message: MessageSquare,
+  target: Target,
+  clock: Clock,
+  heart: Heart,
+  zap: Zap,
+  brain: Brain,
+  handshake: Handshake,
+  rocket: Rocket,
+  sparkles: Sparkles,
+  award: Award,
+};
+
+const defaultIcons = [Lightbulb, Users, MessageSquare, Target, Clock, Heart];
 
 export default function Skills() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.posts(language, Category.SOFT_SKILLS),
-    queryFn: () => postsApi.getAll(Category.SOFT_SKILLS),
+    queryKey: queryKeys.softSkills(language),
+    queryFn: () => softSkillsApi.getAll(),
   });
 
   const skills = data?.data || [];
@@ -32,6 +52,13 @@ export default function Skills() {
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
   }
+
+  const getIcon = (iconName: string | null, index: number) => {
+    if (iconName && iconMap[iconName.toLowerCase()]) {
+      return iconMap[iconName.toLowerCase()];
+    }
+    return defaultIcons[index % defaultIcons.length];
+  };
 
   return (
     <>
@@ -52,7 +79,7 @@ export default function Skills() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {skills.map((skill, index) => {
-              const IconComponent = skillIcons[index % skillIcons.length];
+              const IconComponent = getIcon(skill.icon, index);
               return (
                 <motion.div
                   key={skill.id}
@@ -65,9 +92,13 @@ export default function Skills() {
                     <IconComponent className="w-8 h-8 text-primary-400" />
                   </div>
 
-                  <h3 className="text-xl font-semibold text-dark-100 mb-3">{skill.title}</h3>
+                  <h3 className="text-xl font-semibold text-dark-100 mb-3">{skill.name}</h3>
 
-                  <p className="text-dark-400">{skill.excerpt}</p>
+                  <p className="text-dark-400 mb-4">{skill.description}</p>
+
+                  {skill.professionalUsage && (
+                    <p className="text-dark-500 text-sm italic">{skill.professionalUsage}</p>
+                  )}
                 </motion.div>
               );
             })}
@@ -75,7 +106,7 @@ export default function Skills() {
 
           {skills.length === 0 && (
             <div className="text-center">
-              {/* Default skills when no posts exist */}
+              {/* Default skills when no skills exist */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   { icon: Lightbulb, title: 'Creative Thinking', desc: 'Innovative solutions to marketing challenges' },

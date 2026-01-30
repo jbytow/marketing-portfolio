@@ -51,7 +51,7 @@ class PostServiceTest {
         postId = UUID.randomUUID();
         samplePost = Post.builder()
                 .id(postId)
-                .category(Category.EXPERIENCE)
+                .category(Category.CAMPAIGNS)
                 .titleEn("Test Title EN")
                 .titlePl("Test Title PL")
                 .slug("test-title-en")
@@ -73,7 +73,7 @@ class PostServiceTest {
         void shouldReturnAllPublishedPosts() {
             Post publishedPost = Post.builder()
                     .id(UUID.randomUUID())
-                    .category(Category.EXPERIENCE)
+                    .category(Category.CAMPAIGNS)
                     .titleEn("Published Post")
                     .titlePl("Opublikowany Post")
                     .slug("published-post")
@@ -102,7 +102,7 @@ class PostServiceTest {
         void shouldUsePolishTitleWhenLocaleIsPl() {
             Post post = Post.builder()
                     .id(UUID.randomUUID())
-                    .category(Category.EXPERIENCE)
+                    .category(Category.CAMPAIGNS)
                     .titleEn("English Title")
                     .titlePl("Polski Tytuł")
                     .slug("post")
@@ -123,13 +123,13 @@ class PostServiceTest {
         @Test
         @DisplayName("should return posts for given category")
         void shouldReturnPostsForCategory() {
-            given(postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.EXPERIENCE))
+            given(postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS))
                     .willReturn(List.of(samplePost));
 
-            List<PostDto> result = postService.getPostsByCategory(Category.EXPERIENCE, "en");
+            List<PostDto> result = postService.getPostsByCategory(Category.CAMPAIGNS, "en");
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getCategory()).isEqualTo(Category.EXPERIENCE);
+            assertThat(result.get(0).getCategory()).isEqualTo(Category.CAMPAIGNS);
         }
 
         @Test
@@ -204,13 +204,13 @@ class PostServiceTest {
         @DisplayName("should create post with provided data")
         void shouldCreatePostWithProvidedData() {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("New Post");
             request.setTitlePl("Nowy Post");
             request.setPublished(false);
 
             given(postRepository.existsBySlug(anyString())).willReturn(false);
-            given(postRepository.getMaxDisplayOrder(Category.EXPERIENCE)).willReturn(0);
+            given(postRepository.getMaxDisplayOrder(Category.CAMPAIGNS)).willReturn(0);
             given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
                 Post post = invocation.getArgument(0);
                 post.setId(UUID.randomUUID());
@@ -224,14 +224,14 @@ class PostServiceTest {
 
             assertThat(savedPost.getTitleEn()).isEqualTo("New Post");
             assertThat(savedPost.getTitlePl()).isEqualTo("Nowy Post");
-            assertThat(savedPost.getCategory()).isEqualTo(Category.EXPERIENCE);
+            assertThat(savedPost.getCategory()).isEqualTo(Category.CAMPAIGNS);
         }
 
         @Test
         @DisplayName("should generate unique slug when not provided")
         void shouldGenerateUniqueSlug() {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("My Great Post");
             request.setTitlePl("Mój Świetny Post");
 
@@ -253,7 +253,7 @@ class PostServiceTest {
         @DisplayName("should append number to slug when already exists")
         void shouldAppendNumberToSlugWhenExists() {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("Duplicate Title");
             request.setTitlePl("Duplikat");
 
@@ -276,7 +276,7 @@ class PostServiceTest {
         @DisplayName("should set default published to false when not provided")
         void shouldSetDefaultPublishedFalse() {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("Test");
             request.setTitlePl("Test");
             // published is not set
@@ -419,7 +419,7 @@ class PostServiceTest {
         void shouldReturnAllPostsIncludingUnpublished() {
             Post unpublished = Post.builder()
                     .id(UUID.randomUUID())
-                    .category(Category.EXPERIENCE)
+                    .category(Category.CAMPAIGNS)
                     .titleEn("Unpublished")
                     .titlePl("Nieopublikowany")
                     .slug("unpublished")
@@ -427,7 +427,7 @@ class PostServiceTest {
                     .build();
             Post published = Post.builder()
                     .id(UUID.randomUUID())
-                    .category(Category.EXPERIENCE)
+                    .category(Category.CAMPAIGNS)
                     .titleEn("Published")
                     .titlePl("Opublikowany")
                     .slug("published")

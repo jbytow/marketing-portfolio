@@ -12,14 +12,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ExperienceDetailsDto {
-    private String companyName;
-    private String role;
+public class ExperienceUpdateRequest {
+    private String titleEn;
+    private String titlePl;
+    private String company;
     private String roleEn;
     private String rolePl;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<String> achievements;
+    private String descriptionEn;
+    private String descriptionPl;
     private List<String> achievementsEn;
     private List<String> achievementsPl;
+    private Integer displayOrder;
 }

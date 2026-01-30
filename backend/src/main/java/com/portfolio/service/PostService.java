@@ -44,6 +44,18 @@ public class PostService {
                 .map(post -> mapToDto(post, locale, false));
     }
 
+    public List<PostDto> getCaseStudies(String locale) {
+        return postRepository.findByIsCaseStudyTrueAndPublishedTrueOrderByDisplayOrderAsc().stream()
+                .map(post -> mapToDto(post, locale, false))
+                .toList();
+    }
+
+    public List<PostDto> getAllCaseStudies(String locale) {
+        return postRepository.findAllCaseStudies().stream()
+                .map(post -> mapToDto(post, locale, false))
+                .toList();
+    }
+
     public PostDto getPostBySlug(String slug, String locale) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + slug));
@@ -87,6 +99,7 @@ public class PostService {
                 .contentPl(request.getContentPl())
                 .featuredImage(request.getFeaturedImage())
                 .published(request.getPublished() != null ? request.getPublished() : false)
+                .isCaseStudy(request.getIsCaseStudy() != null ? request.getIsCaseStudy() : false)
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() :
                         postRepository.getMaxDisplayOrder(request.getCategory()) + 1)
                 .build();
@@ -137,6 +150,9 @@ public class PostService {
         if (request.getDisplayOrder() != null) {
             post.setDisplayOrder(request.getDisplayOrder());
         }
+        if (request.getIsCaseStudy() != null) {
+            post.setIsCaseStudy(request.getIsCaseStudy());
+        }
 
         // Update category-specific details
         updateCategoryDetails(post, request);
@@ -182,109 +198,43 @@ public class PostService {
     }
 
     private void createCategoryDetails(Post post, PostCreateRequest request) {
-        switch (post.getCategory()) {
-            case EXPERIENCE -> {
-                if (request.getExperienceDetails() != null) {
-                    ExperienceDetails details = mapExperienceDetails(request.getExperienceDetails());
-                    details.setPost(post);
-                    post.setExperienceDetails(details);
-                }
-            }
-            case CAMPAIGNS -> {
-                if (request.getCampaignDetails() != null) {
-                    CampaignDetails details = mapCampaignDetails(request.getCampaignDetails());
-                    details.setPost(post);
-                    post.setCampaignDetails(details);
-                }
-            }
-            case CASE_STUDY -> {
-                if (request.getCaseStudyDetails() != null) {
-                    CaseStudyDetails details = mapCaseStudyDetails(request.getCaseStudyDetails());
-                    details.setPost(post);
-                    post.setCaseStudyDetails(details);
-                }
-            }
-            case INFLUENCE_MARKETING -> {
-                if (request.getInfluenceMarketingDetails() != null) {
-                    InfluenceMarketingDetails details = mapInfluenceMarketingDetails(request.getInfluenceMarketingDetails());
-                    details.setPost(post);
-                    post.setInfluenceMarketingDetails(details);
-                }
-            }
-            default -> {}
+        // Handle campaign details for CAMPAIGNS category
+        if (request.getCampaignDetails() != null) {
+            CampaignDetails details = mapCampaignDetails(request.getCampaignDetails());
+            details.setPost(post);
+            post.setCampaignDetails(details);
+        }
+
+        // Handle case study details if post is marked as case study
+        if (Boolean.TRUE.equals(request.getIsCaseStudy()) && request.getCaseStudyDetails() != null) {
+            CaseStudyDetails details = mapCaseStudyDetails(request.getCaseStudyDetails());
+            details.setPost(post);
+            post.setCaseStudyDetails(details);
         }
     }
 
     private void updateCategoryDetails(Post post, PostUpdateRequest request) {
-        switch (post.getCategory()) {
-            case EXPERIENCE -> {
-                if (request.getExperienceDetails() != null) {
-                    ExperienceDetails details = post.getExperienceDetails();
-                    if (details == null) {
-                        details = new ExperienceDetails();
-                        details.setPost(post);
-                        post.setExperienceDetails(details);
-                    }
-                    updateExperienceDetails(details, request.getExperienceDetails());
-                }
+        // Update campaign details
+        if (request.getCampaignDetails() != null) {
+            CampaignDetails details = post.getCampaignDetails();
+            if (details == null) {
+                details = new CampaignDetails();
+                details.setPost(post);
+                post.setCampaignDetails(details);
             }
-            case CAMPAIGNS -> {
-                if (request.getCampaignDetails() != null) {
-                    CampaignDetails details = post.getCampaignDetails();
-                    if (details == null) {
-                        details = new CampaignDetails();
-                        details.setPost(post);
-                        post.setCampaignDetails(details);
-                    }
-                    updateCampaignDetails(details, request.getCampaignDetails());
-                }
-            }
-            case CASE_STUDY -> {
-                if (request.getCaseStudyDetails() != null) {
-                    CaseStudyDetails details = post.getCaseStudyDetails();
-                    if (details == null) {
-                        details = new CaseStudyDetails();
-                        details.setPost(post);
-                        post.setCaseStudyDetails(details);
-                    }
-                    updateCaseStudyDetails(details, request.getCaseStudyDetails());
-                }
-            }
-            case INFLUENCE_MARKETING -> {
-                if (request.getInfluenceMarketingDetails() != null) {
-                    InfluenceMarketingDetails details = post.getInfluenceMarketingDetails();
-                    if (details == null) {
-                        details = new InfluenceMarketingDetails();
-                        details.setPost(post);
-                        post.setInfluenceMarketingDetails(details);
-                    }
-                    updateInfluenceMarketingDetails(details, request.getInfluenceMarketingDetails());
-                }
-            }
-            default -> {}
+            updateCampaignDetails(details, request.getCampaignDetails());
         }
-    }
 
-    private ExperienceDetails mapExperienceDetails(ExperienceDetailsDto dto) {
-        return ExperienceDetails.builder()
-                .companyName(dto.getCompanyName())
-                .roleEn(dto.getRoleEn())
-                .rolePl(dto.getRolePl())
-                .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
-                .achievementsEn(dto.getAchievementsEn())
-                .achievementsPl(dto.getAchievementsPl())
-                .build();
-    }
-
-    private void updateExperienceDetails(ExperienceDetails details, ExperienceDetailsDto dto) {
-        if (dto.getCompanyName() != null) details.setCompanyName(dto.getCompanyName());
-        if (dto.getRoleEn() != null) details.setRoleEn(dto.getRoleEn());
-        if (dto.getRolePl() != null) details.setRolePl(dto.getRolePl());
-        if (dto.getStartDate() != null) details.setStartDate(dto.getStartDate());
-        details.setEndDate(dto.getEndDate());
-        if (dto.getAchievementsEn() != null) details.setAchievementsEn(dto.getAchievementsEn());
-        if (dto.getAchievementsPl() != null) details.setAchievementsPl(dto.getAchievementsPl());
+        // Update case study details if post is marked as case study
+        if (request.getCaseStudyDetails() != null) {
+            CaseStudyDetails details = post.getCaseStudyDetails();
+            if (details == null) {
+                details = new CaseStudyDetails();
+                details.setPost(post);
+                post.setCaseStudyDetails(details);
+            }
+            updateCaseStudyDetails(details, request.getCaseStudyDetails());
+        }
     }
 
     private CampaignDetails mapCampaignDetails(CampaignDetailsDto dto) {
@@ -335,24 +285,6 @@ public class PostService {
         if (dto.getTestimonialAuthor() != null) details.setTestimonialAuthor(dto.getTestimonialAuthor());
     }
 
-    private InfluenceMarketingDetails mapInfluenceMarketingDetails(InfluenceMarketingDetailsDto dto) {
-        return InfluenceMarketingDetails.builder()
-                .partnershipTypeEn(dto.getPartnershipTypeEn())
-                .partnershipTypePl(dto.getPartnershipTypePl())
-                .communitySize(dto.getCommunitySize())
-                .engagementRate(dto.getEngagementRate())
-                .platforms(dto.getPlatforms())
-                .build();
-    }
-
-    private void updateInfluenceMarketingDetails(InfluenceMarketingDetails details, InfluenceMarketingDetailsDto dto) {
-        if (dto.getPartnershipTypeEn() != null) details.setPartnershipTypeEn(dto.getPartnershipTypeEn());
-        if (dto.getPartnershipTypePl() != null) details.setPartnershipTypePl(dto.getPartnershipTypePl());
-        if (dto.getCommunitySize() != null) details.setCommunitySize(dto.getCommunitySize());
-        if (dto.getEngagementRate() != null) details.setEngagementRate(dto.getEngagementRate());
-        if (dto.getPlatforms() != null) details.setPlatforms(dto.getPlatforms());
-    }
-
     private PostDto mapToDto(Post post, String locale, boolean includeContent) {
         PostDto.PostDtoBuilder builder = PostDto.builder()
                 .id(post.getId())
@@ -368,6 +300,7 @@ public class PostService {
                 .featuredImage(post.getFeaturedImage())
                 .published(post.getPublished())
                 .displayOrder(post.getDisplayOrder())
+                .isCaseStudy(post.getIsCaseStudy())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt());
 
@@ -377,17 +310,11 @@ public class PostService {
                     .contentPl(post.getContentPl());
 
             // Map category-specific details
-            if (post.getExperienceDetails() != null) {
-                builder.experienceDetails(mapExperienceDetailsToDto(post.getExperienceDetails(), locale));
-            }
             if (post.getCampaignDetails() != null) {
                 builder.campaignDetails(mapCampaignDetailsToDto(post.getCampaignDetails(), locale));
             }
             if (post.getCaseStudyDetails() != null) {
                 builder.caseStudyDetails(mapCaseStudyDetailsToDto(post.getCaseStudyDetails(), locale));
-            }
-            if (post.getInfluenceMarketingDetails() != null) {
-                builder.influenceMarketingDetails(mapInfluenceMarketingDetailsToDto(post.getInfluenceMarketingDetails(), locale));
             }
 
             // Map media
@@ -399,20 +326,6 @@ public class PostService {
         }
 
         return builder.build();
-    }
-
-    private ExperienceDetailsDto mapExperienceDetailsToDto(ExperienceDetails details, String locale) {
-        return ExperienceDetailsDto.builder()
-                .companyName(details.getCompanyName())
-                .role(details.getRole(locale))
-                .roleEn(details.getRoleEn())
-                .rolePl(details.getRolePl())
-                .startDate(details.getStartDate())
-                .endDate(details.getEndDate())
-                .achievements(details.getAchievements(locale))
-                .achievementsEn(details.getAchievementsEn())
-                .achievementsPl(details.getAchievementsPl())
-                .build();
     }
 
     private CampaignDetailsDto mapCampaignDetailsToDto(CampaignDetails details, String locale) {
@@ -444,17 +357,6 @@ public class PostService {
                 .testimonialTextEn(details.getTestimonialTextEn())
                 .testimonialTextPl(details.getTestimonialTextPl())
                 .testimonialAuthor(details.getTestimonialAuthor())
-                .build();
-    }
-
-    private InfluenceMarketingDetailsDto mapInfluenceMarketingDetailsToDto(InfluenceMarketingDetails details, String locale) {
-        return InfluenceMarketingDetailsDto.builder()
-                .partnershipType(details.getPartnershipType(locale))
-                .partnershipTypeEn(details.getPartnershipTypeEn())
-                .partnershipTypePl(details.getPartnershipTypePl())
-                .communitySize(details.getCommunitySize())
-                .engagementRate(details.getEngagementRate())
-                .platforms(details.getPlatforms())
                 .build();
     }
 

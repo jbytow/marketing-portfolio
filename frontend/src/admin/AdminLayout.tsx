@@ -9,6 +9,8 @@ import {
   LogOut,
   ChevronLeft,
   User,
+  Briefcase,
+  Lightbulb,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +18,8 @@ import { useAuth } from '@/contexts/AuthContext';
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.dashboard.title', exact: true },
   { path: '/admin/posts', icon: FileText, labelKey: 'admin.posts.title' },
+  { path: '/admin/experiences', icon: Briefcase, labelKey: 'admin.experiences.title' },
+  { path: '/admin/soft-skills', icon: Lightbulb, labelKey: 'admin.softSkills.title' },
   { path: '/admin/media', icon: Image, labelKey: 'admin.media.title' },
   { path: '/admin/settings', icon: Settings, labelKey: 'admin.settings.title' },
 ];

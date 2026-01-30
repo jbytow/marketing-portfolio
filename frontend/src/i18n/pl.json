@@ -29,7 +29,6 @@
     "about": "O mnie",
     "experience": "Doświadczenie",
     "projects": "Projekty",
-    "influence": "Influence",
     "caseStudies": "Case Studies",
     "content": "Treści",
     "skills": "Umiejętności",
@@ -66,13 +65,6 @@
     "title": "Projekty i kampanie",
     "subtitle": "Poznaj moje kampanie marketingowe i projekty",
     "viewProject": "Zobacz projekt"
-  },
-  "influence": {
-    "title": "Influence Marketing",
-    "subtitle": "Partnerstwa i współprace",
-    "communitySize": "Wielkość społeczności",
-    "engagementRate": "Wskaźnik zaangażowania",
-    "platforms": "Platformy"
   },
   "caseStudies": {
     "title": "Case Studies",
@@ -111,12 +103,9 @@
     }
   },
   "categories": {
-    "EXPERIENCE": "Doświadczenie",
     "CAMPAIGNS": "Kampanie",
-    "INFLUENCE_MARKETING": "Influence Marketing",
-    "CASE_STUDY": "Case Studies",
     "CONTENT_COPY": "Treści i Copywriting",
-    "SOFT_SKILLS": "Umiejętności miękkie"
+    "NEWSLETTER": "Newsletter"
   },
   "admin": {
     "dashboard": {
@@ -133,7 +122,24 @@
       "newPost": "Nowy post",
       "editPost": "Edytuj post",
       "noPostsYet": "Brak postów",
-      "createFirst": "Utwórz swój pierwszy post"
+      "createFirst": "Utwórz swój pierwszy post",
+      "markAsCaseStudy": "Oznacz jako Case Study"
+    },
+    "softSkills": {
+      "title": "Umiejętności miękkie",
+      "subtitle": "Zarządzaj umiejętnościami miękkimi",
+      "newSkill": "Nowa umiejętność",
+      "editSkill": "Edytuj umiejętność",
+      "noSkillsYet": "Brak umiejętności miękkich",
+      "createFirst": "Utwórz pierwszą umiejętność miękką"
+    },
+    "experiences": {
+      "title": "Doświadczenie",
+      "subtitle": "Zarządzaj doświadczeniem zawodowym",
+      "newExperience": "Nowe doświadczenie",
+      "editExperience": "Edytuj doświadczenie",
+      "noExperiencesYet": "Brak doświadczeń",
+      "createFirst": "Utwórz pierwsze doświadczenie"
     },
     "media": {
       "title": "Biblioteka mediów",

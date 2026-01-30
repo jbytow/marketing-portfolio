@@ -13,6 +13,12 @@ import {
   PaginatedResponse,
   Category,
   MediaType,
+  SoftSkill,
+  SoftSkillCreateRequest,
+  SoftSkillUpdateRequest,
+  Experience,
+  ExperienceCreateRequest,
+  ExperienceUpdateRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -75,6 +81,35 @@ export const postsApi = {
     const { data } = await api.get('/posts/paged', { params });
     return data;
   },
+
+  getCaseStudies: async (): Promise<ApiResponse<Post[]>> => {
+    const { data } = await api.get('/posts/case-studies');
+    return data;
+  },
+};
+
+export const softSkillsApi = {
+  getAll: async (): Promise<ApiResponse<SoftSkill[]>> => {
+    const { data } = await api.get('/soft-skills');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<SoftSkill>> => {
+    const { data } = await api.get(`/soft-skills/${id}`);
+    return data;
+  },
+};
+
+export const experiencesApi = {
+  getAll: async (): Promise<ApiResponse<Experience[]>> => {
+    const { data } = await api.get('/experiences');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<Experience>> => {
+    const { data } = await api.get(`/experiences/${id}`);
+    return data;
+  },
 };
 
 export const categoriesApi = {
@@ -131,6 +166,70 @@ export const adminPostsApi = {
 
   reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
     const { data } = await api.patch('/admin/posts/reorder', { items });
+    return data;
+  },
+};
+
+export const adminSoftSkillsApi = {
+  getAll: async (): Promise<ApiResponse<SoftSkill[]>> => {
+    const { data } = await api.get('/admin/soft-skills');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<SoftSkill>> => {
+    const { data } = await api.get(`/admin/soft-skills/${id}`);
+    return data;
+  },
+
+  create: async (skill: SoftSkillCreateRequest): Promise<ApiResponse<SoftSkill>> => {
+    const { data } = await api.post('/admin/soft-skills', skill);
+    return data;
+  },
+
+  update: async (id: string, skill: SoftSkillUpdateRequest): Promise<ApiResponse<SoftSkill>> => {
+    const { data } = await api.put(`/admin/soft-skills/${id}`, skill);
+    return data;
+  },
+
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/admin/soft-skills/${id}`);
+    return data;
+  },
+
+  reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
+    const { data } = await api.patch('/admin/soft-skills/reorder', { items });
+    return data;
+  },
+};
+
+export const adminExperiencesApi = {
+  getAll: async (): Promise<ApiResponse<Experience[]>> => {
+    const { data } = await api.get('/admin/experiences');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<Experience>> => {
+    const { data } = await api.get(`/admin/experiences/${id}`);
+    return data;
+  },
+
+  create: async (experience: ExperienceCreateRequest): Promise<ApiResponse<Experience>> => {
+    const { data } = await api.post('/admin/experiences', experience);
+    return data;
+  },
+
+  update: async (id: string, experience: ExperienceUpdateRequest): Promise<ApiResponse<Experience>> => {
+    const { data } = await api.put(`/admin/experiences/${id}`, experience);
+    return data;
+  },
+
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/admin/experiences/${id}`);
+    return data;
+  },
+
+  reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
+    const { data } = await api.patch('/admin/experiences/reorder', { items });
     return data;
   },
 };

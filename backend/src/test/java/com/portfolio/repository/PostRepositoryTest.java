@@ -67,7 +67,7 @@ class PostRepositoryTest {
         postRepository.deleteAll();
 
         publishedPost1 = Post.builder()
-                .category(Category.EXPERIENCE)
+                .category(Category.CAMPAIGNS)
                 .titleEn("Published Post 1")
                 .titlePl("Opublikowany Post 1")
                 .slug("published-post-1")
@@ -85,7 +85,7 @@ class PostRepositoryTest {
                 .build();
 
         draftPost = Post.builder()
-                .category(Category.EXPERIENCE)
+                .category(Category.CAMPAIGNS)
                 .titleEn("Draft Post")
                 .titlePl("Szkic Postu")
                 .slug("draft-post")
@@ -184,7 +184,7 @@ class PostRepositoryTest {
         @DisplayName("should return published posts for category")
         void shouldReturnPublishedPostsForCategory() {
             List<Post> result = postRepository
-                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.EXPERIENCE);
+                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS);
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getSlug()).isEqualTo("published-post-1");
@@ -194,7 +194,7 @@ class PostRepositoryTest {
         @DisplayName("should not return draft posts for category")
         void shouldNotReturnDraftPostsForCategory() {
             List<Post> result = postRepository
-                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.EXPERIENCE);
+                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS);
 
             assertThat(result).noneMatch(p -> p.getSlug().equals("draft-post"));
         }
@@ -203,7 +203,7 @@ class PostRepositoryTest {
         @DisplayName("should return empty list for category with no published posts")
         void shouldReturnEmptyForCategoryWithNoPublishedPosts() {
             List<Post> result = postRepository
-                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CASE_STUDY);
+                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.NEWSLETTER);
 
             assertThat(result).isEmpty();
         }
@@ -216,7 +216,7 @@ class PostRepositoryTest {
         @Test
         @DisplayName("should return all posts for category including drafts")
         void shouldReturnAllPostsIncludingDrafts() {
-            List<Post> result = postRepository.findAllByCategory(Category.EXPERIENCE);
+            List<Post> result = postRepository.findAllByCategory(Category.CAMPAIGNS);
 
             assertThat(result).hasSize(2);
             assertThat(result).extracting(Post::getSlug)
@@ -231,7 +231,7 @@ class PostRepositoryTest {
         @Test
         @DisplayName("should count only published posts in category")
         void shouldCountOnlyPublishedInCategory() {
-            long count = postRepository.countByCategoryAndPublished(Category.EXPERIENCE);
+            long count = postRepository.countByCategoryAndPublished(Category.CAMPAIGNS);
 
             assertThat(count).isEqualTo(1);
         }
@@ -278,7 +278,7 @@ class PostRepositoryTest {
         @Test
         @DisplayName("should return max display order for category")
         void shouldReturnMaxDisplayOrder() {
-            int maxOrder = postRepository.getMaxDisplayOrder(Category.EXPERIENCE);
+            int maxOrder = postRepository.getMaxDisplayOrder(Category.CAMPAIGNS);
 
             assertThat(maxOrder).isEqualTo(3); // draft-post has displayOrder 3
         }
@@ -286,7 +286,7 @@ class PostRepositoryTest {
         @Test
         @DisplayName("should return 0 when no posts in category")
         void shouldReturnZeroWhenNoPostsInCategory() {
-            int maxOrder = postRepository.getMaxDisplayOrder(Category.CASE_STUDY);
+            int maxOrder = postRepository.getMaxDisplayOrder(Category.NEWSLETTER);
 
             assertThat(maxOrder).isEqualTo(0);
         }

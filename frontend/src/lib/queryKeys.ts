@@ -6,6 +6,9 @@ export const queryKeys = {
   posts: (lang: string, category?: Category | 'featured') =>
     ['posts', lang, category] as const,
   post: (lang: string, slug: string) => ['post', lang, slug] as const,
+  caseStudies: (lang: string) => ['caseStudies', lang] as const,
+  softSkills: (lang: string) => ['softSkills', lang] as const,
+  experiences: (lang: string) => ['experiences', lang] as const,
 
   // Admin queries (language-independent, manages all languages)
   admin: {
@@ -13,5 +16,9 @@ export const queryKeys = {
     post: (id: string) => ['admin', 'post', id] as const,
     settings: () => ['admin', 'settings'] as const,
     media: () => ['admin', 'media'] as const,
+    softSkills: () => ['admin', 'softSkills'] as const,
+    softSkill: (id: string) => ['admin', 'softSkill', id] as const,
+    experiences: () => ['admin', 'experiences'] as const,
+    experience: (id: string) => ['admin', 'experience', id] as const,
   },
 };

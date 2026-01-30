@@ -1,12 +1,9 @@
 package com.portfolio.entity;
 
 public enum Category {
-    EXPERIENCE("Experience", "Doświadczenie"),
     CAMPAIGNS("Campaigns", "Kampanie"),
-    INFLUENCE_MARKETING("Influence Marketing", "Influence Marketing"),
-    CASE_STUDY("Case Studies", "Case Studies"),
     CONTENT_COPY("Content & Copy", "Treści i Copywriting"),
-    SOFT_SKILLS("Soft Skills", "Umiejętności miękkie");
+    NEWSLETTER("Newsletter", "Newsletter");
 
     private final String labelEn;
     private final String labelPl;

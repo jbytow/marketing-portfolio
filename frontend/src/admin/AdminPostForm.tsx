@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
@@ -27,6 +27,7 @@ export default function AdminPostForm() {
     contentPl: {},
     featuredImage: '',
     published: false,
+    isCaseStudy: false,
   });
 
   const { data: postData, isLoading: postLoading } = useQuery({
@@ -49,10 +50,9 @@ export default function AdminPostForm() {
         contentPl: post.contentPl || {},
         featuredImage: post.featuredImage || '',
         published: post.published,
-        experienceDetails: post.experienceDetails,
+        isCaseStudy: post.isCaseStudy || false,
         campaignDetails: post.campaignDetails,
         caseStudyDetails: post.caseStudyDetails,
-        influenceMarketingDetails: post.influenceMarketingDetails,
       });
     }
   }, [postData]);
@@ -61,8 +61,8 @@ export default function AdminPostForm() {
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      // Invalidate all public posts queries (matches all languages)
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
@@ -76,9 +76,9 @@ export default function AdminPostForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
-      // Invalidate all public posts queries (matches all languages)
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['post'] });
+      queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },
@@ -148,22 +148,46 @@ export default function AdminPostForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Category */}
-        <div className="card">
-          <label className="label">Category</label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="input"
-            required
-          >
-            {Object.values(Category).map((cat) => (
-              <option key={cat} value={cat}>
-                {t(`categories.${cat}`)}
-              </option>
-            ))}
-          </select>
+        {/* Category & Case Study Flag */}
+        <div className="card space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="input"
+                required
+              >
+                {Object.values(Category).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {t(`categories.${cat}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <label className="flex items-center space-x-3 p-3 rounded-lg bg-dark-700 cursor-pointer hover:bg-dark-600 transition-colors">
+                <input
+                  type="checkbox"
+                  name="isCaseStudy"
+                  checked={formData.isCaseStudy}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded border-dark-500 bg-dark-600 text-primary-500 focus:ring-primary-500"
+                />
+                <BookOpen className={`w-5 h-5 ${formData.isCaseStudy ? 'text-primary-400' : 'text-dark-400'}`} />
+                <span className={formData.isCaseStudy ? 'text-primary-400' : 'text-dark-300'}>
+                  {t('admin.posts.markAsCaseStudy')}
+                </span>
+              </label>
+            </div>
+          </div>
+          {formData.isCaseStudy && (
+            <p className="text-sm text-dark-400">
+              This post will appear on the Case Studies page. You can add case study details below.
+            </p>
+          )}
         </div>
 
         {/* Titles */}

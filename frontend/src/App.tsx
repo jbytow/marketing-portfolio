@@ -10,7 +10,6 @@ const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Experience = lazy(() => import('./pages/Experience'));
 const Projects = lazy(() => import('./pages/Projects'));
-const Influence = lazy(() => import('./pages/Influence'));
 const CaseStudies = lazy(() => import('./pages/CaseStudies'));
 const CaseStudyDetail = lazy(() => import('./pages/CaseStudyDetail'));
 const Content = lazy(() => import('./pages/Content'));
@@ -22,6 +21,10 @@ const AdminLogin = lazy(() => import('./admin/AdminLogin'));
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 const AdminPosts = lazy(() => import('./admin/AdminPosts'));
 const AdminPostForm = lazy(() => import('./admin/AdminPostForm'));
+const AdminSoftSkills = lazy(() => import('./admin/AdminSoftSkills'));
+const AdminSoftSkillForm = lazy(() => import('./admin/AdminSoftSkillForm'));
+const AdminExperiences = lazy(() => import('./admin/AdminExperiences'));
+const AdminExperienceForm = lazy(() => import('./admin/AdminExperienceForm'));
 const AdminMedia = lazy(() => import('./admin/AdminMedia'));
 const AdminSettings = lazy(() => import('./admin/AdminSettings'));
 
@@ -35,7 +38,6 @@ function App() {
           <Route path="about" element={<About />} />
           <Route path="experience" element={<Experience />} />
           <Route path="projects" element={<Projects />} />
-          <Route path="influence" element={<Influence />} />
           <Route path="case-studies" element={<CaseStudies />} />
           <Route path="case-studies/:slug" element={<CaseStudyDetail />} />
           <Route path="content" element={<Content />} />
@@ -57,6 +59,12 @@ function App() {
           <Route path="posts" element={<AdminPosts />} />
           <Route path="posts/new" element={<AdminPostForm />} />
           <Route path="posts/:id/edit" element={<AdminPostForm />} />
+          <Route path="experiences" element={<AdminExperiences />} />
+          <Route path="experiences/new" element={<AdminExperienceForm />} />
+          <Route path="experiences/:id/edit" element={<AdminExperienceForm />} />
+          <Route path="soft-skills" element={<AdminSoftSkills />} />
+          <Route path="soft-skills/new" element={<AdminSoftSkillForm />} />
+          <Route path="soft-skills/:id/edit" element={<AdminSoftSkillForm />} />
           <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

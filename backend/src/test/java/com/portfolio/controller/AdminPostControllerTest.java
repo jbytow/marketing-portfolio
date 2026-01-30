@@ -62,8 +62,8 @@ class AdminPostControllerTest {
     private PostDto createSamplePostDto() {
         return PostDto.builder()
                 .id(UUID.randomUUID())
-                .category(Category.EXPERIENCE)
-                .categoryLabel("Experience")
+                .category(Category.CAMPAIGNS)
+                .categoryLabel("Campaigns")
                 .title("Sample Post")
                 .titleEn("Sample Post")
                 .titlePl("Przykładowy Post")
@@ -107,14 +107,14 @@ class AdminPostControllerTest {
         @DisplayName("should filter by category when provided")
         void shouldFilterByCategory() throws Exception {
             PostDto post = createSamplePostDto();
-            given(postService.getAllPostsByCategory(Category.EXPERIENCE, "en"))
+            given(postService.getAllPostsByCategory(Category.CAMPAIGNS, "en"))
                     .willReturn(List.of(post));
 
             mockMvc.perform(get("/api/admin/posts")
-                            .param("category", "EXPERIENCE")
+                            .param("category", "CAMPAIGNS")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[0].category").value("EXPERIENCE"));
+                    .andExpect(jsonPath("$.data[0].category").value("CAMPAIGNS"));
         }
     }
 
@@ -147,7 +147,7 @@ class AdminPostControllerTest {
         @DisplayName("should create post for authenticated admin")
         void shouldCreatePost() throws Exception {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("New Post");
             request.setTitlePl("Nowy Post");
 
@@ -167,7 +167,7 @@ class AdminPostControllerTest {
         @DisplayName("should return 403 for unauthenticated user")
         void shouldReturn403ForUnauthenticated() throws Exception {
             PostCreateRequest request = new PostCreateRequest();
-            request.setCategory(Category.EXPERIENCE);
+            request.setCategory(Category.CAMPAIGNS);
             request.setTitleEn("New Post");
             request.setTitlePl("Nowy Post");
 

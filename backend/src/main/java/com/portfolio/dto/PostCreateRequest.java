@@ -36,10 +36,9 @@ public class PostCreateRequest {
     private String featuredImage;
     private Boolean published;
     private Integer displayOrder;
+    private Boolean isCaseStudy;
 
     // Category-specific details
-    private ExperienceDetailsDto experienceDetails;
     private CampaignDetailsDto campaignDetails;
     private CaseStudyDetailsDto caseStudyDetails;
-    private InfluenceMarketingDetailsDto influenceMarketingDetails;
 }

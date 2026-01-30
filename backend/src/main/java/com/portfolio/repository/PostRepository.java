@@ -49,4 +49,13 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Modifying
     @Query("UPDATE Post p SET p.displayOrder = :displayOrder WHERE p.id = :id")
     void updateDisplayOrder(@Param("id") UUID id, @Param("displayOrder") int displayOrder);
+
+    // Case study methods
+    List<Post> findByIsCaseStudyTrueAndPublishedTrueOrderByDisplayOrderAsc();
+
+    @Query("SELECT p FROM Post p WHERE p.isCaseStudy = true ORDER BY p.displayOrder ASC")
+    List<Post> findAllCaseStudies();
+
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.isCaseStudy = true AND p.published = true")
+    long countCaseStudiesPublished();
 }

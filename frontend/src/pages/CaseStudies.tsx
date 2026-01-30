@@ -5,7 +5,6 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { postsApi } from '@/services/api';
-import { Category } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -15,8 +14,8 @@ export default function CaseStudies() {
   const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.posts(language, Category.CASE_STUDY),
-    queryFn: () => postsApi.getAll(Category.CASE_STUDY),
+    queryKey: queryKeys.caseStudies(language),
+    queryFn: () => postsApi.getCaseStudies(),
   });
 
   const caseStudies = data?.data || [];
@@ -74,13 +73,13 @@ export default function CaseStudies() {
                     {study.caseStudyDetails && (
                       <div className="space-y-3 mb-6">
                         <div className="flex">
-                          <span className="text-primary-400 font-medium w-24">Challenge:</span>
+                          <span className="text-primary-400 font-medium w-24">{t('caseStudies.problem')}:</span>
                           <span className="text-dark-400 flex-1 line-clamp-1">
                             {study.caseStudyDetails.problem}
                           </span>
                         </div>
                         <div className="flex">
-                          <span className="text-primary-400 font-medium w-24">Solution:</span>
+                          <span className="text-primary-400 font-medium w-24">{t('caseStudies.solution')}:</span>
                           <span className="text-dark-400 flex-1 line-clamp-1">
                             {study.caseStudyDetails.solution}
                           </span>

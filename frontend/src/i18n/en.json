@@ -29,7 +29,6 @@
     "about": "About",
     "experience": "Experience",
     "projects": "Projects",
-    "influence": "Influence",
     "caseStudies": "Case Studies",
     "content": "Content",
     "skills": "Skills",
@@ -67,19 +66,12 @@
     "subtitle": "Explore my marketing campaigns and projects",
     "viewProject": "View Project"
   },
-  "influence": {
-    "title": "Influence Marketing",
-    "subtitle": "Partnerships and collaborations",
-    "communitySize": "Community Size",
-    "engagementRate": "Engagement Rate",
-    "platforms": "Platforms"
-  },
   "caseStudies": {
     "title": "Case Studies",
     "subtitle": "Deep dive into my successful campaigns",
-    "problem": "The Challenge",
-    "solution": "The Solution",
-    "results": "The Results",
+    "problem": "Challenge",
+    "solution": "Solution",
+    "results": "Results",
     "testimonial": "Client Testimonial"
   },
   "content": {
@@ -111,12 +103,9 @@
     }
   },
   "categories": {
-    "EXPERIENCE": "Experience",
     "CAMPAIGNS": "Campaigns",
-    "INFLUENCE_MARKETING": "Influence Marketing",
-    "CASE_STUDY": "Case Studies",
     "CONTENT_COPY": "Content & Copy",
-    "SOFT_SKILLS": "Soft Skills"
+    "NEWSLETTER": "Newsletter"
   },
   "admin": {
     "dashboard": {
@@ -133,7 +122,24 @@
       "newPost": "New Post",
       "editPost": "Edit Post",
       "noPostsYet": "No posts yet",
-      "createFirst": "Create your first post"
+      "createFirst": "Create your first post",
+      "markAsCaseStudy": "Mark as Case Study"
+    },
+    "softSkills": {
+      "title": "Soft Skills",
+      "subtitle": "Manage your soft skills",
+      "newSkill": "New Skill",
+      "editSkill": "Edit Skill",
+      "noSkillsYet": "No soft skills yet",
+      "createFirst": "Create your first soft skill"
+    },
+    "experiences": {
+      "title": "Experiences",
+      "subtitle": "Manage your work experiences",
+      "newExperience": "New Experience",
+      "editExperience": "Edit Experience",
+      "noExperiencesYet": "No experiences yet",
+      "createFirst": "Create your first experience"
     },
     "media": {
       "title": "Media Library",

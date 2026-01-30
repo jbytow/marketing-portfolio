@@ -54,8 +54,8 @@ class PostControllerTest {
     private PostDto createSamplePostDto() {
         return PostDto.builder()
                 .id(UUID.randomUUID())
-                .category(Category.EXPERIENCE)
-                .categoryLabel("Experience")
+                .category(Category.CAMPAIGNS)
+                .categoryLabel("Campaigns")
                 .title("Sample Post")
                 .titleEn("Sample Post")
                 .titlePl("Przykładowy Post")
@@ -105,15 +105,15 @@ class PostControllerTest {
         @DisplayName("should filter by category when provided")
         void shouldFilterByCategory() throws Exception {
             PostDto experiencePost = createSamplePostDto();
-            given(postService.getPostsByCategory(eq(Category.EXPERIENCE), eq("en")))
+            given(postService.getPostsByCategory(eq(Category.CAMPAIGNS), eq("en")))
                     .willReturn(List.of(experiencePost));
 
             mockMvc.perform(get("/api/posts")
-                            .param("category", "EXPERIENCE")
+                            .param("category", "CAMPAIGNS")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.data[0].category").value("EXPERIENCE"));
+                    .andExpect(jsonPath("$.data[0].category").value("CAMPAIGNS"));
         }
 
         @Test
@@ -121,7 +121,7 @@ class PostControllerTest {
         void shouldUsePolishLocale() throws Exception {
             PostDto post = PostDto.builder()
                     .id(UUID.randomUUID())
-                    .category(Category.EXPERIENCE)
+                    .category(Category.CAMPAIGNS)
                     .categoryLabel("Doświadczenie")
                     .title("Polski Tytuł")
                     .titleEn("English Title")

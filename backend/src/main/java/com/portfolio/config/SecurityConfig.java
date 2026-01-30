@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/posts/**").permitAll()
                         .requestMatchers("/api/categories/**").permitAll()
                         .requestMatchers("/api/settings").permitAll()
+                        .requestMatchers("/api/soft-skills/**").permitAll()
+                        .requestMatchers("/api/experiences/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                         // OAuth endpoints
                         .requestMatchers("/oauth2/**").permitAll()

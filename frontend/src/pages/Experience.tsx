@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { Calendar, Building2, CheckCircle } from 'lucide-react';
-import { postsApi } from '@/services/api';
-import { Category } from '@/types';
+import { experiencesApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -14,8 +13,8 @@ export default function Experience() {
   const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.posts(language, Category.EXPERIENCE),
-    queryFn: () => postsApi.getAll(Category.EXPERIENCE),
+    queryKey: queryKeys.experiences(language),
+    queryFn: () => experiencesApi.getAll(),
   });
 
   const experiences = data?.data || [];
@@ -64,23 +63,25 @@ export default function Experience() {
                           <h3 className="text-xl font-semibold text-dark-100">{exp.title}</h3>
                           <div className="flex items-center text-dark-400 mt-1">
                             <Building2 className="w-4 h-4 mr-2" />
-                            <span>{exp.experienceDetails?.companyName}</span>
+                            <span>{exp.company}</span>
                           </div>
+                          <div className="text-dark-500 text-sm mt-1">{exp.role}</div>
                         </div>
                         <div className="flex items-center text-dark-400 text-sm">
                           <Calendar className="w-4 h-4 mr-2" />
                           <span>
-                            {exp.experienceDetails?.startDate} -{' '}
-                            {exp.experienceDetails?.endDate || t('experience.present')}
+                            {exp.startDate} - {exp.endDate || t('experience.present')}
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-dark-300 mb-4">{exp.excerpt}</p>
+                      {exp.description && (
+                        <p className="text-dark-300 mb-4">{exp.description}</p>
+                      )}
 
-                      {exp.experienceDetails?.achievements && exp.experienceDetails.achievements.length > 0 && (
+                      {exp.achievements && exp.achievements.length > 0 && (
                         <ul className="space-y-2">
-                          {exp.experienceDetails.achievements.map((achievement, i) => (
+                          {exp.achievements.map((achievement, i) => (
                             <li key={i} className="flex items-start text-dark-400 text-sm">
                               <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-primary-400 flex-shrink-0" />
                               <span>{achievement}</span>

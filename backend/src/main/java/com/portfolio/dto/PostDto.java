@@ -32,14 +32,13 @@ public class PostDto {
     private String featuredImage;
     private Boolean published;
     private Integer displayOrder;
+    private Boolean isCaseStudy;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
     // Category-specific details
-    private ExperienceDetailsDto experienceDetails;
     private CampaignDetailsDto campaignDetails;
     private CaseStudyDetailsDto caseStudyDetails;
-    private InfluenceMarketingDetailsDto influenceMarketingDetails;
 
     // Related media
     private List<MediaDto> media;
