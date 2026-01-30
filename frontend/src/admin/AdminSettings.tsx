@@ -233,7 +233,7 @@ export default function AdminSettings() {
             {t('admin.settings.social')}
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {['github', 'linkedin', 'twitter', 'instagram'].map((platform) => (
+            {['linkedin', 'instagram', 'facebook'].map((platform) => (
               <div key={platform}>
                 <label className="label capitalize">{platform}</label>
                 <input

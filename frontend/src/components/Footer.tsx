@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heart, Github, Linkedin, Twitter, Instagram, Mail } from 'lucide-react';
+import { Heart, Linkedin, Instagram, Facebook, Mail } from 'lucide-react';
 
 const socialLinks = [
-  { icon: Github, href: '#', label: 'GitHub' },
   { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
   { icon: Instagram, href: '#', label: 'Instagram' },
+  { icon: Facebook, href: '#', label: 'Facebook' },
   { icon: Mail, href: '#', label: 'Email' },
 ];
 

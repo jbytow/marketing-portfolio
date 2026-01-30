@@ -9,19 +9,17 @@ import {
   Phone,
   MapPin,
   Send,
-  Github,
   Linkedin,
-  Twitter,
   Instagram,
+  Facebook,
 } from 'lucide-react';
 import { settingsApi } from '@/services/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-const socialIcons: Record<string, typeof Github> = {
-  github: Github,
+const socialIcons: Record<string, typeof Linkedin> = {
   linkedin: Linkedin,
-  twitter: Twitter,
   instagram: Instagram,
+  facebook: Facebook,
 };
 
 export default function Contact() {
