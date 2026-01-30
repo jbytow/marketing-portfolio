@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Save } from 'lucide-react';
 import { adminSettingsApi } from '@/services/api';
 import { SiteSettingsUpdateRequest } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminSettings() {
@@ -27,7 +28,7 @@ export default function AdminSettings() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'settings'],
+    queryKey: queryKeys.admin.settings(),
     queryFn: () => adminSettingsApi.get(),
   });
 
@@ -54,7 +55,8 @@ export default function AdminSettings() {
   const updateMutation = useMutation({
     mutationFn: (data: SiteSettingsUpdateRequest) => adminSettingsApi.update(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'settings'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings() });
+      // Invalidate all public settings queries (matches all languages)
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success(t('admin.settings.title') + ' updated successfully');
     },

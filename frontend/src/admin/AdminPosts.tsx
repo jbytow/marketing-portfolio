@@ -15,6 +15,7 @@ import {
 import { clsx } from 'clsx';
 import { adminPostsApi } from '@/services/api';
 import { Category, Post } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminPosts() {
@@ -24,7 +25,7 @@ export default function AdminPosts() {
   const [selectedCategory, setSelectedCategory] = useState<Category | ''>('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'posts', selectedCategory],
+    queryKey: queryKeys.admin.posts(selectedCategory || undefined),
     queryFn: () => adminPostsApi.getAll(selectedCategory || undefined),
   });
 

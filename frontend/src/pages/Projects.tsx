@@ -6,13 +6,16 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart3 } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Projects() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', Category.CAMPAIGNS],
+    queryKey: queryKeys.posts(language, Category.CAMPAIGNS),
     queryFn: () => postsApi.getAll(Category.CAMPAIGNS),
   });
 

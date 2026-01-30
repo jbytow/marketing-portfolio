@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Sparkles, Target, Users, TrendingUp } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { settingsApi, postsApi } from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const stats = [
@@ -16,14 +18,15 @@ const stats = [
 
 export default function Home() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings(language),
     queryFn: () => settingsApi.get(),
   });
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
-    queryKey: ['posts', 'featured'],
+    queryKey: queryKeys.posts(language, 'featured'),
     queryFn: () => postsApi.getAll(),
   });
 

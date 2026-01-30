@@ -12,15 +12,18 @@ import {
 } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const skillIcons = [Lightbulb, Users, MessageSquare, Target, Clock, Heart];
 
 export default function Skills() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', Category.SOFT_SKILLS],
+    queryKey: queryKeys.posts(language, Category.SOFT_SKILLS),
     queryFn: () => postsApi.getAll(Category.SOFT_SKILLS),
   });
 

@@ -14,6 +14,8 @@ import {
   Facebook,
 } from 'lucide-react';
 import { settingsApi } from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const socialIcons: Record<string, typeof Linkedin> = {
@@ -24,6 +26,7 @@ const socialIcons: Record<string, typeof Linkedin> = {
 
 export default function Contact() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -33,7 +36,7 @@ export default function Contact() {
   });
 
   const { data: settingsData, isLoading } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings(language),
     queryFn: () => settingsApi.get(),
   });
 

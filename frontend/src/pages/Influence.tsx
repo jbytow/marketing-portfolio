@@ -5,13 +5,16 @@ import { Helmet } from 'react-helmet-async';
 import { Users, TrendingUp, Share2 } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Influence() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', Category.INFLUENCE_MARKETING],
+    queryKey: queryKeys.posts(language, Category.INFLUENCE_MARKETING),
     queryFn: () => postsApi.getAll(Category.INFLUENCE_MARKETING),
   });
 

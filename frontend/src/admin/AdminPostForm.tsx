@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminPostForm() {
@@ -29,7 +30,7 @@ export default function AdminPostForm() {
   });
 
   const { data: postData, isLoading: postLoading } = useQuery({
-    queryKey: ['admin', 'post', id],
+    queryKey: queryKeys.admin.post(id!),
     queryFn: () => adminPostsApi.getById(id!),
     enabled: isEditing,
   });
@@ -60,6 +61,8 @@ export default function AdminPostForm() {
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      // Invalidate all public posts queries (matches all languages)
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
@@ -72,7 +75,10 @@ export default function AdminPostForm() {
     mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'post', id] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
+      // Invalidate all public posts queries (matches all languages)
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['post'] });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },

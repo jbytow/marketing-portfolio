@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FileText, Image, Eye, PenLine, Plus } from 'lucide-react';
 import { adminPostsApi, adminMediaApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminDashboard() {
@@ -11,12 +12,12 @@ export default function AdminDashboard() {
   const { user } = useAuth();
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
-    queryKey: ['admin', 'posts'],
+    queryKey: queryKeys.admin.posts(),
     queryFn: () => adminPostsApi.getAll(),
   });
 
   const { data: mediaData, isLoading: mediaLoading } = useQuery({
-    queryKey: ['admin', 'media'],
+    queryKey: queryKeys.admin.media(),
     queryFn: () => adminMediaApi.getAll(0, 1),
   });
 

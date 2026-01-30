@@ -7,6 +7,7 @@ import { Upload, Trash2, Image, Film, FileText, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const mediaTypeIcons = {
@@ -22,14 +23,14 @@ export default function AdminMedia() {
   const [isUploading, setIsUploading] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'media'],
+    queryKey: queryKeys.admin.media(),
     queryFn: () => adminMediaApi.getAll(0, 100),
   });
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => adminMediaApi.upload(file),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'media'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.media() });
       toast.success(t('admin.media.upload') + ' successful');
     },
     onError: () => {
@@ -40,7 +41,7 @@ export default function AdminMedia() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'media'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.media() });
       setSelectedMedia(null);
       toast.success('Media deleted successfully');
     },

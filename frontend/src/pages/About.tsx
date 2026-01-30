@@ -3,13 +3,16 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { settingsApi } from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function About() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data: settingsData, isLoading } = useQuery({
-    queryKey: ['settings'],
+    queryKey: queryKeys.settings(language),
     queryFn: () => settingsApi.get(),
   });
 

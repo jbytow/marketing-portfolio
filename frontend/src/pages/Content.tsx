@@ -5,13 +5,16 @@ import { Helmet } from 'react-helmet-async';
 import { FileText, ExternalLink } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Content() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', Category.CONTENT_COPY],
+    queryKey: queryKeys.posts(language, Category.CONTENT_COPY),
     queryFn: () => postsApi.getAll(Category.CONTENT_COPY),
   });
 

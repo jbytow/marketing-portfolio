@@ -5,14 +5,17 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, Quote } from 'lucide-react';
 import { postsApi } from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function CaseStudyDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['post', slug],
+    queryKey: queryKeys.post(language, slug!),
     queryFn: () => postsApi.getBySlug(slug!),
     enabled: !!slug,
   });

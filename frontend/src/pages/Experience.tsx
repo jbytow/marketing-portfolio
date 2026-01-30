@@ -5,13 +5,16 @@ import { Helmet } from 'react-helmet-async';
 import { Calendar, Building2, CheckCircle } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Experience() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['posts', Category.EXPERIENCE],
+    queryKey: queryKeys.posts(language, Category.EXPERIENCE),
     queryFn: () => postsApi.getAll(Category.EXPERIENCE),
   });
 
