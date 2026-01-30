@@ -218,7 +218,7 @@ export default function Contact() {
 
                   <div className="flex flex-wrap gap-3">
                     {Object.entries(settings.socialLinks).map(([platform, url]) => {
-                      const Icon = socialIcons[platform.toLowerCase()] || Github;
+                      const Icon = socialIcons[platform.toLowerCase()] || Linkedin;
                       return (
                         <a
                           key={platform}
