@@ -3,6 +3,7 @@ package com.portfolio.controller;
 import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.MediaDto;
 import com.portfolio.service.MediaService;
+import com.portfolio.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class MediaController {
 
     private final MediaService mediaService;
+    private final StorageService storageService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<MediaDto>> getMediaInfo(
@@ -34,7 +36,7 @@ public class MediaController {
             @PathVariable String filename) {
 
         String fullPath = subDir + "/" + filename;
-        Resource resource = mediaService.getMediaResource(UUID.fromString(filename.split("\\.")[0]));
+        Resource resource = storageService.loadAsResource(fullPath);
 
         String contentType = determineContentType(filename);
 
