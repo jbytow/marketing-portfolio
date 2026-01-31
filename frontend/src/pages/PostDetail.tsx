@@ -12,6 +12,7 @@ import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import HashtagList from '@/components/HashtagList';
 import MediaCarousel from '@/components/MediaCarousel';
+import RichTextContent from '@/components/RichTextContent';
 
 export default function PostDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -140,14 +141,9 @@ export default function PostDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="prose prose-invert prose-lg max-w-none mb-12"
+              className="mb-8"
             >
-              {/* TipTap content renderer would go here */}
-              <div className="card bg-dark-800/30">
-                <pre className="text-sm text-dark-300 overflow-auto">
-                  {JSON.stringify(post.content, null, 2)}
-                </pre>
-              </div>
+              <RichTextContent content={post.content} />
             </motion.div>
           )}
 

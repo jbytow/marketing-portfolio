@@ -9,6 +9,7 @@ import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import MediaManager from '@/admin/components/MediaManager';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
@@ -326,6 +327,29 @@ export default function AdminPostForm() {
                 onChange={handleChange}
                 className="input"
                 rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="card space-y-4">
+          <h3 className="text-lg font-semibold text-dark-100">Content</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="label">Content (English)</label>
+              <RichTextEditor
+                content={formData.contentEn || {}}
+                onChange={(content) => setFormData((prev) => ({ ...prev, contentEn: content }))}
+                placeholder="Write your content in English..."
+              />
+            </div>
+            <div>
+              <label className="label">Content (Polish)</label>
+              <RichTextEditor
+                content={formData.contentPl || {}}
+                onChange={(content) => setFormData((prev) => ({ ...prev, contentPl: content }))}
+                placeholder="Napisz treść po polsku..."
               />
             </div>
           </div>

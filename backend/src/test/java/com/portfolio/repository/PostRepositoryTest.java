@@ -204,7 +204,7 @@ class PostRepositoryTest {
         @DisplayName("should return empty list for category with no published posts")
         void shouldReturnEmptyForCategoryWithNoPublishedPosts() {
             List<Post> result = postRepository
-                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.NEWSLETTER);
+                    .findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CONTENT_COPY);
 
             assertThat(result).isEmpty();
         }
@@ -287,7 +287,7 @@ class PostRepositoryTest {
         @Test
         @DisplayName("should return 0 when no posts in category")
         void shouldReturnZeroWhenNoPostsInCategory() {
-            int maxOrder = postRepository.getMaxDisplayOrder(Category.NEWSLETTER);
+            int maxOrder = postRepository.getMaxDisplayOrder(Category.CONTENT_COPY);
 
             assertThat(maxOrder).isEqualTo(0);
         }
