@@ -6,27 +6,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SoftSkillDto {
+public class SkillCategoryWithSkillsDto {
     private UUID id;
     private String name;
     private String nameEn;
     private String namePl;
-    private String description;
-    private String descriptionEn;
-    private String descriptionPl;
-    private String professionalUsage;
-    private String professionalUsageEn;
-    private String professionalUsagePl;
-    private String icon;
     private Integer displayOrder;
-    private UUID categoryId;
-    private String categoryName;
+    private List<SoftSkillDto> skills;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

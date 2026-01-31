@@ -23,6 +23,8 @@ const AdminPosts = lazy(() => import('./admin/AdminPosts'));
 const AdminPostForm = lazy(() => import('./admin/AdminPostForm'));
 const AdminSoftSkills = lazy(() => import('./admin/AdminSoftSkills'));
 const AdminSoftSkillForm = lazy(() => import('./admin/AdminSoftSkillForm'));
+const AdminSkillCategories = lazy(() => import('./admin/AdminSkillCategories'));
+const AdminSkillCategoryForm = lazy(() => import('./admin/AdminSkillCategoryForm'));
 const AdminExperiences = lazy(() => import('./admin/AdminExperiences'));
 const AdminExperienceForm = lazy(() => import('./admin/AdminExperienceForm'));
 const AdminMedia = lazy(() => import('./admin/AdminMedia'));
@@ -66,6 +68,9 @@ function App() {
           <Route path="soft-skills" element={<AdminSoftSkills />} />
           <Route path="soft-skills/new" element={<AdminSoftSkillForm />} />
           <Route path="soft-skills/:id/edit" element={<AdminSoftSkillForm />} />
+          <Route path="skill-categories" element={<AdminSkillCategories />} />
+          <Route path="skill-categories/new" element={<AdminSkillCategoryForm />} />
+          <Route path="skill-categories/:id/edit" element={<AdminSkillCategoryForm />} />
           <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

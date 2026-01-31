@@ -19,6 +19,10 @@ import {
   Experience,
   ExperienceCreateRequest,
   ExperienceUpdateRequest,
+  SkillCategory,
+  SkillCategoryWithSkills,
+  SkillCategoryCreateRequest,
+  SkillCategoryUpdateRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -103,6 +107,23 @@ export const softSkillsApi = {
 
   getById: async (id: string): Promise<ApiResponse<SoftSkill>> => {
     const { data } = await api.get(`/soft-skills/${id}`);
+    return data;
+  },
+};
+
+export const skillCategoriesApi = {
+  getAll: async (): Promise<ApiResponse<SkillCategory[]>> => {
+    const { data } = await api.get('/skill-categories');
+    return data;
+  },
+
+  getAllWithSkills: async (): Promise<ApiResponse<SkillCategoryWithSkills[]>> => {
+    const { data } = await api.get('/skill-categories/with-skills');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<SkillCategory>> => {
+    const { data } = await api.get(`/skill-categories/${id}`);
     return data;
   },
 };
@@ -205,6 +226,38 @@ export const adminSoftSkillsApi = {
 
   reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
     const { data } = await api.patch('/admin/soft-skills/reorder', { items });
+    return data;
+  },
+};
+
+export const adminSkillCategoriesApi = {
+  getAll: async (): Promise<ApiResponse<SkillCategory[]>> => {
+    const { data } = await api.get('/admin/skill-categories');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<SkillCategory>> => {
+    const { data } = await api.get(`/admin/skill-categories/${id}`);
+    return data;
+  },
+
+  create: async (category: SkillCategoryCreateRequest): Promise<ApiResponse<SkillCategory>> => {
+    const { data } = await api.post('/admin/skill-categories', category);
+    return data;
+  },
+
+  update: async (id: string, category: SkillCategoryUpdateRequest): Promise<ApiResponse<SkillCategory>> => {
+    const { data } = await api.put(`/admin/skill-categories/${id}`, category);
+    return data;
+  },
+
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/admin/skill-categories/${id}`);
+    return data;
+  },
+
+  reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
+    const { data } = await api.patch('/admin/skill-categories/reorder', { items });
     return data;
   },
 };

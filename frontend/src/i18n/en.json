@@ -80,7 +80,7 @@
     "subtitle": "Writing that converts and engages"
   },
   "skills": {
-    "title": "Soft Skills",
+    "title": "Skills",
     "subtitle": "What I bring to the table"
   },
   "contact": {
@@ -127,12 +127,21 @@
       "markAsCaseStudy": "Mark as Case Study"
     },
     "softSkills": {
-      "title": "Soft Skills",
-      "subtitle": "Manage your soft skills",
+      "title": "Skills",
+      "subtitle": "Manage your skills",
       "newSkill": "New Skill",
       "editSkill": "Edit Skill",
-      "noSkillsYet": "No soft skills yet",
-      "createFirst": "Create your first soft skill"
+      "noSkillsYet": "No skills yet",
+      "createFirst": "Create your first skill"
+    },
+    "skillCategories": {
+      "title": "Skill Categories",
+      "subtitle": "Manage skill categories",
+      "newCategory": "New Category",
+      "editCategory": "Edit Category",
+      "noCategoriesYet": "No categories yet",
+      "createFirst": "Create your first category",
+      "skillCount": "skills"
     },
     "experiences": {
       "title": "Experiences",

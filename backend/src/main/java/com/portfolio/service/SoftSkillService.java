@@ -4,7 +4,9 @@ import com.portfolio.dto.ReorderRequest;
 import com.portfolio.dto.SoftSkillCreateRequest;
 import com.portfolio.dto.SoftSkillDto;
 import com.portfolio.dto.SoftSkillUpdateRequest;
+import com.portfolio.entity.SkillCategory;
 import com.portfolio.entity.SoftSkill;
+import com.portfolio.repository.SkillCategoryRepository;
 import com.portfolio.repository.SoftSkillRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class SoftSkillService {
 
     private final SoftSkillRepository softSkillRepository;
+    private final SkillCategoryRepository skillCategoryRepository;
 
     public List<SoftSkillDto> getAllSoftSkills(String locale) {
         return softSkillRepository.findAllByOrderByDisplayOrderAsc().stream()
@@ -35,6 +38,12 @@ public class SoftSkillService {
 
     @Transactional
     public SoftSkillDto createSoftSkill(SoftSkillCreateRequest request, String locale) {
+        SkillCategory category = null;
+        if (request.getCategoryId() != null) {
+            category = skillCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Skill category not found: " + request.getCategoryId()));
+        }
+
         SoftSkill skill = SoftSkill.builder()
                 .nameEn(request.getNameEn())
                 .namePl(request.getNamePl())
@@ -45,6 +54,7 @@ public class SoftSkillService {
                 .icon(request.getIcon())
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() :
                         softSkillRepository.getMaxDisplayOrder() + 1)
+                .category(category)
                 .build();
 
         skill = softSkillRepository.save(skill);
@@ -80,6 +90,11 @@ public class SoftSkillService {
         if (request.getDisplayOrder() != null) {
             skill.setDisplayOrder(request.getDisplayOrder());
         }
+        if (request.getCategoryId() != null) {
+            SkillCategory category = skillCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Skill category not found: " + request.getCategoryId()));
+            skill.setCategory(category);
+        }
 
         skill = softSkillRepository.save(skill);
         return mapToDto(skill, locale);
@@ -114,6 +129,8 @@ public class SoftSkillService {
                 .professionalUsagePl(skill.getProfessionalUsagePl())
                 .icon(skill.getIcon())
                 .displayOrder(skill.getDisplayOrder())
+                .categoryId(skill.getCategory() != null ? skill.getCategory().getId() : null)
+                .categoryName(skill.getCategory() != null ? skill.getCategory().getName(locale) : null)
                 .createdAt(skill.getCreatedAt())
                 .updatedAt(skill.getUpdatedAt())
                 .build();

@@ -10,6 +10,8 @@ export const queryKeys = {
   post: (lang: string, slug: string) => ['post', lang, slug] as const,
   caseStudies: (lang: string) => ['caseStudies', lang] as const,
   softSkills: (lang: string) => ['softSkills', lang] as const,
+  skillCategories: (lang: string) => ['skillCategories', lang] as const,
+  skillCategoriesWithSkills: (lang: string) => ['skillCategoriesWithSkills', lang] as const,
   experiences: (lang: string) => ['experiences', lang] as const,
   hashtags: () => ['hashtags'] as const,
 
@@ -21,6 +23,8 @@ export const queryKeys = {
     media: () => ['admin', 'media'] as const,
     softSkills: () => ['admin', 'softSkills'] as const,
     softSkill: (id: string) => ['admin', 'softSkill', id] as const,
+    skillCategories: () => ['admin', 'skillCategories'] as const,
+    skillCategory: (id: string) => ['admin', 'skillCategory', id] as const,
     experiences: () => ['admin', 'experiences'] as const,
     experience: (id: string) => ['admin', 'experience', id] as const,
   },

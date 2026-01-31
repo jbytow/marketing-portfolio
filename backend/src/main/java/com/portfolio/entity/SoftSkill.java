@@ -7,6 +7,10 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@NamedEntityGraph(
+    name = "SoftSkill.withCategory",
+    attributeNodes = @NamedAttributeNode("category")
+)
 @Table(name = "soft_skills")
 @Getter
 @Setter
@@ -43,6 +47,10 @@ public class SoftSkill {
     @Column(name = "display_order")
     @Builder.Default
     private Integer displayOrder = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private SkillCategory category;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;

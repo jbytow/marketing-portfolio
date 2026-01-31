@@ -12,21 +12,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SoftSkillDto {
+public class SkillCategoryDto {
     private UUID id;
     private String name;
     private String nameEn;
     private String namePl;
-    private String description;
-    private String descriptionEn;
-    private String descriptionPl;
-    private String professionalUsage;
-    private String professionalUsageEn;
-    private String professionalUsagePl;
-    private String icon;
     private Integer displayOrder;
-    private UUID categoryId;
-    private String categoryName;
+    private Integer skillCount;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

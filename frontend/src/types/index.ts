@@ -48,8 +48,25 @@ export interface SoftSkill {
   professionalUsagePl: string;
   icon: string | null;
   displayOrder: number;
+  categoryId: string | null;
+  categoryName: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SkillCategory {
+  id: string;
+  name: string;
+  nameEn: string;
+  namePl: string;
+  displayOrder: number;
+  skillCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SkillCategoryWithSkills extends Omit<SkillCategory, 'skillCount'> {
+  skills: SoftSkill[];
 }
 
 export interface Experience {
@@ -169,9 +186,18 @@ export interface SoftSkillCreateRequest {
   professionalUsagePl?: string;
   icon?: string;
   displayOrder?: number;
+  categoryId?: string;
 }
 
 export type SoftSkillUpdateRequest = Partial<SoftSkillCreateRequest>;
+
+export interface SkillCategoryCreateRequest {
+  nameEn: string;
+  namePl: string;
+  displayOrder?: number;
+}
+
+export type SkillCategoryUpdateRequest = Partial<SkillCategoryCreateRequest>;
 
 export interface ExperienceCreateRequest {
   titleEn: string;

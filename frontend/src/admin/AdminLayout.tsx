@@ -11,6 +11,7 @@ import {
   User,
   Briefcase,
   Lightbulb,
+  FolderTree,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +21,7 @@ const navItems = [
   { path: '/admin/posts', icon: FileText, labelKey: 'admin.posts.title' },
   { path: '/admin/experiences', icon: Briefcase, labelKey: 'admin.experiences.title' },
   { path: '/admin/soft-skills', icon: Lightbulb, labelKey: 'admin.softSkills.title' },
+  { path: '/admin/skill-categories', icon: FolderTree, labelKey: 'admin.skillCategories.title' },
   { path: '/admin/media', icon: Image, labelKey: 'admin.media.title' },
   { path: '/admin/settings', icon: Settings, labelKey: 'admin.settings.title' },
 ];

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Save } from 'lucide-react';
-import { adminSoftSkillsApi } from '@/services/api';
+import { adminSoftSkillsApi, adminSkillCategoriesApi } from '@/services/api';
 import { SoftSkillCreateRequest } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -24,6 +24,7 @@ export default function AdminSoftSkillForm() {
     professionalUsageEn: '',
     professionalUsagePl: '',
     icon: '',
+    categoryId: '',
   });
 
   const { data: skillData, isLoading: skillLoading } = useQuery({
@@ -31,6 +32,13 @@ export default function AdminSoftSkillForm() {
     queryFn: () => adminSoftSkillsApi.getById(id!),
     enabled: isEditing,
   });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: queryKeys.admin.skillCategories(),
+    queryFn: () => adminSkillCategoriesApi.getAll(),
+  });
+
+  const categories = categoriesData?.data || [];
 
   useEffect(() => {
     if (skillData?.data) {
@@ -43,6 +51,7 @@ export default function AdminSoftSkillForm() {
         professionalUsageEn: skill.professionalUsageEn || '',
         professionalUsagePl: skill.professionalUsagePl || '',
         icon: skill.icon || '',
+        categoryId: skill.categoryId || '',
       });
     }
   }, [skillData]);
@@ -76,15 +85,19 @@ export default function AdminSoftSkillForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const submitData = {
+      ...formData,
+      categoryId: formData.categoryId || undefined,
+    };
     if (isEditing) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -199,20 +212,41 @@ export default function AdminSoftSkillForm() {
           </div>
         </div>
 
-        {/* Icon */}
-        <div className="card">
-          <label className="label">Icon Name</label>
-          <input
-            type="text"
-            name="icon"
-            value={formData.icon}
-            onChange={handleChange}
-            className="input"
-            placeholder="e.g., lightbulb, users, target, brain, heart"
-          />
-          <p className="text-sm text-dark-500 mt-2">
-            Available icons: lightbulb, users, message, target, clock, heart, zap, brain, handshake, rocket, sparkles, award
-          </p>
+        {/* Category & Icon */}
+        <div className="card space-y-4">
+          <h3 className="text-lg font-semibold text-dark-100">Category & Icon</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Category</label>
+              <select
+                name="categoryId"
+                value={formData.categoryId}
+                onChange={handleChange}
+                className="input"
+              >
+                <option value="">No category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nameEn}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Icon Name</label>
+              <input
+                type="text"
+                name="icon"
+                value={formData.icon}
+                onChange={handleChange}
+                className="input"
+                placeholder="e.g., lightbulb, users, target, brain, heart"
+              />
+              <p className="text-sm text-dark-500 mt-2">
+                lightbulb, users, message, target, clock, heart, zap, brain, handshake, rocket, sparkles, award
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Submit */}

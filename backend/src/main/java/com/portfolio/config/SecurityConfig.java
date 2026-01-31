@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/categories/**").permitAll()
                         .requestMatchers("/api/settings").permitAll()
                         .requestMatchers("/api/soft-skills/**").permitAll()
+                        .requestMatchers("/api/skill-categories/**").permitAll()
                         .requestMatchers("/api/experiences/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                         // OAuth endpoints

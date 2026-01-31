@@ -80,7 +80,7 @@
     "subtitle": "Teksty, które konwertują i angażują"
   },
   "skills": {
-    "title": "Umiejętności miękkie",
+    "title": "Umiejętności",
     "subtitle": "Co wnoszę do zespołu"
   },
   "contact": {
@@ -127,12 +127,21 @@
       "markAsCaseStudy": "Oznacz jako Case Study"
     },
     "softSkills": {
-      "title": "Umiejętności miękkie",
-      "subtitle": "Zarządzaj umiejętnościami miękkimi",
+      "title": "Umiejętności",
+      "subtitle": "Zarządzaj umiejętnościami",
       "newSkill": "Nowa umiejętność",
       "editSkill": "Edytuj umiejętność",
-      "noSkillsYet": "Brak umiejętności miękkich",
-      "createFirst": "Utwórz pierwszą umiejętność miękką"
+      "noSkillsYet": "Brak umiejętności",
+      "createFirst": "Utwórz pierwszą umiejętność"
+    },
+    "skillCategories": {
+      "title": "Kategorie umiejętności",
+      "subtitle": "Zarządzaj kategoriami umiejętności",
+      "newCategory": "Nowa kategoria",
+      "editCategory": "Edytuj kategorię",
+      "noCategoriesYet": "Brak kategorii",
+      "createFirst": "Utwórz pierwszą kategorię",
+      "skillCount": "umiejętności"
     },
     "experiences": {
       "title": "Doświadczenie",

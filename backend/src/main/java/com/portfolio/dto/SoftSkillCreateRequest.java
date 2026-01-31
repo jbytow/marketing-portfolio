@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,4 +26,5 @@ public class SoftSkillCreateRequest {
     private String professionalUsagePl;
     private String icon;
     private Integer displayOrder;
+    private UUID categoryId;
 }
