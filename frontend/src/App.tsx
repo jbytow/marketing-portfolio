@@ -10,6 +10,8 @@ const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Experience = lazy(() => import('./pages/Experience'));
 const Projects = lazy(() => import('./pages/Projects'));
+const Newsletter = lazy(() => import('./pages/Newsletter'));
+const NewsletterDetail = lazy(() => import('./pages/NewsletterDetail'));
 const PostDetail = lazy(() => import('./pages/PostDetail'));
 const Content = lazy(() => import('./pages/Content'));
 const Skills = lazy(() => import('./pages/Skills'));
@@ -26,6 +28,8 @@ const AdminSkillCategories = lazy(() => import('./admin/AdminSkillCategories'));
 const AdminSkillCategoryForm = lazy(() => import('./admin/AdminSkillCategoryForm'));
 const AdminExperiences = lazy(() => import('./admin/AdminExperiences'));
 const AdminExperienceForm = lazy(() => import('./admin/AdminExperienceForm'));
+const AdminNewsletters = lazy(() => import('./admin/AdminNewsletters'));
+const AdminNewsletterForm = lazy(() => import('./admin/AdminNewsletterForm'));
 const AdminMedia = lazy(() => import('./admin/AdminMedia'));
 const AdminSettings = lazy(() => import('./admin/AdminSettings'));
 
@@ -40,6 +44,8 @@ function App() {
           <Route path="experience" element={<Experience />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:slug" element={<PostDetail />} />
+          <Route path="newsletter" element={<Newsletter />} />
+          <Route path="newsletter/:slug" element={<NewsletterDetail />} />
           <Route path="content" element={<Content />} />
           <Route path="skills" element={<Skills />} />
           <Route path="contact" element={<Contact />} />
@@ -59,6 +65,9 @@ function App() {
           <Route path="posts" element={<AdminPosts />} />
           <Route path="posts/new" element={<AdminPostForm />} />
           <Route path="posts/:id/edit" element={<AdminPostForm />} />
+          <Route path="newsletters" element={<AdminNewsletters />} />
+          <Route path="newsletters/new" element={<AdminNewsletterForm />} />
+          <Route path="newsletters/:id/edit" element={<AdminNewsletterForm />} />
           <Route path="experiences" element={<AdminExperiences />} />
           <Route path="experiences/new" element={<AdminExperienceForm />} />
           <Route path="experiences/:id/edit" element={<AdminExperienceForm />} />

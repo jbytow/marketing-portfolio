@@ -31,6 +31,7 @@
     "about": "About",
     "experience": "Experience",
     "projects": "Projects",
+    "newsletter": "Newsletter",
     "caseStudies": "Case Studies",
     "content": "Content",
     "skills": "Skills",
@@ -75,6 +76,11 @@
     "results": "Results",
     "testimonial": "Client Testimonial"
   },
+  "newsletter": {
+    "title": "Newsletter",
+    "subtitle": "Stay updated with my latest insights",
+    "viewNewsletter": "Read More"
+  },
   "content": {
     "title": "Content & Copy",
     "subtitle": "Writing that converts and engages"
@@ -105,8 +111,7 @@
   },
   "categories": {
     "CAMPAIGNS": "Campaigns",
-    "CONTENT_COPY": "Content & Copy",
-    "NEWSLETTER": "Newsletter"
+    "CONTENT_COPY": "Content & Copy"
   },
   "admin": {
     "dashboard": {
@@ -154,6 +159,14 @@
       "editExperience": "Edit Experience",
       "noExperiencesYet": "No experiences yet",
       "createFirst": "Create your first experience"
+    },
+    "newsletters": {
+      "title": "Newsletters",
+      "subtitle": "Manage your newsletters",
+      "newNewsletter": "New Newsletter",
+      "editNewsletter": "Edit Newsletter",
+      "noNewslettersYet": "No newsletters yet",
+      "createFirst": "Create your first newsletter"
     },
     "media": {
       "title": "Media Library",

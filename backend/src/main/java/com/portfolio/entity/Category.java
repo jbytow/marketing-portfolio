@@ -2,8 +2,7 @@ package com.portfolio.entity;
 
 public enum Category {
     CAMPAIGNS("Campaigns", "Kampanie"),
-    CONTENT_COPY("Content & Copy", "Treści i Copywriting"),
-    NEWSLETTER("Newsletter", "Newsletter");
+    CONTENT_COPY("Content & Copy", "Treści i Copywriting");
 
     private final String labelEn;
     private final String labelPl;

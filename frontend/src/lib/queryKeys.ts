@@ -12,6 +12,8 @@ export const queryKeys = {
   skillCategories: (lang: string) => ['skillCategories', lang] as const,
   skillCategoriesWithSkills: (lang: string) => ['skillCategoriesWithSkills', lang] as const,
   experiences: (lang: string) => ['experiences', lang] as const,
+  newsletters: (lang: string) => ['newsletters', lang] as const,
+  newsletter: (lang: string, slug: string) => ['newsletter', lang, slug] as const,
   hashtags: () => ['hashtags'] as const,
 
   // Admin queries (language-independent, manages all languages)
@@ -26,5 +28,7 @@ export const queryKeys = {
     skillCategory: (id: string) => ['admin', 'skillCategory', id] as const,
     experiences: () => ['admin', 'experiences'] as const,
     experience: (id: string) => ['admin', 'experience', id] as const,
+    newsletters: () => ['admin', 'newsletters'] as const,
+    newsletter: (id: string) => ['admin', 'newsletter', id] as const,
   },
 };

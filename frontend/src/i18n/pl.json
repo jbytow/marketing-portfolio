@@ -31,6 +31,7 @@
     "about": "O mnie",
     "experience": "Doświadczenie",
     "projects": "Projekty",
+    "newsletter": "Newsletter",
     "caseStudies": "Case Studies",
     "content": "Treści",
     "skills": "Umiejętności",
@@ -75,6 +76,11 @@
     "results": "Rezultaty",
     "testimonial": "Opinia klienta"
   },
+  "newsletter": {
+    "title": "Newsletter",
+    "subtitle": "Bądź na bieżąco z moimi najnowszymi treściami",
+    "viewNewsletter": "Czytaj więcej"
+  },
   "content": {
     "title": "Treści i Copywriting",
     "subtitle": "Teksty, które konwertują i angażują"
@@ -105,8 +111,7 @@
   },
   "categories": {
     "CAMPAIGNS": "Kampanie",
-    "CONTENT_COPY": "Treści i Copywriting",
-    "NEWSLETTER": "Newsletter"
+    "CONTENT_COPY": "Treści i Copywriting"
   },
   "admin": {
     "dashboard": {
@@ -154,6 +159,14 @@
       "editExperience": "Edytuj doświadczenie",
       "noExperiencesYet": "Brak doświadczeń",
       "createFirst": "Utwórz pierwsze doświadczenie"
+    },
+    "newsletters": {
+      "title": "Newsletter",
+      "subtitle": "Zarządzaj newsletterami",
+      "newNewsletter": "Nowy newsletter",
+      "editNewsletter": "Edytuj newsletter",
+      "noNewslettersYet": "Brak newsletterów",
+      "createFirst": "Utwórz pierwszy newsletter"
     },
     "media": {
       "title": "Biblioteka mediów",

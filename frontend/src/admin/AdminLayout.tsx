@@ -12,6 +12,7 @@ import {
   Briefcase,
   Lightbulb,
   FolderTree,
+  Mail,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.dashboard.title', exact: true },
   { path: '/admin/posts', icon: FileText, labelKey: 'admin.posts.title' },
+  { path: '/admin/newsletters', icon: Mail, labelKey: 'admin.newsletters.title' },
   { path: '/admin/experiences', icon: Briefcase, labelKey: 'admin.experiences.title' },
   { path: '/admin/soft-skills', icon: Lightbulb, labelKey: 'admin.softSkills.title' },
   { path: '/admin/skill-categories', icon: FolderTree, labelKey: 'admin.skillCategories.title' },

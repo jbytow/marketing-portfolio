@@ -23,6 +23,9 @@ import {
   SkillCategoryWithSkills,
   SkillCategoryCreateRequest,
   SkillCategoryUpdateRequest,
+  Newsletter,
+  NewsletterCreateRequest,
+  NewsletterUpdateRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -150,6 +153,18 @@ export const categoriesApi = {
 export const settingsApi = {
   get: async (): Promise<ApiResponse<SiteSettings>> => {
     const { data } = await api.get('/settings');
+    return data;
+  },
+};
+
+export const newslettersApi = {
+  getAll: async (): Promise<ApiResponse<Newsletter[]>> => {
+    const { data } = await api.get('/newsletters');
+    return data;
+  },
+
+  getBySlug: async (slug: string): Promise<ApiResponse<Newsletter>> => {
+    const { data } = await api.get(`/newsletters/${slug}`);
     return data;
   },
 };
@@ -362,6 +377,33 @@ export const adminSettingsApi = {
 
   update: async (settings: SiteSettingsUpdateRequest): Promise<ApiResponse<SiteSettings>> => {
     const { data } = await api.put('/admin/settings', settings);
+    return data;
+  },
+};
+
+export const adminNewslettersApi = {
+  getAll: async (): Promise<ApiResponse<Newsletter[]>> => {
+    const { data } = await api.get('/admin/newsletters');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<Newsletter>> => {
+    const { data } = await api.get(`/admin/newsletters/${id}`);
+    return data;
+  },
+
+  create: async (newsletter: NewsletterCreateRequest): Promise<ApiResponse<Newsletter>> => {
+    const { data } = await api.post('/admin/newsletters', newsletter);
+    return data;
+  },
+
+  update: async (id: string, newsletter: NewsletterUpdateRequest): Promise<ApiResponse<Newsletter>> => {
+    const { data } = await api.put(`/admin/newsletters/${id}`, newsletter);
+    return data;
+  },
+
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/admin/newsletters/${id}`);
     return data;
   },
 };

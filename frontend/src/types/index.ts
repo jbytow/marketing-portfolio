@@ -1,7 +1,6 @@
 export enum Category {
   CAMPAIGNS = 'CAMPAIGNS',
   CONTENT_COPY = 'CONTENT_COPY',
-  NEWSLETTER = 'NEWSLETTER',
 }
 
 export enum MediaType {
@@ -101,6 +100,39 @@ export interface Experience {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Newsletter {
+  id: string;
+  slug: string;
+  title: string;
+  titleEn: string;
+  titlePl: string;
+  content: string | null;
+  contentEn: string | null;
+  contentPl: string | null;
+  image1: string | null;
+  image2: string | null;
+  image3: string | null;
+  displayOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsletterCreateRequest {
+  titleEn: string;
+  titlePl: string;
+  slug?: string;
+  contentEn?: string;
+  contentPl?: string;
+  image1?: string;
+  image2?: string;
+  image3?: string;
+  displayOrder?: number;
+  published?: boolean;
+}
+
+export type NewsletterUpdateRequest = Partial<NewsletterCreateRequest>;
 
 
 export interface Media {

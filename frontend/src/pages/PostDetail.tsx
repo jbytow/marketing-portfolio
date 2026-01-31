@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
@@ -15,9 +15,15 @@ import MediaCarousel from '@/components/MediaCarousel';
 
 export default function PostDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const { language } = useLanguage();
   const { t } = useTranslation();
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
+
+  // Determine if this is a newsletter based on URL path
+  const isNewsletter = location.pathname.startsWith('/newsletter');
+  const backPath = isNewsletter ? '/newsletter' : '/projects';
+  const backLabelKey = isNewsletter ? 'newsletter.title' : 'projects.title';
 
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.post(language, slug!),
@@ -35,9 +41,9 @@ export default function PostDetail() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-dark-100 mb-4">Post not found</h1>
-        <Link to="/projects" className="btn-secondary">
+        <Link to={backPath} className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
-          {t('common.backTo')} {t('projects.title')}
+          {t('common.backTo')} {t(backLabelKey)}
         </Link>
       </div>
     );
@@ -59,11 +65,11 @@ export default function PostDetail() {
             className="mb-8"
           >
             <Link
-              to="/projects"
+              to={backPath}
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              {t('common.backTo')} {t('projects.title')}
+              {t('common.backTo')} {t(backLabelKey)}
             </Link>
           </motion.div>
 
