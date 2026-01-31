@@ -20,9 +20,6 @@ public class ExperienceDto {
     private String titleEn;
     private String titlePl;
     private String company;
-    private String role;
-    private String roleEn;
-    private String rolePl;
     private LocalDate startDate;
     private LocalDate endDate;
     private String description;

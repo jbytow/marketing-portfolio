@@ -260,6 +260,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
           />
         </div>
         <button
+          type="button"
           onClick={handleYouTubeAdd}
           disabled={!youtubeUrl.trim() || youTubeMutation.isPending}
           className="btn-secondary disabled:opacity-50"

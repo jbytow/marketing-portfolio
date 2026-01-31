@@ -38,6 +38,7 @@ function App() {
           <Route path="about" element={<About />} />
           <Route path="experience" element={<Experience />} />
           <Route path="projects" element={<Projects />} />
+          <Route path="projects/:slug" element={<CaseStudyDetail />} />
           <Route path="case-studies" element={<CaseStudies />} />
           <Route path="case-studies/:slug" element={<CaseStudyDetail />} />
           <Route path="content" element={<Content />} />

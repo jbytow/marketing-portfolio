@@ -39,8 +39,6 @@ public class ExperienceService {
                 .titleEn(request.getTitleEn())
                 .titlePl(request.getTitlePl())
                 .company(request.getCompany())
-                .roleEn(request.getRoleEn())
-                .rolePl(request.getRolePl())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .descriptionEn(request.getDescriptionEn())
@@ -68,12 +66,6 @@ public class ExperienceService {
         }
         if (request.getCompany() != null) {
             exp.setCompany(request.getCompany());
-        }
-        if (request.getRoleEn() != null) {
-            exp.setRoleEn(request.getRoleEn());
-        }
-        if (request.getRolePl() != null) {
-            exp.setRolePl(request.getRolePl());
         }
         if (request.getStartDate() != null) {
             exp.setStartDate(request.getStartDate());
@@ -122,9 +114,6 @@ public class ExperienceService {
                 .titleEn(exp.getTitleEn())
                 .titlePl(exp.getTitlePl())
                 .company(exp.getCompany())
-                .role(exp.getRole(locale))
-                .roleEn(exp.getRoleEn())
-                .rolePl(exp.getRolePl())
                 .startDate(exp.getStartDate())
                 .endDate(exp.getEndDate())
                 .description(exp.getDescription(locale))

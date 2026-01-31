@@ -350,8 +350,8 @@ export default function AdminPostForm() {
           )}
         </div>
 
-        {/* Media Manager - Only show when editing */}
-        {isEditing && id && (
+        {/* Media Manager */}
+        {isEditing && id ? (
           <div className="card space-y-4">
             <h3 className="text-lg font-semibold text-dark-100">Media Gallery</h3>
             <p className="text-sm text-dark-400">
@@ -362,6 +362,13 @@ export default function AdminPostForm() {
               media={media}
               onMediaChange={setMedia}
             />
+          </div>
+        ) : (
+          <div className="card">
+            <h3 className="text-lg font-semibold text-dark-100">Media Gallery</h3>
+            <p className="text-sm text-dark-400 mt-2">
+              Save the post first to add images, videos, or YouTube links.
+            </p>
           </div>
         )}
 

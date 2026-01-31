@@ -20,8 +20,6 @@ export default function AdminExperienceForm() {
     titleEn: '',
     titlePl: '',
     company: '',
-    roleEn: '',
-    rolePl: '',
     startDate: '',
     endDate: '',
     descriptionEn: '',
@@ -46,8 +44,6 @@ export default function AdminExperienceForm() {
         titleEn: exp.titleEn,
         titlePl: exp.titlePl,
         company: exp.company,
-        roleEn: exp.roleEn,
-        rolePl: exp.rolePl,
         startDate: exp.startDate,
         endDate: exp.endDate || '',
         descriptionEn: exp.descriptionEn || '',
@@ -192,9 +188,9 @@ export default function AdminExperienceForm() {
           </div>
         </div>
 
-        {/* Company & Roles */}
+        {/* Company */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Company & Role</h3>
+          <h3 className="text-lg font-semibold text-dark-100">Company</h3>
           <div>
             <label className="label">Company *</label>
             <input
@@ -205,30 +201,6 @@ export default function AdminExperienceForm() {
               className="input"
               required
             />
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Role (English) *</label>
-              <input
-                type="text"
-                name="roleEn"
-                value={formData.roleEn}
-                onChange={handleChange}
-                className="input"
-                required
-              />
-            </div>
-            <div>
-              <label className="label">Role (Polish) *</label>
-              <input
-                type="text"
-                name="rolePl"
-                value={formData.rolePl}
-                onChange={handleChange}
-                className="input"
-                required
-              />
-            </div>
           </div>
         </div>
 

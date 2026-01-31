@@ -100,19 +100,18 @@ export default function Projects() {
 
                 <p className="text-dark-400 text-sm line-clamp-2 mb-4">{project.excerpt}</p>
 
-                {/* Hashtags - non-clickable, limited to 3 */}
                 {project.hashtags && project.hashtags.length > 0 && (
                   <div className="mb-4">
                     <HashtagList
                       hashtags={project.hashtags}
-                      clickable={false}
+                      clickable={true}
                       limit={3}
                     />
                   </div>
                 )}
 
                 <Link
-                  to={`/case-studies/${project.slug}`}
+                  to={`/projects/${project.slug}`}
                   className="inline-flex items-center text-primary-400 hover:text-primary-300 text-sm font-medium"
                 >
                   {t('projects.viewProject')}

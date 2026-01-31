@@ -1,8 +1,9 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
@@ -14,6 +15,13 @@ import MediaCarousel from '@/components/MediaCarousel';
 export default function CaseStudyDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { language } = useLanguage();
+  const { t } = useTranslation();
+  const location = useLocation();
+
+  // Determine if we're viewing from projects or case-studies
+  const isFromProjects = location.pathname.startsWith('/projects');
+  const backLink = isFromProjects ? '/projects' : '/case-studies';
+  const backText = isFromProjects ? t('projects.title') : t('caseStudies.title');
 
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.post(language, slug!),
@@ -31,9 +39,9 @@ export default function CaseStudyDetail() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-dark-100 mb-4">Post not found</h1>
-        <Link to="/case-studies" className="btn-secondary">
+        <Link to={backLink} className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
-          Back to Case Studies
+          {t('common.backTo')} {backText}
         </Link>
       </div>
     );
@@ -55,11 +63,11 @@ export default function CaseStudyDetail() {
             className="mb-8"
           >
             <Link
-              to="/case-studies"
+              to={backLink}
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              Back to Case Studies
+              {t('common.backTo')} {backText}
             </Link>
           </motion.div>
 

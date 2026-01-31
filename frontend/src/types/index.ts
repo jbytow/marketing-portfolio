@@ -58,9 +58,6 @@ export interface Experience {
   titleEn: string;
   titlePl: string;
   company: string;
-  role: string;
-  roleEn: string;
-  rolePl: string;
   startDate: string;
   endDate: string | null;
   description: string;
@@ -180,8 +177,6 @@ export interface ExperienceCreateRequest {
   titleEn: string;
   titlePl: string;
   company: string;
-  roleEn: string;
-  rolePl: string;
   startDate: string;
   endDate?: string;
   descriptionEn?: string;

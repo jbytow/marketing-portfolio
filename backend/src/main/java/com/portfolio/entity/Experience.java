@@ -32,12 +32,6 @@ public class Experience {
     @Column(name = "company", nullable = false)
     private String company;
 
-    @Column(name = "role_en", nullable = false)
-    private String roleEn;
-
-    @Column(name = "role_pl", nullable = false)
-    private String rolePl;
-
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -81,10 +75,6 @@ public class Experience {
 
     public String getTitle(String locale) {
         return "pl".equalsIgnoreCase(locale) ? titlePl : titleEn;
-    }
-
-    public String getRole(String locale) {
-        return "pl".equalsIgnoreCase(locale) ? rolePl : roleEn;
     }
 
     public String getDescription(String locale) {

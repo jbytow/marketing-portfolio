@@ -25,12 +25,6 @@ public class ExperienceCreateRequest {
     @NotBlank(message = "Company is required")
     private String company;
 
-    @NotBlank(message = "English role is required")
-    private String roleEn;
-
-    @NotBlank(message = "Polish role is required")
-    private String rolePl;
-
     @NotNull(message = "Start date is required")
     private LocalDate startDate;
 

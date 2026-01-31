@@ -16,8 +16,6 @@ public class ExperienceUpdateRequest {
     private String titleEn;
     private String titlePl;
     private String company;
-    private String roleEn;
-    private String rolePl;
     private LocalDate startDate;
     private LocalDate endDate;
     private String descriptionEn;

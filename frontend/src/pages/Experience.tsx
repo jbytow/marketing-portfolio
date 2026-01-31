@@ -65,7 +65,6 @@ export default function Experience() {
                             <Building2 className="w-4 h-4 mr-2" />
                             <span>{exp.company}</span>
                           </div>
-                          <div className="text-dark-500 text-sm mt-1">{exp.role}</div>
                         </div>
                         <div className="flex items-center text-dark-400 text-sm">
                           <Calendar className="w-4 h-4 mr-2" />
