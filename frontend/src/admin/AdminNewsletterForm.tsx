@@ -89,8 +89,8 @@ export default function AdminNewsletterForm() {
         ...prev,
         [`image${slot}`]: imageUrl,
       }));
-    } catch (error) {
-      console.error('Upload failed:', error);
+    } catch {
+      // Upload failed silently - user will see no image appeared
     } finally {
       setUploading(null);
     }

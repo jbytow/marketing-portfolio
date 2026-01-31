@@ -36,8 +36,8 @@ export default function RichTextContent({ content, className = '' }: RichTextCon
           types: ['heading', 'paragraph'],
         }),
       ]);
-    } catch (error) {
-      console.error('Error rendering TipTap content:', error);
+    } catch {
+      // Failed to render content
       return '';
     }
   }, [content]);

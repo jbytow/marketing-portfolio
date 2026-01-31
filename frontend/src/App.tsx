@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import AdminLayout from './admin/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Public pages
 const Home = lazy(() => import('./pages/Home'));
@@ -35,8 +36,9 @@ const AdminSettings = lazy(() => import('./admin/AdminSettings'));
 
 function App() {
   return (
-    <Suspense fallback={<LoadingSpinner fullScreen />}>
-      <Routes>
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingSpinner fullScreen />}>
+        <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
@@ -80,8 +82,9 @@ function App() {
           <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

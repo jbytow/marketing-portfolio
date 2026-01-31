@@ -36,14 +36,11 @@ const createApiClient = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true, // Send cookies with requests
   });
 
   client.interceptors.request.use((config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
+    // Language preference from localStorage (not sensitive)
     const language = localStorage.getItem('language') || 'en';
     config.headers['Accept-Language'] = language;
 
@@ -54,8 +51,11 @@ const createApiClient = (): AxiosInstance => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        localStorage.removeItem('auth_token');
-        window.location.href = '/admin/login';
+        // Only redirect if on admin page
+        if (window.location.pathname.startsWith('/admin') &&
+            window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login';
+        }
       }
       return Promise.reject(error);
     }

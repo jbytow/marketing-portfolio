@@ -2,11 +2,12 @@ package com.portfolio.security;
 
 import com.portfolio.entity.User;
 import com.portfolio.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
@@ -52,16 +54,18 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Generate JWT token
         String jwt = jwtService.generateToken(user.getEmail(), user.getName(), user.getIsAdmin());
 
-        // Set JWT as HTTP-only cookie
-        Cookie cookie = new Cookie("auth_token", jwt);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(request.isSecure());
-        cookie.setPath("/");
-        cookie.setMaxAge(86400); // 24 hours
-        response.addCookie(cookie);
+        // Set JWT as HTTP-only cookie with SameSite attribute
+        ResponseCookie cookie = ResponseCookie.from("auth_token", jwt)
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .path("/")
+                .maxAge(Duration.ofHours(24))
+                .sameSite("Lax")  // Lax allows the cookie on OAuth redirects
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        // Redirect to admin dashboard
-        response.sendRedirect(frontendUrl + "/admin?token=" + jwt);
+        // Redirect to admin dashboard (cookie-based auth, no token in URL)
+        response.sendRedirect(frontendUrl + "/admin");
     }
 
     private String extractEmail(OAuth2User oAuth2User, String provider) {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { User } from '@/types';
 import { authApi } from '@/services/api';
 
@@ -18,39 +18,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Check for token in URL (from OAuth callback)
-    const token = searchParams.get('token');
-    if (token) {
-      localStorage.setItem('auth_token', token);
-      // Remove token from URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-
     checkAuth();
-  }, [searchParams]);
+  }, []);
 
   const checkAuth = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setUser(null);
-        return;
-      }
-
+      // Auth is handled via HTTP-only cookie, just check if we're authenticated
       const response = await authApi.getCurrentUser();
       if (response.success && response.data) {
         setUser(response.data);
       } else {
         setUser(null);
-        localStorage.removeItem('auth_token');
       }
     } catch {
       setUser(null);
-      localStorage.removeItem('auth_token');
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } finally {
-      localStorage.removeItem('auth_token');
       setUser(null);
       navigate('/admin/login');
     }
