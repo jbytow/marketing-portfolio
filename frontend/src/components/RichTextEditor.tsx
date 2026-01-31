@@ -8,7 +8,6 @@ import {
   Bold,
   Italic,
   Underline as UnderlineIcon,
-  Strikethrough,
   List,
   ListOrdered,
   AlignLeft,
@@ -159,13 +158,6 @@ export default function RichTextEditor({
             title="Underline (Ctrl+U)"
           >
             <UnderlineIcon className="w-4 h-4" />
-          </ToolbarButton>
-          <ToolbarButton
-            onAction={() => editor.chain().focus().toggleStrike().run()}
-            isActive={editor.isActive('strike')}
-            title="Strikethrough"
-          >
-            <Strikethrough className="w-4 h-4" />
           </ToolbarButton>
         </ToolbarGroup>
 

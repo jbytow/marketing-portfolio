@@ -132,3 +132,43 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Headings in editor */
+.ProseMirror h1 {
+  @apply text-2xl font-bold text-dark-100 mt-6 mb-4;
+}
+
+.ProseMirror h2 {
+  @apply text-xl font-semibold text-dark-100 mt-5 mb-3;
+}
+
+.ProseMirror h3 {
+  @apply text-lg font-semibold text-dark-100 mt-4 mb-2;
+}
+
+/* Lists in editor */
+.ProseMirror ul {
+  @apply list-disc list-outside ml-6 my-4 space-y-1;
+}
+
+.ProseMirror ol {
+  @apply list-decimal list-outside ml-6 my-4 space-y-1;
+}
+
+.ProseMirror li {
+  @apply text-dark-200;
+}
+
+.ProseMirror li p {
+  @apply m-0;
+}
+
+/* Blockquote in editor */
+.ProseMirror blockquote {
+  @apply border-l-4 border-primary-500 pl-4 my-4 italic text-dark-300;
+}
+
+/* Paragraphs in editor */
+.ProseMirror p {
+  @apply my-2;
+}
