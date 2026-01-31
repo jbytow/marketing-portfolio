@@ -8,6 +8,7 @@ import { clsx } from 'clsx';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const mediaTypeIcons: Record<MediaType, typeof Image> = {
@@ -139,7 +140,7 @@ export default function AdminMedia() {
               >
                 {item.type === MediaType.IMAGE ? (
                   <img
-                    src={item.url}
+                    src={getMediaUrl(item.url)}
                     alt={item.altText || item.originalName || ''}
                     className="w-full h-full object-cover"
                   />
@@ -181,13 +182,13 @@ export default function AdminMedia() {
 
             {selectedMedia.type === MediaType.IMAGE ? (
               <img
-                src={selectedMedia.url}
+                src={getMediaUrl(selectedMedia.url)}
                 alt={selectedMedia.altText || selectedMedia.originalName || ''}
                 className="w-full rounded-lg mb-6"
               />
             ) : selectedMedia.type === MediaType.VIDEO ? (
               <video
-                src={selectedMedia.url}
+                src={getMediaUrl(selectedMedia.url)}
                 controls
                 className="w-full rounded-lg mb-6"
               />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Media, MediaType } from '@/types';
+import { getMediaUrl } from '@/lib/mediaUrl';
 
 interface MediaCarouselProps {
   media: Media[];
@@ -31,6 +32,7 @@ export default function MediaCarousel({ media, className = '' }: MediaCarouselPr
 
   const renderMedia = (item: Media) => {
     if (item.type === MediaType.YOUTUBE) {
+      // YouTube URLs are already embed URLs, no need to transform
       return (
         <iframe
           src={item.url}
@@ -45,7 +47,7 @@ export default function MediaCarousel({ media, className = '' }: MediaCarouselPr
     if (item.type === MediaType.VIDEO) {
       return (
         <video
-          src={item.url}
+          src={getMediaUrl(item.url)}
           controls
           className="w-full h-full object-contain"
         >
@@ -56,7 +58,7 @@ export default function MediaCarousel({ media, className = '' }: MediaCarouselPr
 
     return (
       <img
-        src={item.url}
+        src={getMediaUrl(item.url)}
         alt={item.altText || ''}
         className="w-full h-full object-cover"
       />
@@ -140,7 +142,7 @@ export default function MediaCarousel({ media, className = '' }: MediaCarouselPr
                 </div>
               ) : (
                 <img
-                  src={item.url}
+                  src={getMediaUrl(item.url)}
                   alt={item.altText || ''}
                   className="w-full h-full object-cover"
                 />

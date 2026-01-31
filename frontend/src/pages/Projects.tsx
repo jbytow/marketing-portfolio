@@ -8,6 +8,7 @@ import { postsApi } from '@/services/api';
 import { Category } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import HashtagList from '@/components/HashtagList';
 
@@ -86,7 +87,7 @@ export default function Projects() {
                 {project.featuredImage && (
                   <div className="aspect-video rounded-xl overflow-hidden mb-4 bg-dark-700">
                     <img
-                      src={project.featuredImage}
+                      src={getMediaUrl(project.featuredImage)}
                       alt={project.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

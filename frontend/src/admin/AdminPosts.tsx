@@ -16,6 +16,7 @@ import { clsx } from 'clsx';
 import { adminPostsApi } from '@/services/api';
 import { Category, Post } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminPosts() {
@@ -147,7 +148,7 @@ export default function AdminPosts() {
                       <div className="flex items-center">
                         {post.featuredImage && (
                           <img
-                            src={post.featuredImage}
+                            src={getMediaUrl(post.featuredImage)}
                             alt=""
                             className="w-10 h-10 rounded object-cover mr-3"
                           />

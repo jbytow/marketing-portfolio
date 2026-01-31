@@ -21,6 +21,7 @@ import { Upload, Youtube, X, GripVertical, Image as ImageIcon } from 'lucide-rea
 import toast from 'react-hot-toast';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
+import { getMediaUrl } from '@/lib/mediaUrl';
 
 interface MediaManagerProps {
   postId: string;
@@ -85,7 +86,7 @@ function SortableMediaItem({ item, onDelete }: SortableMediaItemProps) {
           </div>
         ) : (
           <img
-            src={item.url}
+            src={getMediaUrl(item.url)}
             alt={item.altText || ''}
             className="w-full h-full object-cover"
           />

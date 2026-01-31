@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import HashtagList from '@/components/HashtagList';
 import MediaCarousel from '@/components/MediaCarousel';
@@ -104,7 +105,7 @@ export default function CaseStudyDetail() {
               className="aspect-video rounded-2xl overflow-hidden bg-dark-700 mb-12"
             >
               <img
-                src={post.featuredImage}
+                src={getMediaUrl(post.featuredImage)}
                 alt={post.title}
                 className="w-full h-full object-cover"
               />

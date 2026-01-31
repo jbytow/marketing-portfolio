@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { settingsApi, postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const stats = [
@@ -171,7 +172,7 @@ export default function Home() {
                   {post.featuredImage && (
                     <div className="aspect-video rounded-xl overflow-hidden mb-4 bg-dark-700">
                       <img
-                        src={post.featuredImage}
+                        src={getMediaUrl(post.featuredImage)}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />

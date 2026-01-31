@@ -7,6 +7,7 @@ import { postsApi } from '@/services/api';
 import { Category } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function Content() {
@@ -63,7 +64,7 @@ export default function Content() {
                 {item.featuredImage && (
                   <div className="aspect-video rounded-lg overflow-hidden bg-dark-700 mb-4">
                     <img
-                      src={item.featuredImage}
+                      src={getMediaUrl(item.featuredImage)}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
