@@ -56,18 +56,6 @@ public class PostService {
         return postRepository.findAllUniqueHashtags();
     }
 
-    public List<PostDto> getCaseStudies(String locale) {
-        return postRepository.findByIsCaseStudyTrueAndPublishedTrueOrderByDisplayOrderAsc().stream()
-                .map(post -> mapToDto(post, locale, false))
-                .toList();
-    }
-
-    public List<PostDto> getAllCaseStudies(String locale) {
-        return postRepository.findAllCaseStudies().stream()
-                .map(post -> mapToDto(post, locale, false))
-                .toList();
-    }
-
     public PostDto getPostBySlug(String slug, String locale) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + slug));
@@ -111,10 +99,18 @@ public class PostService {
                 .contentPl(request.getContentPl())
                 .featuredImage(request.getFeaturedImage())
                 .published(request.getPublished() != null ? request.getPublished() : false)
-                .isCaseStudy(request.getIsCaseStudy() != null ? request.getIsCaseStudy() : false)
                 .hashtags(request.getHashtags() != null ? request.getHashtags().toArray(new String[0]) : new String[0])
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() :
                         postRepository.getMaxDisplayOrder(request.getCategory()) + 1)
+                .caseStudyChallengeEn(request.getCaseStudyChallengeEn())
+                .caseStudyChallengePl(request.getCaseStudyChallengePl())
+                .caseStudySolutionEn(request.getCaseStudySolutionEn())
+                .caseStudySolutionPl(request.getCaseStudySolutionPl())
+                .caseStudyResultsEn(request.getCaseStudyResultsEn())
+                .caseStudyResultsPl(request.getCaseStudyResultsPl())
+                .caseStudyTestimonialEn(request.getCaseStudyTestimonialEn())
+                .caseStudyTestimonialPl(request.getCaseStudyTestimonialPl())
+                .caseStudyTestimonialAuthor(request.getCaseStudyTestimonialAuthor())
                 .build();
 
         post = postRepository.save(post);
@@ -159,11 +155,36 @@ public class PostService {
         if (request.getDisplayOrder() != null) {
             post.setDisplayOrder(request.getDisplayOrder());
         }
-        if (request.getIsCaseStudy() != null) {
-            post.setIsCaseStudy(request.getIsCaseStudy());
-        }
         if (request.getHashtags() != null) {
             post.setHashtags(request.getHashtags().toArray(new String[0]));
+        }
+        // Case Study fields
+        if (request.getCaseStudyChallengeEn() != null) {
+            post.setCaseStudyChallengeEn(request.getCaseStudyChallengeEn());
+        }
+        if (request.getCaseStudyChallengePl() != null) {
+            post.setCaseStudyChallengePl(request.getCaseStudyChallengePl());
+        }
+        if (request.getCaseStudySolutionEn() != null) {
+            post.setCaseStudySolutionEn(request.getCaseStudySolutionEn());
+        }
+        if (request.getCaseStudySolutionPl() != null) {
+            post.setCaseStudySolutionPl(request.getCaseStudySolutionPl());
+        }
+        if (request.getCaseStudyResultsEn() != null) {
+            post.setCaseStudyResultsEn(request.getCaseStudyResultsEn());
+        }
+        if (request.getCaseStudyResultsPl() != null) {
+            post.setCaseStudyResultsPl(request.getCaseStudyResultsPl());
+        }
+        if (request.getCaseStudyTestimonialEn() != null) {
+            post.setCaseStudyTestimonialEn(request.getCaseStudyTestimonialEn());
+        }
+        if (request.getCaseStudyTestimonialPl() != null) {
+            post.setCaseStudyTestimonialPl(request.getCaseStudyTestimonialPl());
+        }
+        if (request.getCaseStudyTestimonialAuthor() != null) {
+            post.setCaseStudyTestimonialAuthor(request.getCaseStudyTestimonialAuthor());
         }
 
         post = postRepository.save(post);
@@ -221,10 +242,23 @@ public class PostService {
                 .featuredImage(post.getFeaturedImage())
                 .published(post.getPublished())
                 .displayOrder(post.getDisplayOrder())
-                .isCaseStudy(post.getIsCaseStudy())
                 .hashtags(post.getHashtags() != null ? Arrays.asList(post.getHashtags()) : new ArrayList<>())
                 .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt());
+                .updatedAt(post.getUpdatedAt())
+                .hasCaseStudy(post.hasCaseStudy())
+                .caseStudyChallenge(post.getCaseStudyChallenge(locale))
+                .caseStudyChallengeEn(post.getCaseStudyChallengeEn())
+                .caseStudyChallengePl(post.getCaseStudyChallengePl())
+                .caseStudySolution(post.getCaseStudySolution(locale))
+                .caseStudySolutionEn(post.getCaseStudySolutionEn())
+                .caseStudySolutionPl(post.getCaseStudySolutionPl())
+                .caseStudyResults(post.getCaseStudyResults(locale))
+                .caseStudyResultsEn(post.getCaseStudyResultsEn())
+                .caseStudyResultsPl(post.getCaseStudyResultsPl())
+                .caseStudyTestimonial(post.getCaseStudyTestimonial(locale))
+                .caseStudyTestimonialEn(post.getCaseStudyTestimonialEn())
+                .caseStudyTestimonialPl(post.getCaseStudyTestimonialPl())
+                .caseStudyTestimonialAuthor(post.getCaseStudyTestimonialAuthor());
 
         if (includeContent) {
             builder.content(post.getContent(locale))

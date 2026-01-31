@@ -37,6 +37,16 @@ public class PostCreateRequest {
     private String featuredImage;
     private Boolean published;
     private Integer displayOrder;
-    private Boolean isCaseStudy;
     private List<String> hashtags;
+
+    // Case Study fields
+    private String caseStudyChallengeEn;
+    private String caseStudyChallengePl;
+    private String caseStudySolutionEn;
+    private String caseStudySolutionPl;
+    private String caseStudyResultsEn;
+    private String caseStudyResultsPl;
+    private String caseStudyTestimonialEn;
+    private String caseStudyTestimonialPl;
+    private String caseStudyTestimonialAuthor;
 }

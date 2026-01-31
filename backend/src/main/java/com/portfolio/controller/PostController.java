@@ -60,14 +60,6 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(posts));
     }
 
-    @GetMapping("/case-studies")
-    public ResponseEntity<ApiResponse<List<PostDto>>> getCaseStudies(
-            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
-
-        List<PostDto> caseStudies = postService.getCaseStudies(extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(caseStudies));
-    }
-
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<PostDto>> getPost(
             @PathVariable String slug,

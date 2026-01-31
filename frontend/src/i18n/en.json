@@ -23,7 +23,8 @@
     "readMore": "Read More",
     "learnMore": "Learn More",
     "contactMe": "Contact Me",
-    "downloadCV": "Download CV"
+    "downloadCV": "Download CV",
+    "optional": "optional"
   },
   "nav": {
     "home": "Home",
@@ -67,10 +68,9 @@
     "subtitle": "Explore my marketing campaigns and projects",
     "viewProject": "View Project"
   },
-  "caseStudies": {
-    "title": "Case Studies",
-    "subtitle": "Deep dive into my successful campaigns",
-    "problem": "Challenge",
+  "caseStudy": {
+    "title": "Case Study Details",
+    "challenge": "Challenge",
     "solution": "Solution",
     "results": "Results",
     "testimonial": "Client Testimonial"
@@ -124,7 +124,11 @@
       "editPost": "Edit Post",
       "noPostsYet": "No posts yet",
       "createFirst": "Create your first post",
-      "markAsCaseStudy": "Mark as Case Study"
+      "caseStudy": {
+        "title": "Case Study",
+        "description": "Add detailed case study information (optional)",
+        "hasContent": "Has content"
+      }
     },
     "softSkills": {
       "title": "Skills",

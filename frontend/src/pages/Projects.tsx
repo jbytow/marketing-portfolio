@@ -106,6 +106,7 @@ export default function Projects() {
                       hashtags={project.hashtags}
                       clickable={true}
                       limit={3}
+                      expandable={true}
                     />
                   </div>
                 )}

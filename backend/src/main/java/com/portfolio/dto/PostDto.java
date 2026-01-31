@@ -32,10 +32,25 @@ public class PostDto {
     private String featuredImage;
     private Boolean published;
     private Integer displayOrder;
-    private Boolean isCaseStudy;
     private List<String> hashtags;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+
+    // Case Study fields
+    private Boolean hasCaseStudy;
+    private String caseStudyChallenge;
+    private String caseStudyChallengeEn;
+    private String caseStudyChallengePl;
+    private String caseStudySolution;
+    private String caseStudySolutionEn;
+    private String caseStudySolutionPl;
+    private String caseStudyResults;
+    private String caseStudyResultsEn;
+    private String caseStudyResultsPl;
+    private String caseStudyTestimonial;
+    private String caseStudyTestimonialEn;
+    private String caseStudyTestimonialPl;
+    private String caseStudyTestimonialAuthor;
 
     // Related media
     private List<MediaDto> media;

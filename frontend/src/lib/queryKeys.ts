@@ -8,7 +8,6 @@ export const queryKeys = {
   postsByHashtag: (lang: string, hashtag: string) =>
     ['posts', lang, 'hashtag', hashtag] as const,
   post: (lang: string, slug: string) => ['post', lang, slug] as const,
-  caseStudies: (lang: string) => ['caseStudies', lang] as const,
   softSkills: (lang: string) => ['softSkills', lang] as const,
   skillCategories: (lang: string) => ['skillCategories', lang] as const,
   skillCategoriesWithSkills: (lang: string) => ['skillCategoriesWithSkills', lang] as const,

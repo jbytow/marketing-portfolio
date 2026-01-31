@@ -11,7 +11,6 @@ const navItems = [
   { path: '/about', labelKey: 'nav.about' },
   { path: '/experience', labelKey: 'nav.experience' },
   { path: '/projects', labelKey: 'nav.projects' },
-  { path: '/case-studies', labelKey: 'nav.caseStudies' },
   { path: '/content', labelKey: 'nav.content' },
   { path: '/skills', labelKey: 'nav.skills' },
   { path: '/contact', labelKey: 'nav.contact' },

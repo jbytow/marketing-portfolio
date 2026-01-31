@@ -23,7 +23,8 @@
     "readMore": "Czytaj więcej",
     "learnMore": "Dowiedz się więcej",
     "contactMe": "Skontaktuj się",
-    "downloadCV": "Pobierz CV"
+    "downloadCV": "Pobierz CV",
+    "optional": "opcjonalne"
   },
   "nav": {
     "home": "Strona główna",
@@ -67,10 +68,9 @@
     "subtitle": "Poznaj moje kampanie marketingowe i projekty",
     "viewProject": "Zobacz projekt"
   },
-  "caseStudies": {
-    "title": "Case Studies",
-    "subtitle": "Szczegółowa analiza moich udanych kampanii",
-    "problem": "Wyzwanie",
+  "caseStudy": {
+    "title": "Szczegóły Case Study",
+    "challenge": "Wyzwanie",
     "solution": "Rozwiązanie",
     "results": "Rezultaty",
     "testimonial": "Opinia klienta"
@@ -124,7 +124,11 @@
       "editPost": "Edytuj post",
       "noPostsYet": "Brak postów",
       "createFirst": "Utwórz swój pierwszy post",
-      "markAsCaseStudy": "Oznacz jako Case Study"
+      "caseStudy": {
+        "title": "Case Study",
+        "description": "Dodaj szczegółowe informacje o case study (opcjonalne)",
+        "hasContent": "Zawiera treść"
+      }
     },
     "softSkills": {
       "title": "Umiejętności",

@@ -28,11 +28,25 @@ export interface Post {
   featuredImage: string | null;
   published: boolean;
   displayOrder: number;
-  isCaseStudy: boolean;
   hashtags: string[];
   createdAt: string;
   updatedAt: string;
   media?: Media[];
+  // Case Study fields
+  hasCaseStudy: boolean;
+  caseStudyChallenge: string | null;
+  caseStudyChallengeEn: string | null;
+  caseStudyChallengePl: string | null;
+  caseStudySolution: string | null;
+  caseStudySolutionEn: string | null;
+  caseStudySolutionPl: string | null;
+  caseStudyResults: string | null;
+  caseStudyResultsEn: string | null;
+  caseStudyResultsPl: string | null;
+  caseStudyTestimonial: string | null;
+  caseStudyTestimonialEn: string | null;
+  caseStudyTestimonialPl: string | null;
+  caseStudyTestimonialAuthor: string | null;
 }
 
 export interface SoftSkill {
@@ -171,8 +185,17 @@ export interface PostCreateRequest {
   featuredImage?: string;
   published?: boolean;
   displayOrder?: number;
-  isCaseStudy?: boolean;
   hashtags?: string[];
+  // Case Study fields
+  caseStudyChallengeEn?: string;
+  caseStudyChallengePl?: string;
+  caseStudySolutionEn?: string;
+  caseStudySolutionPl?: string;
+  caseStudyResultsEn?: string;
+  caseStudyResultsPl?: string;
+  caseStudyTestimonialEn?: string;
+  caseStudyTestimonialPl?: string;
+  caseStudyTestimonialAuthor?: string;
 }
 
 export type PostUpdateRequest = Partial<PostCreateRequest>;

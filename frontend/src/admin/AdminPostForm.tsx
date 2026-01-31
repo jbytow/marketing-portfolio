@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Eye, EyeOff, BookOpen, X, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Eye, EyeOff, X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
@@ -28,12 +28,21 @@ export default function AdminPostForm() {
     contentPl: {},
     featuredImage: '',
     published: false,
-    isCaseStudy: false,
     hashtags: [],
+    caseStudyChallengeEn: '',
+    caseStudyChallengePl: '',
+    caseStudySolutionEn: '',
+    caseStudySolutionPl: '',
+    caseStudyResultsEn: '',
+    caseStudyResultsPl: '',
+    caseStudyTestimonialEn: '',
+    caseStudyTestimonialPl: '',
+    caseStudyTestimonialAuthor: '',
   });
 
   const [media, setMedia] = useState<Media[]>([]);
   const [newHashtag, setNewHashtag] = useState('');
+  const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
   const { data: postData, isLoading: postLoading } = useQuery({
     queryKey: queryKeys.admin.post(id!),
@@ -55,10 +64,22 @@ export default function AdminPostForm() {
         contentPl: post.contentPl || {},
         featuredImage: post.featuredImage || '',
         published: post.published,
-        isCaseStudy: post.isCaseStudy || false,
         hashtags: post.hashtags || [],
+        caseStudyChallengeEn: post.caseStudyChallengeEn || '',
+        caseStudyChallengePl: post.caseStudyChallengePl || '',
+        caseStudySolutionEn: post.caseStudySolutionEn || '',
+        caseStudySolutionPl: post.caseStudySolutionPl || '',
+        caseStudyResultsEn: post.caseStudyResultsEn || '',
+        caseStudyResultsPl: post.caseStudyResultsPl || '',
+        caseStudyTestimonialEn: post.caseStudyTestimonialEn || '',
+        caseStudyTestimonialPl: post.caseStudyTestimonialPl || '',
+        caseStudyTestimonialAuthor: post.caseStudyTestimonialAuthor || '',
       });
       setMedia(post.media || []);
+      // Auto-expand if there's existing case study content
+      if (post.hasCaseStudy) {
+        setCaseStudyExpanded(true);
+      }
     }
   }, [postData]);
 
@@ -67,7 +88,6 @@ export default function AdminPostForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
       queryClient.invalidateQueries({ queryKey: ['hashtags'] });
       toast.success('Post created successfully');
       navigate('/admin/posts');
@@ -84,7 +104,6 @@ export default function AdminPostForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['post'] });
-      queryClient.invalidateQueries({ queryKey: ['caseStudies'] });
       queryClient.invalidateQueries({ queryKey: ['hashtags'] });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
@@ -138,6 +157,12 @@ export default function AdminPostForm() {
     }
   };
 
+  const hasCaseStudyContent = Boolean(
+    formData.caseStudyChallengeEn ||
+    formData.caseStudySolutionEn ||
+    formData.caseStudyResultsEn
+  );
+
   if (postLoading) {
     return <LoadingSpinner />;
   }
@@ -180,46 +205,22 @@ export default function AdminPostForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Category & Case Study Flag */}
-        <div className="card space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Category</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="input"
-                required
-              >
-                {Object.values(Category).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {t(`categories.${cat}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center space-x-3 p-3 rounded-lg bg-dark-700 cursor-pointer hover:bg-dark-600 transition-colors">
-                <input
-                  type="checkbox"
-                  name="isCaseStudy"
-                  checked={formData.isCaseStudy}
-                  onChange={handleChange}
-                  className="w-5 h-5 rounded border-dark-500 bg-dark-600 text-primary-500 focus:ring-primary-500"
-                />
-                <BookOpen className={`w-5 h-5 ${formData.isCaseStudy ? 'text-primary-400' : 'text-dark-400'}`} />
-                <span className={formData.isCaseStudy ? 'text-primary-400' : 'text-dark-300'}>
-                  {t('admin.posts.markAsCaseStudy')}
-                </span>
-              </label>
-            </div>
-          </div>
-          {formData.isCaseStudy && (
-            <p className="text-sm text-dark-400">
-              This post will appear on the Case Studies page.
-            </p>
-          )}
+        {/* Category */}
+        <div className="card">
+          <label className="label">Category</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="input"
+            required
+          >
+            {Object.values(Category).map((cat) => (
+              <option key={cat} value={cat}>
+                {t(`categories.${cat}`)}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Titles */}
@@ -371,6 +372,165 @@ export default function AdminPostForm() {
             </p>
           </div>
         )}
+
+        {/* Case Study Section */}
+        <div className="card">
+          <button
+            type="button"
+            onClick={() => setCaseStudyExpanded(!caseStudyExpanded)}
+            className="w-full flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-dark-100">
+                {t('admin.posts.caseStudy.title')}
+              </h3>
+              {hasCaseStudyContent && (
+                <span className="px-2 py-0.5 text-xs rounded-full bg-primary-500/20 text-primary-400">
+                  {t('admin.posts.caseStudy.hasContent')}
+                </span>
+              )}
+            </div>
+            {caseStudyExpanded ? (
+              <ChevronUp className="w-5 h-5 text-dark-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-dark-400" />
+            )}
+          </button>
+          <p className="text-sm text-dark-400 mt-1">
+            {t('admin.posts.caseStudy.description')}
+          </p>
+
+          {caseStudyExpanded && (
+            <div className="mt-6 space-y-6 pt-6 border-t border-dark-700">
+              {/* Challenge */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-dark-200">{t('caseStudy.challenge')}</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Challenge (English)</label>
+                    <textarea
+                      name="caseStudyChallengeEn"
+                      value={formData.caseStudyChallengeEn}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="What problem did the client face?"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Challenge (Polish)</label>
+                    <textarea
+                      name="caseStudyChallengePl"
+                      value={formData.caseStudyChallengePl}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="Jaki problem miał klient?"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Solution */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-dark-200">{t('caseStudy.solution')}</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Solution (English)</label>
+                    <textarea
+                      name="caseStudySolutionEn"
+                      value={formData.caseStudySolutionEn}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="What strategy or approach was used?"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Solution (Polish)</label>
+                    <textarea
+                      name="caseStudySolutionPl"
+                      value={formData.caseStudySolutionPl}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="Jaka strategia lub podejście zostało zastosowane?"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Results */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-dark-200">{t('caseStudy.results')}</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Results (English)</label>
+                    <textarea
+                      name="caseStudyResultsEn"
+                      value={formData.caseStudyResultsEn}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="What were the outcomes and metrics?"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Results (Polish)</label>
+                    <textarea
+                      name="caseStudyResultsPl"
+                      value={formData.caseStudyResultsPl}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="Jakie były wyniki i metryki?"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-dark-200">{t('caseStudy.testimonial')} ({t('common.optional')})</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Testimonial (English)</label>
+                    <textarea
+                      name="caseStudyTestimonialEn"
+                      value={formData.caseStudyTestimonialEn}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="Client quote..."
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Testimonial (Polish)</label>
+                    <textarea
+                      name="caseStudyTestimonialPl"
+                      value={formData.caseStudyTestimonialPl}
+                      onChange={handleChange}
+                      className="input"
+                      rows={3}
+                      placeholder="Cytat klienta..."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Testimonial Author</label>
+                  <input
+                    type="text"
+                    name="caseStudyTestimonialAuthor"
+                    value={formData.caseStudyTestimonialAuthor}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="John Doe, CEO at Company"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Submit */}
         <div className="flex justify-end space-x-4">

@@ -88,11 +88,6 @@ export const postsApi = {
     return data;
   },
 
-  getCaseStudies: async (): Promise<ApiResponse<Post[]>> => {
-    const { data } = await api.get('/posts/case-studies');
-    return data;
-  },
-
   getHashtags: async (): Promise<ApiResponse<string[]>> => {
     const { data } = await api.get('/posts/hashtags');
     return data;

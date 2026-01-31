@@ -50,15 +50,6 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("UPDATE Post p SET p.displayOrder = :displayOrder WHERE p.id = :id")
     void updateDisplayOrder(@Param("id") UUID id, @Param("displayOrder") int displayOrder);
 
-    // Case study methods
-    List<Post> findByIsCaseStudyTrueAndPublishedTrueOrderByDisplayOrderAsc();
-
-    @Query("SELECT p FROM Post p WHERE p.isCaseStudy = true ORDER BY p.displayOrder ASC")
-    List<Post> findAllCaseStudies();
-
-    @Query("SELECT COUNT(p) FROM Post p WHERE p.isCaseStudy = true AND p.published = true")
-    long countCaseStudiesPublished();
-
     // Hashtag methods
     @Query(value = "SELECT * FROM posts WHERE published = true AND :hashtag = ANY(hashtags) ORDER BY display_order", nativeQuery = true)
     List<Post> findByHashtagAndPublishedTrue(@Param("hashtag") String hashtag);

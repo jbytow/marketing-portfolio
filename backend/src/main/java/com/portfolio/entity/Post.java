@@ -64,12 +64,36 @@ public class Post {
     @Builder.Default
     private Integer displayOrder = 0;
 
-    @Column(name = "is_case_study")
-    @Builder.Default
-    private Boolean isCaseStudy = false;
-
     @Column(name = "hashtags", columnDefinition = "text[]")
     private String[] hashtags = new String[0];
+
+    // Case Study fields
+    @Column(name = "case_study_challenge_en", columnDefinition = "TEXT")
+    private String caseStudyChallengeEn;
+
+    @Column(name = "case_study_challenge_pl", columnDefinition = "TEXT")
+    private String caseStudyChallengePl;
+
+    @Column(name = "case_study_solution_en", columnDefinition = "TEXT")
+    private String caseStudySolutionEn;
+
+    @Column(name = "case_study_solution_pl", columnDefinition = "TEXT")
+    private String caseStudySolutionPl;
+
+    @Column(name = "case_study_results_en", columnDefinition = "TEXT")
+    private String caseStudyResultsEn;
+
+    @Column(name = "case_study_results_pl", columnDefinition = "TEXT")
+    private String caseStudyResultsPl;
+
+    @Column(name = "case_study_testimonial_en", columnDefinition = "TEXT")
+    private String caseStudyTestimonialEn;
+
+    @Column(name = "case_study_testimonial_pl", columnDefinition = "TEXT")
+    private String caseStudyTestimonialPl;
+
+    @Column(name = "case_study_testimonial_author")
+    private String caseStudyTestimonialAuthor;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
@@ -102,5 +126,27 @@ public class Post {
 
     public Map<String, Object> getContent(String locale) {
         return "pl".equalsIgnoreCase(locale) ? contentPl : contentEn;
+    }
+
+    public String getCaseStudyChallenge(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? caseStudyChallengePl : caseStudyChallengeEn;
+    }
+
+    public String getCaseStudySolution(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? caseStudySolutionPl : caseStudySolutionEn;
+    }
+
+    public String getCaseStudyResults(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? caseStudyResultsPl : caseStudyResultsEn;
+    }
+
+    public String getCaseStudyTestimonial(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? caseStudyTestimonialPl : caseStudyTestimonialEn;
+    }
+
+    public boolean hasCaseStudy() {
+        return (caseStudyChallengeEn != null && !caseStudyChallengeEn.isBlank()) ||
+               (caseStudySolutionEn != null && !caseStudySolutionEn.isBlank()) ||
+               (caseStudyResultsEn != null && !caseStudyResultsEn.isBlank());
     }
 }
