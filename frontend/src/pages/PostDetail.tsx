@@ -85,8 +85,7 @@ export default function PostDetail() {
             transition={{ delay: 0.1 }}
             className="mb-8"
           >
-            <span className="badge-primary mb-4">{post.categoryLabel}</span>
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-dark-100 mb-6">
+            <h1 className="text-4xl md:text-5xl font-display font-bold text-dark-100">
               {post.title}
             </h1>
           </motion.header>
@@ -97,7 +96,7 @@ export default function PostDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mb-12"
+              className="mb-8"
             >
               <MediaCarousel media={post.media} />
             </motion.div>
@@ -106,7 +105,8 @@ export default function PostDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="aspect-video rounded-2xl overflow-hidden bg-dark-700 mb-12"
+              className="rounded-xl overflow-hidden bg-dark-700 mb-8 max-w-xs mx-auto"
+              style={{ aspectRatio: '4/5', maxHeight: '50vh' }}
             >
               <img
                 src={getMediaUrl(post.featuredImage)}
@@ -122,7 +122,7 @@ export default function PostDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mb-12"
+              className="mb-8"
             >
               <p className="text-xl text-dark-300 leading-relaxed">{post.excerpt}</p>
             </motion.div>
