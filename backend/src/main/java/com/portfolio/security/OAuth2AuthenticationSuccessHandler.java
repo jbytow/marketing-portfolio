@@ -55,9 +55,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String jwt = jwtService.generateToken(user.getEmail(), user.getName(), user.getIsAdmin());
 
         // Set JWT as HTTP-only cookie with SameSite attribute
+        // Use Secure flag when frontend URL is HTTPS (handles reverse proxy/tunnel scenarios)
+        boolean isSecure = frontendUrl.startsWith("https://") || request.isSecure();
         ResponseCookie cookie = ResponseCookie.from("auth_token", jwt)
                 .httpOnly(true)
-                .secure(request.isSecure())
+                .secure(isSecure)
                 .path("/")
                 .maxAge(Duration.ofHours(24))
                 .sameSite("Lax")  // Lax allows the cookie on OAuth redirects
