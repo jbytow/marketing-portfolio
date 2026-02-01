@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
-import { Github } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -74,14 +73,6 @@ export default function AdminLogin() {
                 />
               </svg>
               {t('admin.auth.loginWith')} {t('admin.auth.google')}
-            </button>
-
-            <button
-              onClick={() => login('github')}
-              className="w-full flex items-center justify-center px-6 py-3 bg-[#24292e] text-white rounded-lg font-medium hover:bg-[#2f363d] transition-colors"
-            >
-              <Github className="w-5 h-5 mr-3" />
-              {t('admin.auth.loginWith')} {t('admin.auth.github')}
             </button>
           </div>
 

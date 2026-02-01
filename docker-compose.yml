@@ -33,8 +33,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_key_minimum_32_characters}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@example.com}
       UPLOAD_PATH: /app/uploads
       FRONTEND_URL: http://localhost:5173
