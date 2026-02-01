@@ -4,6 +4,7 @@ import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.SkillCategoryDto;
 import com.portfolio.dto.SkillCategoryWithSkillsDto;
 import com.portfolio.service.SkillCategoryService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class SkillCategoryController {
     public ResponseEntity<ApiResponse<List<SkillCategoryDto>>> getAllCategories(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        List<SkillCategoryDto> categories = skillCategoryService.getAllCategories(extractLocale(locale));
+        List<SkillCategoryDto> categories = skillCategoryService.getAllCategories(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
@@ -30,7 +31,7 @@ public class SkillCategoryController {
     public ResponseEntity<ApiResponse<List<SkillCategoryWithSkillsDto>>> getAllCategoriesWithSkills(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        List<SkillCategoryWithSkillsDto> categories = skillCategoryService.getAllCategoriesWithSkills(extractLocale(locale));
+        List<SkillCategoryWithSkillsDto> categories = skillCategoryService.getAllCategoriesWithSkills(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
@@ -39,15 +40,7 @@ public class SkillCategoryController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SkillCategoryDto category = skillCategoryService.getCategoryById(id, extractLocale(locale));
+        SkillCategoryDto category = skillCategoryService.getCategoryById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(category));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

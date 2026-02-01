@@ -4,6 +4,7 @@ import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.PostDto;
 import com.portfolio.entity.Category;
 import com.portfolio.service.PostService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,11 +29,11 @@ public class PostController {
 
         List<PostDto> posts;
         if (hashtag != null && !hashtag.isBlank()) {
-            posts = postService.getPostsByHashtag(hashtag, extractLocale(locale));
+            posts = postService.getPostsByHashtag(hashtag, LocaleUtils.extractLocale(locale));
         } else if (category != null) {
-            posts = postService.getPostsByCategory(category, extractLocale(locale));
+            posts = postService.getPostsByCategory(category, LocaleUtils.extractLocale(locale));
         } else {
-            posts = postService.getAllPublishedPosts(extractLocale(locale));
+            posts = postService.getAllPublishedPosts(LocaleUtils.extractLocale(locale));
         }
 
         return ResponseEntity.ok(ApiResponse.success(posts));
@@ -52,9 +53,9 @@ public class PostController {
 
         Page<PostDto> posts;
         if (category != null) {
-            posts = postService.getPostsByCategory(category, pageable, extractLocale(locale));
+            posts = postService.getPostsByCategory(category, pageable, LocaleUtils.extractLocale(locale));
         } else {
-            posts = postService.getPublishedPosts(pageable, extractLocale(locale));
+            posts = postService.getPublishedPosts(pageable, LocaleUtils.extractLocale(locale));
         }
 
         return ResponseEntity.ok(ApiResponse.success(posts));
@@ -65,15 +66,7 @@ public class PostController {
             @PathVariable String slug,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        PostDto post = postService.getPostBySlug(slug, extractLocale(locale));
+        PostDto post = postService.getPostBySlug(slug, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(post));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

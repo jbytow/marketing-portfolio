@@ -2,6 +2,7 @@ package com.portfolio.controller;
 
 import com.portfolio.dto.*;
 import com.portfolio.service.ExperienceService;
+import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class AdminExperienceController {
     public ResponseEntity<ApiResponse<List<ExperienceDto>>> getAllExperiences(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        List<ExperienceDto> experiences = experienceService.getAllExperiences(extractLocale(locale));
+        List<ExperienceDto> experiences = experienceService.getAllExperiences(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(experiences));
     }
 
@@ -31,7 +32,7 @@ public class AdminExperienceController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        ExperienceDto experience = experienceService.getExperienceById(id, extractLocale(locale));
+        ExperienceDto experience = experienceService.getExperienceById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(experience));
     }
 
@@ -40,7 +41,7 @@ public class AdminExperienceController {
             @Valid @RequestBody ExperienceCreateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        ExperienceDto experience = experienceService.createExperience(request, extractLocale(locale));
+        ExperienceDto experience = experienceService.createExperience(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(experience, "Experience created successfully"));
     }
@@ -51,7 +52,7 @@ public class AdminExperienceController {
             @Valid @RequestBody ExperienceUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        ExperienceDto experience = experienceService.updateExperience(id, request, extractLocale(locale));
+        ExperienceDto experience = experienceService.updateExperience(id, request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(experience, "Experience updated successfully"));
     }
 
@@ -65,13 +66,5 @@ public class AdminExperienceController {
     public ResponseEntity<ApiResponse<Void>> reorderExperiences(@RequestBody ReorderRequest request) {
         experienceService.reorderExperiences(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Experiences reordered successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

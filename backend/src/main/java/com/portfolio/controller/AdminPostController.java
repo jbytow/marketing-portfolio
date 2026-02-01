@@ -3,6 +3,7 @@ package com.portfolio.controller;
 import com.portfolio.dto.*;
 import com.portfolio.entity.Category;
 import com.portfolio.service.PostService;
+import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,9 +27,9 @@ public class AdminPostController {
 
         List<PostDto> posts;
         if (category != null) {
-            posts = postService.getAllPostsByCategory(category, extractLocale(locale));
+            posts = postService.getAllPostsByCategory(category, LocaleUtils.extractLocale(locale));
         } else {
-            posts = postService.getAllPosts(extractLocale(locale));
+            posts = postService.getAllPosts(LocaleUtils.extractLocale(locale));
         }
 
         return ResponseEntity.ok(ApiResponse.success(posts));
@@ -39,7 +40,7 @@ public class AdminPostController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        PostDto post = postService.getPostById(id, extractLocale(locale));
+        PostDto post = postService.getPostById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(post));
     }
 
@@ -48,7 +49,7 @@ public class AdminPostController {
             @Valid @RequestBody PostCreateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        PostDto post = postService.createPost(request, extractLocale(locale));
+        PostDto post = postService.createPost(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(post, "Post created successfully"));
     }
@@ -59,7 +60,7 @@ public class AdminPostController {
             @Valid @RequestBody PostUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        PostDto post = postService.updatePost(id, request, extractLocale(locale));
+        PostDto post = postService.updatePost(id, request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(post, "Post updated successfully"));
     }
 
@@ -74,7 +75,7 @@ public class AdminPostController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        PostDto post = postService.togglePublish(id, extractLocale(locale));
+        PostDto post = postService.togglePublish(id, LocaleUtils.extractLocale(locale));
         String message = post.getPublished() ? "Post published successfully" : "Post unpublished successfully";
         return ResponseEntity.ok(ApiResponse.success(post, message));
     }
@@ -83,13 +84,5 @@ public class AdminPostController {
     public ResponseEntity<ApiResponse<Void>> reorderPosts(@RequestBody ReorderRequest request) {
         postService.reorderPosts(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Posts reordered successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

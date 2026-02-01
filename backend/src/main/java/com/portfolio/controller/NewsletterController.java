@@ -3,6 +3,7 @@ package com.portfolio.controller;
 import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.NewsletterDto;
 import com.portfolio.service.NewsletterService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +21,7 @@ public class NewsletterController {
     public ResponseEntity<ApiResponse<List<NewsletterDto>>> getAllPublished(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        List<NewsletterDto> newsletters = newsletterService.getAllPublished(lang);
+        List<NewsletterDto> newsletters = newsletterService.getAllPublished(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletters));
     }
 
@@ -30,8 +30,7 @@ public class NewsletterController {
             @PathVariable String slug,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        NewsletterDto newsletter = newsletterService.getBySlug(slug, lang);
+        NewsletterDto newsletter = newsletterService.getBySlug(slug, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletter));
     }
 }

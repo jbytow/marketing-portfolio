@@ -4,6 +4,7 @@ import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.MediaDto;
 import com.portfolio.service.MediaService;
 import com.portfolio.service.StorageService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +27,7 @@ public class MediaController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        MediaDto media = mediaService.getMediaById(id, extractLocale(locale));
+        MediaDto media = mediaService.getMediaById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(media));
     }
 
@@ -58,13 +59,5 @@ public class MediaController {
             case "pdf" -> "application/pdf";
             default -> "application/octet-stream";
         };
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

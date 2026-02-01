@@ -2,6 +2,7 @@ package com.portfolio.controller;
 
 import com.portfolio.dto.*;
 import com.portfolio.service.SoftSkillService;
+import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class AdminSoftSkillController {
     public ResponseEntity<ApiResponse<List<SoftSkillDto>>> getAllSoftSkills(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        List<SoftSkillDto> skills = softSkillService.getAllSoftSkills(extractLocale(locale));
+        List<SoftSkillDto> skills = softSkillService.getAllSoftSkills(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(skills));
     }
 
@@ -31,7 +32,7 @@ public class AdminSoftSkillController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SoftSkillDto skill = softSkillService.getSoftSkillById(id, extractLocale(locale));
+        SoftSkillDto skill = softSkillService.getSoftSkillById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(skill));
     }
 
@@ -40,7 +41,7 @@ public class AdminSoftSkillController {
             @Valid @RequestBody SoftSkillCreateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SoftSkillDto skill = softSkillService.createSoftSkill(request, extractLocale(locale));
+        SoftSkillDto skill = softSkillService.createSoftSkill(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(skill, "Soft skill created successfully"));
     }
@@ -51,7 +52,7 @@ public class AdminSoftSkillController {
             @Valid @RequestBody SoftSkillUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SoftSkillDto skill = softSkillService.updateSoftSkill(id, request, extractLocale(locale));
+        SoftSkillDto skill = softSkillService.updateSoftSkill(id, request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(skill, "Soft skill updated successfully"));
     }
 
@@ -65,13 +66,5 @@ public class AdminSoftSkillController {
     public ResponseEntity<ApiResponse<Void>> reorderSoftSkills(@RequestBody ReorderRequest request) {
         softSkillService.reorderSoftSkills(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Soft skills reordered successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

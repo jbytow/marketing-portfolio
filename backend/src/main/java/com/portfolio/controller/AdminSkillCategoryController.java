@@ -2,6 +2,7 @@ package com.portfolio.controller;
 
 import com.portfolio.dto.*;
 import com.portfolio.service.SkillCategoryService;
+import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class AdminSkillCategoryController {
     public ResponseEntity<ApiResponse<List<SkillCategoryDto>>> getAllCategories(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        List<SkillCategoryDto> categories = skillCategoryService.getAllCategories(extractLocale(locale));
+        List<SkillCategoryDto> categories = skillCategoryService.getAllCategories(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
@@ -31,7 +32,7 @@ public class AdminSkillCategoryController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SkillCategoryDto category = skillCategoryService.getCategoryById(id, extractLocale(locale));
+        SkillCategoryDto category = skillCategoryService.getCategoryById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(category));
     }
 
@@ -40,7 +41,7 @@ public class AdminSkillCategoryController {
             @Valid @RequestBody SkillCategoryCreateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SkillCategoryDto category = skillCategoryService.createCategory(request, extractLocale(locale));
+        SkillCategoryDto category = skillCategoryService.createCategory(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(category, "Skill category created successfully"));
     }
@@ -51,7 +52,7 @@ public class AdminSkillCategoryController {
             @Valid @RequestBody SkillCategoryUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SkillCategoryDto category = skillCategoryService.updateCategory(id, request, extractLocale(locale));
+        SkillCategoryDto category = skillCategoryService.updateCategory(id, request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(category, "Skill category updated successfully"));
     }
 
@@ -65,13 +66,5 @@ public class AdminSkillCategoryController {
     public ResponseEntity<ApiResponse<Void>> reorderCategories(@RequestBody ReorderRequest request) {
         skillCategoryService.reorderCategories(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Skill categories reordered successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

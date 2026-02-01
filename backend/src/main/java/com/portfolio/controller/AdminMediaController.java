@@ -5,6 +5,7 @@ import com.portfolio.dto.MediaDto;
 import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.MediaType;
 import com.portfolio.service.MediaService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,9 +33,9 @@ public class AdminMediaController {
 
         Page<MediaDto> media;
         if (type != null) {
-            media = mediaService.getMediaByType(type, pageable, extractLocale(locale));
+            media = mediaService.getMediaByType(type, pageable, LocaleUtils.extractLocale(locale));
         } else {
-            media = mediaService.getAllMedia(pageable, extractLocale(locale));
+            media = mediaService.getAllMedia(pageable, LocaleUtils.extractLocale(locale));
         }
 
         return ResponseEntity.ok(ApiResponse.success(media));
@@ -45,7 +46,7 @@ public class AdminMediaController {
             @PageableDefault(size = 20) Pageable pageable,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        Page<MediaDto> media = mediaService.getUnassignedMedia(pageable, extractLocale(locale));
+        Page<MediaDto> media = mediaService.getUnassignedMedia(pageable, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(media));
     }
 
@@ -57,7 +58,7 @@ public class AdminMediaController {
             @RequestParam(value = "altTextPl", required = false) String altTextPl,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) throws IOException {
 
-        MediaDto media = mediaService.uploadMedia(file, postId, altTextEn, altTextPl, extractLocale(locale));
+        MediaDto media = mediaService.uploadMedia(file, postId, altTextEn, altTextPl, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(media, "Media uploaded successfully"));
     }
@@ -70,7 +71,7 @@ public class AdminMediaController {
             @RequestParam(value = "postId", required = false) UUID postId,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        MediaDto media = mediaService.updateMedia(id, altTextEn, altTextPl, postId, extractLocale(locale));
+        MediaDto media = mediaService.updateMedia(id, altTextEn, altTextPl, postId, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(media, "Media updated successfully"));
     }
 
@@ -88,7 +89,7 @@ public class AdminMediaController {
             @RequestParam(value = "altTextPl", required = false) String altTextPl,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        MediaDto media = mediaService.createYouTubeMedia(postId, videoUrl, altTextEn, altTextPl, extractLocale(locale));
+        MediaDto media = mediaService.createYouTubeMedia(postId, videoUrl, altTextEn, altTextPl, LocaleUtils.extractLocale(locale));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(media, "YouTube media created successfully"));
     }
@@ -100,13 +101,5 @@ public class AdminMediaController {
 
         mediaService.reorderMedia(postId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Media reordered successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

@@ -4,6 +4,7 @@ import com.portfolio.dto.ApiResponse;
 import com.portfolio.dto.SiteSettingsDto;
 import com.portfolio.dto.SiteSettingsUpdateRequest;
 import com.portfolio.service.SiteSettingsService;
+import com.portfolio.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class AdminSettingsController {
     public ResponseEntity<ApiResponse<SiteSettingsDto>> getSettings(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SiteSettingsDto settings = siteSettingsService.getSettings(extractLocale(locale));
+        SiteSettingsDto settings = siteSettingsService.getSettings(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(settings));
     }
 
@@ -28,15 +29,7 @@ public class AdminSettingsController {
             @RequestBody SiteSettingsUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        SiteSettingsDto settings = siteSettingsService.updateSettings(request, extractLocale(locale));
+        SiteSettingsDto settings = siteSettingsService.updateSettings(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(settings, "Settings updated successfully"));
-    }
-
-    private String extractLocale(String acceptLanguage) {
-        if (acceptLanguage == null || acceptLanguage.isBlank()) {
-            return "en";
-        }
-        String primary = acceptLanguage.split(",")[0].split(";")[0].trim();
-        return primary.startsWith("pl") ? "pl" : "en";
     }
 }

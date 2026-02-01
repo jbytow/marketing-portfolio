@@ -5,6 +5,7 @@ import com.portfolio.dto.NewsletterCreateRequest;
 import com.portfolio.dto.NewsletterDto;
 import com.portfolio.dto.NewsletterUpdateRequest;
 import com.portfolio.service.NewsletterService;
+import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,7 @@ public class AdminNewsletterController {
     public ResponseEntity<ApiResponse<List<NewsletterDto>>> getAll(
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        List<NewsletterDto> newsletters = newsletterService.getAll(lang);
+        List<NewsletterDto> newsletters = newsletterService.getAll(LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletters));
     }
 
@@ -34,8 +34,7 @@ public class AdminNewsletterController {
             @PathVariable UUID id,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        NewsletterDto newsletter = newsletterService.getById(id, lang);
+        NewsletterDto newsletter = newsletterService.getById(id, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletter));
     }
 
@@ -44,8 +43,7 @@ public class AdminNewsletterController {
             @Valid @RequestBody NewsletterCreateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        NewsletterDto newsletter = newsletterService.create(request, lang);
+        NewsletterDto newsletter = newsletterService.create(request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletter));
     }
 
@@ -55,8 +53,7 @@ public class AdminNewsletterController {
             @RequestBody NewsletterUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
-        String lang = locale.toLowerCase().startsWith("pl") ? "pl" : "en";
-        NewsletterDto newsletter = newsletterService.update(id, request, lang);
+        NewsletterDto newsletter = newsletterService.update(id, request, LocaleUtils.extractLocale(locale));
         return ResponseEntity.ok(ApiResponse.success(newsletter));
     }
 
