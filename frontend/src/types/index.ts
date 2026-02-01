@@ -288,3 +288,10 @@ export interface SiteSettingsUpdateRequest {
   metaDescriptionEn?: string;
   metaDescriptionPl?: string;
 }
+
+export interface ContactRequest {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}

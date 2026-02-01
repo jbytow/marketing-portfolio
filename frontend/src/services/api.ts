@@ -26,6 +26,7 @@ import {
   Newsletter,
   NewsletterCreateRequest,
   NewsletterUpdateRequest,
+  ContactRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -153,6 +154,13 @@ export const categoriesApi = {
 export const settingsApi = {
   get: async (): Promise<ApiResponse<SiteSettings>> => {
     const { data } = await api.get('/settings');
+    return data;
+  },
+};
+
+export const contactApi = {
+  submit: async (request: ContactRequest): Promise<ApiResponse<void>> => {
+    const { data } = await api.post('/contact', request);
     return data;
   },
 };

@@ -13,7 +13,7 @@ import {
   Instagram,
   Facebook,
 } from 'lucide-react';
-import { settingsApi } from '@/services/api';
+import { settingsApi, contactApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -46,12 +46,15 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission (replace with actual API call)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast.success(t('contact.form.success'));
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    setIsSubmitting(false);
+    try {
+      await contactApi.submit(formData);
+      toast.success(t('contact.form.success'));
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch {
+      toast.error(t('contact.form.error'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
