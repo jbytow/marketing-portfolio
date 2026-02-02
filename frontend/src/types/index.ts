@@ -184,6 +184,7 @@ export interface SiteSettings {
   footerTaglineEn: string;
   footerTaglinePl: string;
   ownerName: string;
+  siteName: string;
   statsItems: StatItem[];
 }
 
@@ -308,6 +309,7 @@ export interface SiteSettingsUpdateRequest {
   footerTaglineEn?: string;
   footerTaglinePl?: string;
   ownerName?: string;
+  siteName?: string;
   statsItems?: StatItemInput[];
 }
 

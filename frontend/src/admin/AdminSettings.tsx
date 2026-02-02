@@ -30,6 +30,7 @@ export default function AdminSettings() {
     footerTaglineEn: '',
     footerTaglinePl: '',
     ownerName: '',
+    siteName: '',
     statsItems: [],
   });
 
@@ -59,6 +60,7 @@ export default function AdminSettings() {
         footerTaglineEn: settings.footerTaglineEn || '',
         footerTaglinePl: settings.footerTaglinePl || '',
         ownerName: settings.ownerName || '',
+        siteName: settings.siteName || '',
         statsItems: settings.statsItems?.map(s => ({
           icon: s.icon,
           value: s.value,
@@ -153,16 +155,29 @@ export default function AdminSettings() {
           <h2 className="text-xl font-semibold text-dark-100">
             {t('admin.settings.general')}
           </h2>
-          <div>
-            <label className="label">Owner Name (for copyright & navbar)</label>
-            <input
-              type="text"
-              name="ownerName"
-              value={formData.ownerName}
-              onChange={handleChange}
-              className="input"
-              placeholder="Natalia Zakulecka"
-            />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Site Name (navbar brand)</label>
+              <input
+                type="text"
+                name="siteName"
+                value={formData.siteName}
+                onChange={handleChange}
+                className="input"
+                placeholder="Zakulecka ✨"
+              />
+            </div>
+            <div>
+              <label className="label">Owner Name (for copyright)</label>
+              <input
+                type="text"
+                name="ownerName"
+                value={formData.ownerName}
+                onChange={handleChange}
+                className="input"
+                placeholder="Natalia Zakulecka"
+              />
+            </div>
           </div>
         </div>
 

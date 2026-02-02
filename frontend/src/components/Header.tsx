@@ -38,7 +38,7 @@ export default function Header() {
         <nav className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="text-xl md:text-2xl font-display font-bold gradient-text">
-            Portfolio{settings?.ownerName ? ` | ${settings.ownerName}` : ''}
+            {settings?.siteName || 'Portfolio'}
           </Link>
 
           {/* Desktop Navigation */}

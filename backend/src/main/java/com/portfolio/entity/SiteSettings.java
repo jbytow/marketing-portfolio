@@ -75,6 +75,9 @@ public class SiteSettings {
     @Column(name = "owner_name")
     private String ownerName;
 
+    @Column(name = "site_name")
+    private String siteName;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stats_items", columnDefinition = "jsonb")
     private List<Map<String, String>> statsItems;

@@ -81,6 +81,9 @@ public class SiteSettingsService {
         if (request.getOwnerName() != null) {
             settings.setOwnerName(request.getOwnerName());
         }
+        if (request.getSiteName() != null) {
+            settings.setSiteName(request.getSiteName());
+        }
         if (request.getStatsItems() != null) {
             List<Map<String, String>> statsItemsMaps = new ArrayList<>();
             for (StatItemDto item : request.getStatsItems()) {
@@ -123,6 +126,7 @@ public class SiteSettingsService {
                 .footerTaglineEn(settings.getFooterTaglineEn())
                 .footerTaglinePl(settings.getFooterTaglinePl())
                 .ownerName(settings.getOwnerName())
+                .siteName(settings.getSiteName())
                 .statsItems(mapStatsItems(settings.getStatsItems(), locale))
                 .build();
     }
