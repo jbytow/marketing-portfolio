@@ -27,6 +27,9 @@ import {
   NewsletterCreateRequest,
   NewsletterUpdateRequest,
   ContactRequest,
+  Interest,
+  InterestCreateRequest,
+  InterestUpdateRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -161,6 +164,18 @@ export const settingsApi = {
 export const contactApi = {
   submit: async (request: ContactRequest): Promise<ApiResponse<void>> => {
     const { data } = await api.post('/contact', request);
+    return data;
+  },
+};
+
+export const interestsApi = {
+  getAll: async (): Promise<ApiResponse<Interest[]>> => {
+    const { data } = await api.get('/interests');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<Interest>> => {
+    const { data } = await api.get(`/interests/${id}`);
     return data;
   },
 };
@@ -385,6 +400,38 @@ export const adminSettingsApi = {
 
   update: async (settings: SiteSettingsUpdateRequest): Promise<ApiResponse<SiteSettings>> => {
     const { data } = await api.put('/admin/settings', settings);
+    return data;
+  },
+};
+
+export const adminInterestsApi = {
+  getAll: async (): Promise<ApiResponse<Interest[]>> => {
+    const { data } = await api.get('/admin/interests');
+    return data;
+  },
+
+  getById: async (id: string): Promise<ApiResponse<Interest>> => {
+    const { data } = await api.get(`/admin/interests/${id}`);
+    return data;
+  },
+
+  create: async (interest: InterestCreateRequest): Promise<ApiResponse<Interest>> => {
+    const { data } = await api.post('/admin/interests', interest);
+    return data;
+  },
+
+  update: async (id: string, interest: InterestUpdateRequest): Promise<ApiResponse<Interest>> => {
+    const { data } = await api.put(`/admin/interests/${id}`, interest);
+    return data;
+  },
+
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    const { data } = await api.delete(`/admin/interests/${id}`);
+    return data;
+  },
+
+  reorder: async (items: ReorderItem[]): Promise<ApiResponse<void>> => {
+    const { data } = await api.patch('/admin/interests/reorder', { items });
     return data;
   },
 };

@@ -31,6 +31,8 @@ export default function AdminSettings() {
     footerTaglinePl: '',
     ownerName: '',
     siteName: '',
+    aboutTagsEn: [],
+    aboutTagsPl: [],
     statsItems: [],
   });
 
@@ -61,6 +63,8 @@ export default function AdminSettings() {
         footerTaglinePl: settings.footerTaglinePl || '',
         ownerName: settings.ownerName || '',
         siteName: settings.siteName || '',
+        aboutTagsEn: settings.aboutTagsEn || [],
+        aboutTagsPl: settings.aboutTagsPl || [],
         statsItems: settings.statsItems?.map(s => ({
           icon: s.icon,
           value: s.value,
@@ -137,6 +141,29 @@ export default function AdminSettings() {
     'clock', 'heart', 'zap', 'brain', 'handshake', 'rocket', 'award',
     'star', 'trophy', 'briefcase', 'globe'
   ];
+
+  const [newTagEn, setNewTagEn] = useState('');
+  const [newTagPl, setNewTagPl] = useState('');
+
+  const addTag = () => {
+    if (newTagEn.trim() && newTagPl.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        aboutTagsEn: [...(prev.aboutTagsEn || []), newTagEn.trim()],
+        aboutTagsPl: [...(prev.aboutTagsPl || []), newTagPl.trim()],
+      }));
+      setNewTagEn('');
+      setNewTagPl('');
+    }
+  };
+
+  const removeTag = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      aboutTagsEn: prev.aboutTagsEn?.filter((_, i) => i !== index),
+      aboutTagsPl: prev.aboutTagsPl?.filter((_, i) => i !== index),
+    }));
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -359,6 +386,51 @@ export default function AdminSettings() {
                 className="input"
                 rows={6}
               />
+            </div>
+          </div>
+
+          {/* About Tags */}
+          <div className="pt-4 border-t border-dark-700">
+            <label className="label">Skill Tags</label>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {formData.aboutTagsEn?.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-primary-500/20 text-primary-400 rounded-full text-sm"
+                >
+                  {tag} / {formData.aboutTagsPl?.[index]}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(index)}
+                    className="hover:text-red-400"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <input
+                type="text"
+                value={newTagEn}
+                onChange={(e) => setNewTagEn(e.target.value)}
+                placeholder="Tag (English)"
+                className="input"
+              />
+              <input
+                type="text"
+                value={newTagPl}
+                onChange={(e) => setNewTagPl(e.target.value)}
+                placeholder="Tag (Polish)"
+                className="input"
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="btn-secondary"
+              >
+                Add Tag
+              </button>
             </div>
           </div>
         </div>

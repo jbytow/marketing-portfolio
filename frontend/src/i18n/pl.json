@@ -61,7 +61,11 @@
   },
   "about": {
     "title": "O mnie",
-    "subtitle": "Poznaj mnie bliżej"
+    "subtitle": "Poznaj mnie bliżej",
+    "interests": {
+      "title": "Moje zainteresowania",
+      "subtitle": "Czym pasjonuję się poza pracą"
+    }
   },
   "experience": {
     "title": "Doświadczenie",
@@ -163,6 +167,14 @@
       "editExperience": "Edytuj doświadczenie",
       "noExperiencesYet": "Brak doświadczeń",
       "createFirst": "Utwórz pierwsze doświadczenie"
+    },
+    "interests": {
+      "title": "Zainteresowania",
+      "subtitle": "Zarządzaj swoimi zainteresowaniami",
+      "newInterest": "Nowe zainteresowanie",
+      "editInterest": "Edytuj zainteresowanie",
+      "noInterestsYet": "Brak zainteresowań",
+      "createFirst": "Utwórz pierwsze zainteresowanie"
     },
     "newsletters": {
       "title": "Newsletter",

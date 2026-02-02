@@ -61,7 +61,11 @@
   },
   "about": {
     "title": "About Me",
-    "subtitle": "Get to know me better"
+    "subtitle": "Get to know me better",
+    "interests": {
+      "title": "My Interests",
+      "subtitle": "What I'm passionate about outside of work"
+    }
   },
   "experience": {
     "title": "Experience",
@@ -163,6 +167,14 @@
       "editExperience": "Edit Experience",
       "noExperiencesYet": "No experiences yet",
       "createFirst": "Create your first experience"
+    },
+    "interests": {
+      "title": "Interests",
+      "subtitle": "Manage your personal interests",
+      "newInterest": "New Interest",
+      "editInterest": "Edit Interest",
+      "noInterestsYet": "No interests yet",
+      "createFirst": "Create your first interest"
     },
     "newsletters": {
       "title": "Newsletters",

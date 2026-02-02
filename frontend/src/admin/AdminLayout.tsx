@@ -13,6 +13,7 @@ import {
   Lightbulb,
   FolderTree,
   Mail,
+  Heart,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +25,7 @@ const navItems = [
   { path: '/admin/experiences', icon: Briefcase, labelKey: 'admin.experiences.title' },
   { path: '/admin/soft-skills', icon: Lightbulb, labelKey: 'admin.softSkills.title' },
   { path: '/admin/skill-categories', icon: FolderTree, labelKey: 'admin.skillCategories.title' },
+  { path: '/admin/interests', icon: Heart, labelKey: 'admin.interests.title' },
   { path: '/admin/media', icon: Image, labelKey: 'admin.media.title' },
   { path: '/admin/settings', icon: Settings, labelKey: 'admin.settings.title' },
 ];

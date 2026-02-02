@@ -2,23 +2,30 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { settingsApi } from '@/services/api';
+import { settingsApi, interestsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function About() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading } = useQuery({
+  const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: queryKeys.settings(language),
     queryFn: () => settingsApi.get(),
   });
 
-  const settings = settingsData?.data;
+  const { data: interestsData, isLoading: interestsLoading } = useQuery({
+    queryKey: queryKeys.interests(language),
+    queryFn: () => interestsApi.getAll(),
+  });
 
-  if (isLoading) {
+  const settings = settingsData?.data;
+  const interests = interestsData?.data || [];
+
+  if (settingsLoading) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -75,19 +82,70 @@ export default function About() {
                 }}
               />
 
-              <div className="flex flex-wrap gap-3 pt-4">
-                {['Marketing Strategy', 'Brand Development', 'Content Creation', 'Social Media', 'Analytics'].map(
-                  (skill) => (
-                    <span key={skill} className="badge-primary">
-                      {skill}
+              {settings?.aboutTags && settings.aboutTags.length > 0 && (
+                <div className="flex flex-wrap gap-3 pt-4">
+                  {settings.aboutTags.map((tag) => (
+                    <span key={tag} className="badge-primary">
+                      {tag}
                     </span>
-                  )
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
       </section>
+
+      {/* Interests Section */}
+      {interests.length > 0 && (
+        <section className="py-20 bg-dark-800/50">
+          <div className="container">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="section-heading">{t('about.interests.title')}</h2>
+              <p className="section-subheading mx-auto">{t('about.interests.subtitle')}</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {interests.map((interest, index) => {
+                const images = [interest.image1, interest.image2, interest.image3].filter(Boolean);
+                return (
+                  <motion.div
+                    key={interest.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="card"
+                  >
+                    <h3 className="text-xl font-semibold text-dark-100 mb-4">{interest.title}</h3>
+                    {images.length > 0 && (
+                      <div className={`grid gap-2 ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                        {images.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className={`aspect-square rounded-lg overflow-hidden ${images.length === 1 ? 'aspect-video' : ''}`}
+                          >
+                            <img
+                              src={getMediaUrl(img!)}
+                              alt={`${interest.title} ${idx + 1}`}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

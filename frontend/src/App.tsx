@@ -31,6 +31,8 @@ const AdminExperiences = lazy(() => import('./admin/AdminExperiences'));
 const AdminExperienceForm = lazy(() => import('./admin/AdminExperienceForm'));
 const AdminNewsletters = lazy(() => import('./admin/AdminNewsletters'));
 const AdminNewsletterForm = lazy(() => import('./admin/AdminNewsletterForm'));
+const AdminInterests = lazy(() => import('./admin/AdminInterests'));
+const AdminInterestForm = lazy(() => import('./admin/AdminInterestForm'));
 const AdminMedia = lazy(() => import('./admin/AdminMedia'));
 const AdminSettings = lazy(() => import('./admin/AdminSettings'));
 
@@ -79,6 +81,9 @@ function App() {
           <Route path="skill-categories" element={<AdminSkillCategories />} />
           <Route path="skill-categories/new" element={<AdminSkillCategoryForm />} />
           <Route path="skill-categories/:id/edit" element={<AdminSkillCategoryForm />} />
+          <Route path="interests" element={<AdminInterests />} />
+          <Route path="interests/new" element={<AdminInterestForm />} />
+          <Route path="interests/:id/edit" element={<AdminInterestForm />} />
           <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

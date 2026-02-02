@@ -185,6 +185,9 @@ export interface SiteSettings {
   footerTaglinePl: string;
   ownerName: string;
   siteName: string;
+  aboutTags: string[];
+  aboutTagsEn: string[];
+  aboutTagsPl: string[];
   statsItems: StatItem[];
 }
 
@@ -310,6 +313,8 @@ export interface SiteSettingsUpdateRequest {
   footerTaglinePl?: string;
   ownerName?: string;
   siteName?: string;
+  aboutTagsEn?: string[];
+  aboutTagsPl?: string[];
   statsItems?: StatItemInput[];
 }
 
@@ -326,3 +331,27 @@ export interface ContactRequest {
   subject: string;
   message: string;
 }
+
+export interface Interest {
+  id: string;
+  title: string;
+  titleEn: string;
+  titlePl: string;
+  image1: string | null;
+  image2: string | null;
+  image3: string | null;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InterestCreateRequest {
+  titleEn: string;
+  titlePl: string;
+  image1?: string;
+  image2?: string;
+  image3?: string;
+  displayOrder?: number;
+}
+
+export type InterestUpdateRequest = Partial<InterestCreateRequest>;

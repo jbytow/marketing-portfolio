@@ -78,6 +78,14 @@ public class SiteSettings {
     @Column(name = "site_name")
     private String siteName;
 
+    @Column(name = "about_tags_en", columnDefinition = "TEXT[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private String[] aboutTagsEn;
+
+    @Column(name = "about_tags_pl", columnDefinition = "TEXT[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private String[] aboutTagsPl;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stats_items", columnDefinition = "jsonb")
     private List<Map<String, String>> statsItems;
@@ -112,5 +120,9 @@ public class SiteSettings {
 
     public String getFooterTagline(String locale) {
         return "pl".equalsIgnoreCase(locale) ? footerTaglinePl : footerTaglineEn;
+    }
+
+    public String[] getAboutTags(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? aboutTagsPl : aboutTagsEn;
     }
 }

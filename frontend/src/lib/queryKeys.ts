@@ -14,6 +14,7 @@ export const queryKeys = {
   experiences: (lang: string) => ['experiences', lang] as const,
   newsletters: (lang: string) => ['newsletters', lang] as const,
   newsletter: (lang: string, slug: string) => ['newsletter', lang, slug] as const,
+  interests: (lang: string) => ['interests', lang] as const,
   hashtags: () => ['hashtags'] as const,
 
   // Admin queries (language-independent, manages all languages)
@@ -30,5 +31,7 @@ export const queryKeys = {
     experience: (id: string) => ['admin', 'experience', id] as const,
     newsletters: () => ['admin', 'newsletters'] as const,
     newsletter: (id: string) => ['admin', 'newsletter', id] as const,
+    interests: () => ['admin', 'interests'] as const,
+    interest: (id: string) => ['admin', 'interest', id] as const,
   },
 };
