@@ -72,6 +72,9 @@ public class SiteSettingsService {
         if (request.getFooterTaglinePl() != null) {
             settings.setFooterTaglinePl(request.getFooterTaglinePl());
         }
+        if (request.getOwnerName() != null) {
+            settings.setOwnerName(request.getOwnerName());
+        }
 
         settings = siteSettingsRepository.save(settings);
         return mapToDto(settings, locale);
@@ -101,6 +104,7 @@ public class SiteSettingsService {
                 .footerTagline(settings.getFooterTagline(locale))
                 .footerTaglineEn(settings.getFooterTaglineEn())
                 .footerTaglinePl(settings.getFooterTaglinePl())
+                .ownerName(settings.getOwnerName())
                 .build();
     }
 }

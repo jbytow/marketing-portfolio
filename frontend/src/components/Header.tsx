@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { settingsApi } from '@/services/api';
+import { queryKeys } from '@/lib/queryKeys';
 
 const navItems = [
   { path: '/', labelKey: 'nav.home' },
@@ -22,13 +25,20 @@ export default function Header() {
   const { language, toggleLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const { data: settingsData } = useQuery({
+    queryKey: queryKeys.settings(language),
+    queryFn: () => settingsApi.get(),
+  });
+
+  const settings = settingsData?.data;
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-dark-900/80 backdrop-blur-lg border-b border-dark-800">
       <div className="container">
         <nav className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="text-xl md:text-2xl font-display font-bold gradient-text">
-            Portfolio
+            Portfolio{settings?.ownerName ? ` | ${settings.ownerName}` : ''}
           </Link>
 
           {/* Desktop Navigation */}

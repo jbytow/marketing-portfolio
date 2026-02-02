@@ -106,7 +106,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-dark-800 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <p className="text-dark-500 text-sm">
-            &copy; {currentYear} {settings?.footerTitle || settings?.heroTitle || 'Portfolio'}. {t('footer.rights')}.
+            &copy; {currentYear} {settings?.ownerName || 'Portfolio'}. {t('footer.rights')}.
           </p>
           <p className="text-dark-500 text-sm flex items-center flex-wrap justify-center gap-1">
             {t('footer.madeWith')}{' '}

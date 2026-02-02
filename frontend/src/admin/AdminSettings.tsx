@@ -29,6 +29,7 @@ export default function AdminSettings() {
     footerTitlePl: '',
     footerTaglineEn: '',
     footerTaglinePl: '',
+    ownerName: '',
   });
 
   const { data, isLoading } = useQuery({
@@ -56,6 +57,7 @@ export default function AdminSettings() {
         footerTitlePl: settings.footerTitlePl || '',
         footerTaglineEn: settings.footerTaglineEn || '',
         footerTaglinePl: settings.footerTaglinePl || '',
+        ownerName: settings.ownerName || '',
       });
     }
   }, [data]);
@@ -110,6 +112,24 @@ export default function AdminSettings() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* General */}
+        <div className="card space-y-4">
+          <h2 className="text-xl font-semibold text-dark-100">
+            {t('admin.settings.general')}
+          </h2>
+          <div>
+            <label className="label">Owner Name (for copyright & navbar)</label>
+            <input
+              type="text"
+              name="ownerName"
+              value={formData.ownerName}
+              onChange={handleChange}
+              className="input"
+              placeholder="Natalia Zakulecka"
+            />
+          </div>
+        </div>
+
         {/* Hero Section */}
         <div className="card space-y-4">
           <h2 className="text-xl font-semibold text-dark-100">

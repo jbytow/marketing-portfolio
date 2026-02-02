@@ -218,7 +218,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-3xl md:text-4xl font-display font-bold text-dark-100 mb-6"
           >
-            Ready to elevate your brand?
+            {t('home.cta.title')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -227,7 +227,7 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="text-dark-300 mb-8 max-w-xl mx-auto"
           >
-            Let's discuss how we can work together to create impactful marketing campaigns.
+            {t('home.cta.subtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}

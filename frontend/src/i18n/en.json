@@ -53,6 +53,10 @@
       "clients": "Happy Clients",
       "reach": "Audience Reach",
       "experience": "Years Experience"
+    },
+    "cta": {
+      "title": "Ready to elevate your brand?",
+      "subtitle": "Let's discuss how we can work together to create impactful marketing campaigns."
     }
   },
   "about": {
@@ -178,6 +182,7 @@
     },
     "settings": {
       "title": "Site Settings",
+      "general": "General",
       "hero": "Hero Section",
       "about": "About Section",
       "contact": "Contact Information",

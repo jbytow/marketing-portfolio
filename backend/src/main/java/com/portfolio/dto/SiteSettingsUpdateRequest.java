@@ -28,4 +28,5 @@ public class SiteSettingsUpdateRequest {
     private String footerTitlePl;
     private String footerTaglineEn;
     private String footerTaglinePl;
+    private String ownerName;
 }

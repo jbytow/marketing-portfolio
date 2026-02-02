@@ -53,6 +53,10 @@
       "clients": "Zadowolonych klientów",
       "reach": "Zasięg",
       "experience": "Lat doświadczenia"
+    },
+    "cta": {
+      "title": "Gotowy, aby wynieść swoją markę na wyższy poziom?",
+      "subtitle": "Porozmawiajmy o tym, jak możemy współpracować przy tworzeniu skutecznych kampanii marketingowych."
     }
   },
   "about": {
@@ -178,6 +182,7 @@
     },
     "settings": {
       "title": "Ustawienia strony",
+      "general": "Ogólne",
       "hero": "Sekcja Hero",
       "about": "Sekcja O mnie",
       "contact": "Dane kontaktowe",

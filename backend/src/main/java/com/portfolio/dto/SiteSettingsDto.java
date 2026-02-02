@@ -34,4 +34,5 @@ public class SiteSettingsDto {
     private String footerTagline;
     private String footerTaglineEn;
     private String footerTaglinePl;
+    private String ownerName;
 }

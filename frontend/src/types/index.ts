@@ -183,6 +183,7 @@ export interface SiteSettings {
   footerTagline: string;
   footerTaglineEn: string;
   footerTaglinePl: string;
+  ownerName: string;
 }
 
 export interface User {
@@ -297,6 +298,7 @@ export interface SiteSettingsUpdateRequest {
   footerTitlePl?: string;
   footerTaglineEn?: string;
   footerTaglinePl?: string;
+  ownerName?: string;
 }
 
 export interface ContactRequest {

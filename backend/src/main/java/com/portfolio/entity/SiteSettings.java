@@ -71,6 +71,9 @@ public class SiteSettings {
     @Column(name = "footer_tagline_pl", columnDefinition = "TEXT")
     private String footerTaglinePl;
 
+    @Column(name = "owner_name")
+    private String ownerName;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
