@@ -8,6 +8,21 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+function formatDate(dateStr: string, locale: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US', {
+    month: 'short',
+    year: 'numeric',
+  }).toLowerCase();
+}
+
+function calculateMonthsDuration(startDate: string, endDate: string | null): number {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date();
+  const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  return Math.max(1, months + 1); // At least 1 month
+}
+
 export default function Experience() {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -17,7 +32,10 @@ export default function Experience() {
     queryFn: () => experiencesApi.getAll(),
   });
 
-  const experiences = data?.data || [];
+  // Sort by start date descending (most recent first)
+  const experiences = [...(data?.data || [])].sort((a, b) => {
+    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+  });
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
@@ -66,11 +84,16 @@ export default function Experience() {
                             <span>{exp.company}</span>
                           </div>
                         </div>
-                        <div className="flex items-center text-dark-400 text-sm">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span>
-                            {exp.startDate} - {exp.endDate || t('experience.present')}
-                          </span>
+                        <div className="text-right">
+                          <div className="flex items-center text-dark-300 text-sm">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            <span>
+                              {formatDate(exp.startDate, language)} – {exp.endDate ? formatDate(exp.endDate, language) : t('experience.present')}
+                            </span>
+                          </div>
+                          <div className="text-dark-500 text-xs mt-1">
+                            {calculateMonthsDuration(exp.startDate, exp.endDate)} {language === 'pl' ? 'mies.' : 'mo.'}
+                          </div>
                         </div>
                       </div>
 
@@ -79,7 +102,7 @@ export default function Experience() {
                       )}
 
                       {exp.achievements && exp.achievements.length > 0 && (
-                        <ul className="space-y-2">
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                           {exp.achievements.map((achievement, i) => (
                             <li key={i} className="flex items-start text-dark-400 text-sm">
                               <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-primary-400 flex-shrink-0" />
