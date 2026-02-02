@@ -17,7 +17,7 @@ export default function About() {
     queryFn: () => settingsApi.get(),
   });
 
-  const { data: interestsData, isLoading: interestsLoading } = useQuery({
+  const { data: interestsData } = useQuery({
     queryKey: queryKeys.interests(language),
     queryFn: () => interestsApi.getAll(),
   });

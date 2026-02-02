@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -108,15 +108,17 @@ export default function AdminInterests() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const { isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: queryKeys.admin.interests(),
     queryFn: () => adminInterestsApi.getAll(),
-    onSuccess: (data) => {
-      if (data?.data) {
-        setInterests(data.data);
-      }
-    },
   });
+
+  // Update local state when data changes
+  useEffect(() => {
+    if (data?.data) {
+      setInterests(data.data);
+    }
+  }, [data]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminInterestsApi.delete(id),
