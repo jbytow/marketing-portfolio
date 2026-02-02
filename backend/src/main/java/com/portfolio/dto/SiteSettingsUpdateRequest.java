@@ -24,4 +24,8 @@ public class SiteSettingsUpdateRequest {
     private Map<String, String> socialLinks;
     private String metaDescriptionEn;
     private String metaDescriptionPl;
+    private String footerTitleEn;
+    private String footerTitlePl;
+    private String footerTaglineEn;
+    private String footerTaglinePl;
 }

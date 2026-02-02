@@ -59,6 +59,18 @@ public class SiteSettings {
     @Column(name = "meta_description_pl", columnDefinition = "TEXT")
     private String metaDescriptionPl;
 
+    @Column(name = "footer_title_en")
+    private String footerTitleEn;
+
+    @Column(name = "footer_title_pl")
+    private String footerTitlePl;
+
+    @Column(name = "footer_tagline_en", columnDefinition = "TEXT")
+    private String footerTaglineEn;
+
+    @Column(name = "footer_tagline_pl", columnDefinition = "TEXT")
+    private String footerTaglinePl;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
@@ -81,5 +93,13 @@ public class SiteSettings {
 
     public String getMetaDescription(String locale) {
         return "pl".equalsIgnoreCase(locale) ? metaDescriptionPl : metaDescriptionEn;
+    }
+
+    public String getFooterTitle(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? footerTitlePl : footerTitleEn;
+    }
+
+    public String getFooterTagline(String locale) {
+        return "pl".equalsIgnoreCase(locale) ? footerTaglinePl : footerTaglineEn;
     }
 }

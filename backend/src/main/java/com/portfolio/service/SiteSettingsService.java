@@ -60,6 +60,18 @@ public class SiteSettingsService {
         if (request.getMetaDescriptionPl() != null) {
             settings.setMetaDescriptionPl(request.getMetaDescriptionPl());
         }
+        if (request.getFooterTitleEn() != null) {
+            settings.setFooterTitleEn(request.getFooterTitleEn());
+        }
+        if (request.getFooterTitlePl() != null) {
+            settings.setFooterTitlePl(request.getFooterTitlePl());
+        }
+        if (request.getFooterTaglineEn() != null) {
+            settings.setFooterTaglineEn(request.getFooterTaglineEn());
+        }
+        if (request.getFooterTaglinePl() != null) {
+            settings.setFooterTaglinePl(request.getFooterTaglinePl());
+        }
 
         settings = siteSettingsRepository.save(settings);
         return mapToDto(settings, locale);
@@ -83,6 +95,12 @@ public class SiteSettingsService {
                 .metaDescription(settings.getMetaDescription(locale))
                 .metaDescriptionEn(settings.getMetaDescriptionEn())
                 .metaDescriptionPl(settings.getMetaDescriptionPl())
+                .footerTitle(settings.getFooterTitle(locale))
+                .footerTitleEn(settings.getFooterTitleEn())
+                .footerTitlePl(settings.getFooterTitlePl())
+                .footerTagline(settings.getFooterTagline(locale))
+                .footerTaglineEn(settings.getFooterTaglineEn())
+                .footerTaglinePl(settings.getFooterTaglinePl())
                 .build();
     }
 }

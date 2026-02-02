@@ -47,10 +47,10 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="text-2xl font-display font-bold gradient-text">
-              {settings?.heroTitle || 'Portfolio'}
+              {settings?.footerTitle || settings?.heroTitle || 'Portfolio'}
             </Link>
             <p className="text-dark-400 text-sm max-w-xs">
-              {settings?.heroSubtitle || t('footer.tagline')}
+              {settings?.footerTagline || settings?.heroSubtitle || t('footer.tagline')}
             </p>
           </div>
 
@@ -106,11 +106,29 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-dark-800 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <p className="text-dark-500 text-sm">
-            &copy; {currentYear} {settings?.heroTitle || 'Portfolio'}. {t('footer.rights')}.
+            &copy; {currentYear} {settings?.footerTitle || settings?.heroTitle || 'Portfolio'}. {t('footer.rights')}.
           </p>
-          <p className="text-dark-500 text-sm flex items-center">
+          <p className="text-dark-500 text-sm flex items-center flex-wrap justify-center gap-1">
             {t('footer.madeWith')}{' '}
-            <Heart className="w-4 h-4 mx-1 text-accent-pink" />
+            <Heart className="w-4 h-4 text-accent-pink" />{' '}
+            {t('footer.by')}{' '}
+            <a
+              href="https://jbytow.pl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 transition-colors"
+            >
+              Jakub Bytow
+            </a>
+            <span className="text-dark-600">|</span>
+            <a
+              href="https://github.com/jbytow"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 transition-colors"
+            >
+              GitHub
+            </a>
           </p>
         </div>
       </div>

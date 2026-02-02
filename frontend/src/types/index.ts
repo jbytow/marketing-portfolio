@@ -177,6 +177,12 @@ export interface SiteSettings {
   metaDescription: string;
   metaDescriptionEn: string;
   metaDescriptionPl: string;
+  footerTitle: string;
+  footerTitleEn: string;
+  footerTitlePl: string;
+  footerTagline: string;
+  footerTaglineEn: string;
+  footerTaglinePl: string;
 }
 
 export interface User {
@@ -287,6 +293,10 @@ export interface SiteSettingsUpdateRequest {
   socialLinks?: Record<string, string>;
   metaDescriptionEn?: string;
   metaDescriptionPl?: string;
+  footerTitleEn?: string;
+  footerTitlePl?: string;
+  footerTaglineEn?: string;
+  footerTaglinePl?: string;
 }
 
 export interface ContactRequest {

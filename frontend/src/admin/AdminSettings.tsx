@@ -25,6 +25,10 @@ export default function AdminSettings() {
     socialLinks: {},
     metaDescriptionEn: '',
     metaDescriptionPl: '',
+    footerTitleEn: '',
+    footerTitlePl: '',
+    footerTaglineEn: '',
+    footerTaglinePl: '',
   });
 
   const { data, isLoading } = useQuery({
@@ -48,6 +52,10 @@ export default function AdminSettings() {
         socialLinks: settings.socialLinks || {},
         metaDescriptionEn: settings.metaDescriptionEn || '',
         metaDescriptionPl: settings.metaDescriptionPl || '',
+        footerTitleEn: settings.footerTitleEn || '',
+        footerTitlePl: settings.footerTitlePl || '',
+        footerTaglineEn: settings.footerTaglineEn || '',
+        footerTaglinePl: settings.footerTaglinePl || '',
       });
     }
   }, [data]);
@@ -247,6 +255,57 @@ export default function AdminSettings() {
                 />
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Footer Section */}
+        <div className="card space-y-4">
+          <h2 className="text-xl font-semibold text-dark-100">
+            {t('admin.settings.footer')}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Footer Title (English)</label>
+              <input
+                type="text"
+                name="footerTitleEn"
+                value={formData.footerTitleEn}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Footer Title (Polish)</label>
+              <input
+                type="text"
+                name="footerTitlePl"
+                value={formData.footerTitlePl}
+                onChange={handleChange}
+                className="input"
+              />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Footer Tagline (English)</label>
+              <textarea
+                name="footerTaglineEn"
+                value={formData.footerTaglineEn}
+                onChange={handleChange}
+                className="input"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="label">Footer Tagline (Polish)</label>
+              <textarea
+                name="footerTaglinePl"
+                value={formData.footerTaglinePl}
+                onChange={handleChange}
+                className="input"
+                rows={2}
+              />
+            </div>
           </div>
         </div>
 

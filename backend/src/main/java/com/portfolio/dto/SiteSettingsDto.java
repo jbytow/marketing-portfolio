@@ -28,4 +28,10 @@ public class SiteSettingsDto {
     private String metaDescription;
     private String metaDescriptionEn;
     private String metaDescriptionPl;
+    private String footerTitle;
+    private String footerTitleEn;
+    private String footerTitlePl;
+    private String footerTagline;
+    private String footerTaglineEn;
+    private String footerTaglinePl;
 }
