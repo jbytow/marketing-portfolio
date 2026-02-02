@@ -184,7 +184,7 @@ export default function Home() {
                   </h3>
                   <p className="text-dark-400 text-sm line-clamp-2">{post.excerpt}</p>
                   <Link
-                    to={`/case-studies/${post.slug}`}
+                    to={`/projects/${post.slug}`}
                     className="inline-flex items-center mt-4 text-primary-400 hover:text-primary-300 text-sm font-medium"
                   >
                     {t('common.readMore')}
