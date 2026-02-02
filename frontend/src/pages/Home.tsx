@@ -2,7 +2,27 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Sparkles, Target, Users, TrendingUp } from 'lucide-react';
+import {
+  ArrowRight,
+  Sparkles,
+  Target,
+  Users,
+  TrendingUp,
+  Lightbulb,
+  MessageSquare,
+  Clock,
+  Heart,
+  Zap,
+  Brain,
+  Handshake,
+  Rocket,
+  Award,
+  Star,
+  Trophy,
+  Briefcase,
+  Globe,
+  type LucideIcon,
+} from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { settingsApi, postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,12 +30,25 @@ import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-const stats = [
-  { icon: Target, value: '50+', labelKey: 'home.stats.campaigns' },
-  { icon: Users, value: '100+', labelKey: 'home.stats.clients' },
-  { icon: TrendingUp, value: '10M+', labelKey: 'home.stats.reach' },
-  { icon: Sparkles, value: '5+', labelKey: 'home.stats.experience' },
-];
+const iconMap: Record<string, LucideIcon> = {
+  target: Target,
+  users: Users,
+  'trending-up': TrendingUp,
+  sparkles: Sparkles,
+  lightbulb: Lightbulb,
+  message: MessageSquare,
+  clock: Clock,
+  heart: Heart,
+  zap: Zap,
+  brain: Brain,
+  handshake: Handshake,
+  rocket: Rocket,
+  award: Award,
+  star: Star,
+  trophy: Trophy,
+  briefcase: Briefcase,
+  globe: Globe,
+};
 
 export default function Home() {
   const { t } = useTranslation();
@@ -118,30 +151,35 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-dark-800/50">
-        <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.labelKey}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-pink/20 mb-4">
-                  <stat.icon className="w-7 h-7 text-primary-400" />
-                </div>
-                <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-dark-400 text-sm">{t(stat.labelKey)}</div>
-              </motion.div>
-            ))}
+      {settings?.statsItems && settings.statsItems.length > 0 && (
+        <section className="py-20 bg-dark-800/50">
+          <div className="container">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {settings.statsItems.map((stat, index) => {
+                const Icon = iconMap[stat.icon] || Target;
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-pink/20 mb-4">
+                      <Icon className="w-7 h-7 text-primary-400" />
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+                      {stat.value}
+                    </div>
+                    <div className="text-dark-400 text-sm">{stat.label}</div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Work Section */}
       <section className="py-20">

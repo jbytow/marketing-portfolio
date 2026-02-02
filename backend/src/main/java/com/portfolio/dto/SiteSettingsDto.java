@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -35,4 +36,5 @@ public class SiteSettingsDto {
     private String footerTaglineEn;
     private String footerTaglinePl;
     private String ownerName;
+    private List<StatItemDto> statsItems;
 }

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Save } from 'lucide-react';
+import { Save, Plus, Trash2 } from 'lucide-react';
 import { adminSettingsApi } from '@/services/api';
-import { SiteSettingsUpdateRequest } from '@/types';
+import { SiteSettingsUpdateRequest, StatItemInput } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -30,6 +30,7 @@ export default function AdminSettings() {
     footerTaglineEn: '',
     footerTaglinePl: '',
     ownerName: '',
+    statsItems: [],
   });
 
   const { data, isLoading } = useQuery({
@@ -58,6 +59,12 @@ export default function AdminSettings() {
         footerTaglineEn: settings.footerTaglineEn || '',
         footerTaglinePl: settings.footerTaglinePl || '',
         ownerName: settings.ownerName || '',
+        statsItems: settings.statsItems?.map(s => ({
+          icon: s.icon,
+          value: s.value,
+          labelEn: s.labelEn,
+          labelPl: s.labelPl,
+        })) || [],
       });
     }
   }, [data]);
@@ -99,6 +106,35 @@ export default function AdminSettings() {
       },
     }));
   };
+
+  const handleStatChange = (index: number, field: keyof StatItemInput, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      statsItems: prev.statsItems?.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const addStat = () => {
+    setFormData((prev) => ({
+      ...prev,
+      statsItems: [...(prev.statsItems || []), { icon: 'target', value: '', labelEn: '', labelPl: '' }],
+    }));
+  };
+
+  const removeStat = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      statsItems: prev.statsItems?.filter((_, i) => i !== index),
+    }));
+  };
+
+  const availableIcons = [
+    'target', 'users', 'trending-up', 'sparkles', 'lightbulb', 'message',
+    'clock', 'heart', 'zap', 'brain', 'handshake', 'rocket', 'award',
+    'star', 'trophy', 'briefcase', 'globe'
+  ];
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -178,6 +214,90 @@ export default function AdminSettings() {
                 rows={2}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="card space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-dark-100">
+              {t('admin.settings.stats')}
+            </h2>
+            <button
+              type="button"
+              onClick={addStat}
+              className="btn-secondary text-sm"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add Stat
+            </button>
+          </div>
+          <div className="space-y-4">
+            {formData.statsItems?.map((stat, index) => (
+              <div key={index} className="p-4 bg-dark-700 rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-dark-300">Stat #{index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeStat(index)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="label text-xs">Icon</label>
+                    <select
+                      value={stat.icon}
+                      onChange={(e) => handleStatChange(index, 'icon', e.target.value)}
+                      className="input"
+                    >
+                      {availableIcons.map((icon) => (
+                        <option key={icon} value={icon}>
+                          {icon}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label text-xs">Value (e.g., "50+", "10M+")</label>
+                    <input
+                      type="text"
+                      value={stat.value}
+                      onChange={(e) => handleStatChange(index, 'value', e.target.value)}
+                      className="input"
+                      placeholder="50+"
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="label text-xs">Label (English)</label>
+                    <input
+                      type="text"
+                      value={stat.labelEn}
+                      onChange={(e) => handleStatChange(index, 'labelEn', e.target.value)}
+                      className="input"
+                      placeholder="Campaigns"
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Label (Polish)</label>
+                    <input
+                      type="text"
+                      value={stat.labelPl}
+                      onChange={(e) => handleStatChange(index, 'labelPl', e.target.value)}
+                      className="input"
+                      placeholder="Kampanii"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {(!formData.statsItems || formData.statsItems.length === 0) && (
+              <p className="text-dark-500 text-center py-4">No stats added yet. Click "Add Stat" to create one.</p>
+            )}
           </div>
         </div>
 

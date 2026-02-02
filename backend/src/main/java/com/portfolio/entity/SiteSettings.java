@@ -6,6 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -73,6 +74,10 @@ public class SiteSettings {
 
     @Column(name = "owner_name")
     private String ownerName;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "stats_items", columnDefinition = "jsonb")
+    private List<Map<String, String>> statsItems;
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;

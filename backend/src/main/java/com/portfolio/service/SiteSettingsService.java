@@ -2,11 +2,17 @@ package com.portfolio.service;
 
 import com.portfolio.dto.SiteSettingsDto;
 import com.portfolio.dto.SiteSettingsUpdateRequest;
+import com.portfolio.dto.StatItemDto;
 import com.portfolio.entity.SiteSettings;
 import com.portfolio.repository.SiteSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -75,6 +81,18 @@ public class SiteSettingsService {
         if (request.getOwnerName() != null) {
             settings.setOwnerName(request.getOwnerName());
         }
+        if (request.getStatsItems() != null) {
+            List<Map<String, String>> statsItemsMaps = new ArrayList<>();
+            for (StatItemDto item : request.getStatsItems()) {
+                Map<String, String> map = new HashMap<>();
+                map.put("icon", item.getIcon());
+                map.put("value", item.getValue());
+                map.put("labelEn", item.getLabelEn());
+                map.put("labelPl", item.getLabelPl());
+                statsItemsMaps.add(map);
+            }
+            settings.setStatsItems(statsItemsMaps);
+        }
 
         settings = siteSettingsRepository.save(settings);
         return mapToDto(settings, locale);
@@ -105,6 +123,25 @@ public class SiteSettingsService {
                 .footerTaglineEn(settings.getFooterTaglineEn())
                 .footerTaglinePl(settings.getFooterTaglinePl())
                 .ownerName(settings.getOwnerName())
+                .statsItems(mapStatsItems(settings.getStatsItems(), locale))
                 .build();
+    }
+
+    private List<StatItemDto> mapStatsItems(List<Map<String, String>> statsItems, String locale) {
+        if (statsItems == null) {
+            return new ArrayList<>();
+        }
+        List<StatItemDto> result = new ArrayList<>();
+        for (Map<String, String> item : statsItems) {
+            String label = "pl".equalsIgnoreCase(locale) ? item.get("labelPl") : item.get("labelEn");
+            result.add(StatItemDto.builder()
+                    .icon(item.get("icon"))
+                    .value(item.get("value"))
+                    .label(label)
+                    .labelEn(item.get("labelEn"))
+                    .labelPl(item.get("labelPl"))
+                    .build());
+        }
+        return result;
     }
 }

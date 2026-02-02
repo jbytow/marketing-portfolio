@@ -184,6 +184,15 @@ export interface SiteSettings {
   footerTaglineEn: string;
   footerTaglinePl: string;
   ownerName: string;
+  statsItems: StatItem[];
+}
+
+export interface StatItem {
+  icon: string;
+  value: string;
+  label: string;
+  labelEn: string;
+  labelPl: string;
 }
 
 export interface User {
@@ -299,6 +308,14 @@ export interface SiteSettingsUpdateRequest {
   footerTaglineEn?: string;
   footerTaglinePl?: string;
   ownerName?: string;
+  statsItems?: StatItemInput[];
+}
+
+export interface StatItemInput {
+  icon: string;
+  value: string;
+  labelEn: string;
+  labelPl: string;
 }
 
 export interface ContactRequest {
