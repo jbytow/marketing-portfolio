@@ -36,6 +36,11 @@ services:
       ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@example.com}
       UPLOAD_PATH: /app/uploads
       FRONTEND_URL: http://localhost:5173
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-admin@example.com}
     volumes:
       - uploads_data:/app/uploads
     ports:
