@@ -2,7 +2,9 @@
 
 ## Overview
 
-This is a marketing portfolio application designed for marketing professionals to showcase their work, experience, and case studies. The application supports bilingual content (English and Polish) and features an admin panel for content management.
+This is a marketing portfolio application designed for marketing professionals to showcase their work, experience, and case studies. The application supports bilingual content (English and Polish) and features a comprehensive admin panel for content management.
+
+**Live at:** [https://zakulecka.pl](https://zakulecka.pl)
 
 ## Architecture
 
@@ -19,7 +21,7 @@ The backend follows a layered architecture:
 Key components:
 - **OAuth2 Authentication**: Supports Google and GitHub login
 - **JWT Tokens**: Stateless authentication for API requests
-- **Flyway**: Database migrations management
+- **Flyway**: Database migrations management (13+ migrations)
 - **JPA Converters**: Custom converters for enum types (Category, MediaType)
 
 ### Frontend (React + TypeScript)
@@ -27,21 +29,23 @@ Key components:
 The frontend is a single-page application with:
 
 - **React Router**: Client-side routing
-- **React Query**: Server state management and caching
+- **React Query (TanStack Query v5)**: Server state management and caching
 - **Context API**: Authentication and language state
 - **i18next**: Internationalization
 - **TipTap**: Rich text editor for content creation
 - **Tailwind CSS**: Utility-first styling
 - **Framer Motion**: Animations
+- **dnd-kit**: Drag-and-drop functionality
 
 ### Database Schema
 
 Main entities:
-- **posts**: Base content table with bilingual fields
-- **experience_details**: Additional fields for experience posts
-- **campaign_details**: Additional fields for campaign posts
-- **case_study_details**: Additional fields for case study posts
-- **influence_marketing_details**: Additional fields for influence marketing posts
+- **posts**: Content for campaigns and content/copy sections
+- **experiences**: Work experience entries with achievements (JSONB)
+- **soft_skills**: Skills with category reference
+- **skill_categories**: Customizable skill groupings
+- **interests**: Personal interests with up to 3 images each
+- **newsletters**: Newsletter archive entries
 - **media**: Uploaded files (images, videos, PDFs)
 - **site_settings**: Global site configuration (singleton)
 - **users**: OAuth user accounts
@@ -49,23 +53,33 @@ Main entities:
 ### Content Categories
 
 Posts are organized by category:
-1. `ABOUT_ME` - Personal introduction
-2. `EXPERIENCE` - Work experience entries
-3. `CAMPAIGNS` - Marketing campaigns
-4. `INFLUENCE_MARKETING` - Influencer collaborations
-5. `CASE_STUDY` - Detailed case studies
-6. `CONTENT_COPY` - Content and copywriting samples
-7. `SOFT_SKILLS` - Soft skills showcase
+1. `CAMPAIGNS` - Marketing campaigns and projects
+2. `CONTENT_COPY` - Content and copywriting samples
 
-Each category can have additional detail fields stored in related tables.
+Separate entities for:
+- **Experiences** - Professional work history
+- **Soft Skills** - Skills organized by categories
+- **Interests** - Personal interests (displayed on About page)
+- **Newsletters** - Newsletter archive
 
 ## Key Design Decisions
 
 ### Bilingual Content
-All user-facing text fields have `_en` and `_pl` suffixes (e.g., `title_en`, `title_pl`). The frontend determines which version to display based on the current language context.
+All user-facing text fields have `_en` and `_pl` suffixes (e.g., `title_en`, `title_pl`). Entities have locale-aware getter methods:
+```java
+public String getTitle(String locale) {
+    return "pl".equalsIgnoreCase(locale) ? titlePl : titleEn;
+}
+```
 
 ### PostgreSQL Enums → VARCHAR
 Originally used PostgreSQL native enums for `category` and `media_type`. Converted to VARCHAR with JPA Converters for better Hibernate compatibility and easier maintenance.
+
+### JSONB for Flexible Data
+Used for complex/array fields:
+- `achievements_en`, `achievements_pl` in experiences
+- `stats_items` in site_settings
+- `social_links` in site_settings
 
 ### OAuth-Only Authentication
 No traditional username/password login. Admin access requires:
@@ -76,25 +90,49 @@ No traditional username/password login. Admin access requires:
 After OAuth login, a JWT token is issued. All subsequent API requests use this token. No server-side sessions.
 
 ### Media Storage
-Files are stored on the filesystem (configurable via `UPLOAD_PATH`). In production, this should be a persistent volume or cloud storage.
+Files are stored on the filesystem (configurable via `UPLOAD_PATH`). In production, uses Docker volume mount for persistence.
+
+### Drag-and-Drop Reordering
+All list-based content (experiences, skills, interests, posts) supports drag-and-drop reordering with:
+- Optimistic UI updates
+- Server sync on drag end
+- `displayOrder` field for persistence
 
 ## Development Notes
 
 ### Running Locally
 The project uses Docker Compose for local development. The frontend Dockerfile includes nginx configuration that proxies `/oauth2/*` and `/login/oauth2/*` to the backend for OAuth flow.
 
-### Adding New Categories
-1. Add value to `Category` enum in `backend/src/main/java/com/portfolio/entity/Category.java`
-2. Update database migration if needed
-3. Add translations in `frontend/src/i18n/en.json` and `pl.json`
-4. Create page component if needed
+### Running Tests
+```bash
+cd backend
+.\mvnw.cmd test                    # Windows
+./mvnw test                        # Linux/Mac
+```
 
-### Adding New Post Detail Types
-1. Create new entity class extending the pattern of `ExperienceDetails`
-2. Add relationship to `Post` entity
-3. Create corresponding DTO
-4. Update `PostService` to handle the new type
-5. Update frontend forms and display components
+Unit tests cover:
+- Service layer (PostService, ExperienceService, InterestService, SkillCategoryService)
+- Controller layer (PostController, AdminPostController)
+- Security (JwtService)
+- Converters (CategoryConverter, MediaTypeConverter)
+
+### Adding New Content Entities
+1. Create entity class with bilingual fields and locale getter
+2. Create repository with custom queries if needed
+3. Create DTOs (main, create request, update request)
+4. Create service with CRUD operations
+5. Create controllers (public + admin)
+6. Add Flyway migration for database table
+7. Update frontend types, API services, query keys
+8. Create admin components (list, form)
+9. Add routes to App.tsx
+10. Add translations to en.json and pl.json
+
+### Media URL Resolution
+The `getMediaUrl` utility handles different URL formats:
+- Full URLs (http/https) - returned as-is
+- Relative paths - prefixed with API base URL
+- Handles both dev (localhost) and production environments
 
 ## Security Considerations
 
@@ -106,10 +144,24 @@ The project uses Docker Compose for local development. The frontend Dockerfile i
 
 ## Production Deployment
 
-For production:
-1. Use `docker-compose.prod.yml`
-2. Configure proper SSL/TLS (uncomment nginx HTTPS config)
-3. Set secure values for all secrets
-4. Consider using external PostgreSQL (RDS, Cloud SQL)
-5. Configure persistent storage for uploads
-6. Set up proper OAuth redirect URIs for production domain
+Current production setup:
+1. **Proxmox VE** - Hypervisor running on home server
+2. **Ubuntu Server VM** - Container for the application
+3. **Docker Compose** - Orchestration with `docker-compose.prod.yml`
+4. **NGINX** - Reverse proxy handling SSL termination
+5. **Cloudflare Tunnel** - Secure public access without exposed ports
+6. **PostgreSQL** - Running in Docker container with volume persistence
+7. **Media uploads** - Stored in Docker volume mount
+
+Deployment steps:
+1. Push to GitHub
+2. SSH into server
+3. Pull latest changes
+4. Run `docker-compose -f docker-compose.prod.yml up --build -d`
+5. Verify with `docker-compose logs -f`
+
+### Environment Configuration
+- Use `.env` file for secrets (not committed)
+- Configure OAuth redirect URIs for production domain
+- Set proper `JWT_SECRET` (min 32 characters)
+- Configure `ADMIN_EMAILS` for admin access
