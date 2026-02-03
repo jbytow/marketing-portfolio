@@ -4,12 +4,12 @@ A full-stack bilingual (EN/PL) marketing portfolio application designed to showc
 
 The application features a clean, responsive design with smooth animations, comprehensive admin controls for all content sections, drag-and-drop reordering, media management, and full internationalization support. It demonstrates modern full-stack development practices including OAuth authentication, RESTful API design, and containerized deployment.
 
-**Live Demo:** [https://zakulecka.pl](https://zakulecka.pl)
+**Live:** [https://zakulecka.pl](https://zakulecka.pl)
 
 ## Features
 
 - **Bilingual Support**: Full English and Polish language support with seamless switching
-- **OAuth Authentication**: Secure login via Google or GitHub
+- **OAuth Authentication**: Secure login via Google
 - **Comprehensive Admin Panel**:
   - Manage posts, experiences, skills, interests, and newsletters
   - Drag-and-drop reordering for all content sections
@@ -27,14 +27,13 @@ The application features a clean, responsive design with smooth animations, comp
   - Responsive mobile-first design
   - Framer Motion animations
   - Dark theme with gradient accents
-- **SEO Optimized**: Meta descriptions, semantic HTML, fast loading
 
 ## Built With
 
 ### Backend
 - Java 21
 - Spring Boot 3.2
-- Spring Security with OAuth2 (Google, GitHub)
+- Spring Security with OAuth2 (Google)
 - PostgreSQL 16
 - Flyway migrations
 - JWT authentication
@@ -225,8 +224,6 @@ npm run dev
 | `JWT_SECRET` | JWT signing key | (dev key) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | - |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth secret | - |
-| `GITHUB_CLIENT_ID` | GitHub OAuth client ID | - |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth secret | - |
 | `ADMIN_EMAILS` | Comma-separated admin emails | admin@example.com |
 
 ## API Endpoints

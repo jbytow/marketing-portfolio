@@ -19,7 +19,7 @@ The backend follows a layered architecture:
 - **DTOs**: Data transfer objects for API communication
 
 Key components:
-- **OAuth2 Authentication**: Supports Google and GitHub login
+- **OAuth2 Authentication**: Supports Google login
 - **JWT Tokens**: Stateless authentication for API requests
 - **Flyway**: Database migrations management (13+ migrations)
 - **JPA Converters**: Custom converters for enum types (Category, MediaType)
@@ -83,7 +83,7 @@ Used for complex/array fields:
 
 ### OAuth-Only Authentication
 No traditional username/password login. Admin access requires:
-1. OAuth login (Google or GitHub)
+1. OAuth login (Google)
 2. Email must be in the `ADMIN_EMAILS` whitelist
 
 ### Stateless JWT
