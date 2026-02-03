@@ -84,9 +84,9 @@ export default function Experience() {
                             <span>{exp.company}</span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center text-dark-300 text-sm">
-                            <Calendar className="w-4 h-4 mr-2" />
+                        <div className="text-right flex-shrink-0">
+                          <div className="flex items-center text-dark-300 text-sm whitespace-nowrap">
+                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
                             <span>
                               {formatDate(exp.startDate, language)} – {exp.endDate ? formatDate(exp.endDate, language) : t('experience.present')}
                             </span>
