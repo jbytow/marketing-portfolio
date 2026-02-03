@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -9,11 +10,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ImageLightbox from '@/components/ImageLightbox';
 
 export default function NewsletterDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { language } = useLanguage();
   const { t } = useTranslation();
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.newsletter(language, slug!),
@@ -41,6 +44,10 @@ export default function NewsletterDetail() {
 
   // Get the 3 images
   const images = [newsletter.image1, newsletter.image2, newsletter.image3].filter(Boolean) as string[];
+
+  const handleImageClick = (src: string, alt: string) => {
+    setLightboxImage({ src, alt });
+  };
 
   return (
     <>
@@ -88,12 +95,13 @@ export default function NewsletterDetail() {
               {images.map((img, index) => (
                 <div
                   key={index}
-                  className="flex-1 max-w-xs aspect-[4/5] rounded-xl overflow-hidden bg-dark-700"
+                  className="flex-1 max-w-xs aspect-[4/5] rounded-xl overflow-hidden bg-dark-700 cursor-zoom-in"
+                  onClick={() => handleImageClick(getMediaUrl(img), `${newsletter.title} - ${index + 1}`)}
                 >
                   <img
                     src={getMediaUrl(img)}
                     alt={`${newsletter.title} - ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
               ))}
@@ -115,6 +123,14 @@ export default function NewsletterDetail() {
           )}
         </div>
       </article>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        src={lightboxImage?.src || ''}
+        alt={lightboxImage?.alt || ''}
+        isOpen={!!lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
     </>
   );
 }

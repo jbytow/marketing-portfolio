@@ -1,18 +1,22 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { newslettersApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ImageLightbox from '@/components/ImageLightbox';
 
 export default function Newsletter() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const navigate = useNavigate();
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.newsletters(language),
@@ -24,6 +28,15 @@ export default function Newsletter() {
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
   }
+
+  const handleImageClick = (e: React.MouseEvent, src: string, alt: string) => {
+    e.stopPropagation();
+    setLightboxImage({ src, alt });
+  };
+
+  const handleTileClick = (slug: string) => {
+    navigate(`/newsletter/${slug}`);
+  };
 
   return (
     <>
@@ -53,7 +66,8 @@ export default function Newsletter() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="card-hover group"
+                  className="card-hover group cursor-pointer"
+                  onClick={() => handleTileClick(newsletter.slug)}
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Left side - Images */}
@@ -62,7 +76,8 @@ export default function Newsletter() {
                         images.map((img, imgIndex) => (
                           <div
                             key={imgIndex}
-                            className="flex-1 aspect-[4/5] rounded-lg overflow-hidden bg-dark-700"
+                            className="flex-1 aspect-[4/5] rounded-lg overflow-hidden bg-dark-700 cursor-zoom-in"
+                            onClick={(e) => handleImageClick(e, getMediaUrl(img), `${newsletter.title} - ${imgIndex + 1}`)}
                           >
                             <img
                               src={getMediaUrl(img)}
@@ -99,13 +114,10 @@ export default function Newsletter() {
                         </p>
                       )}
 
-                      <Link
-                        to={`/newsletter/${newsletter.slug}`}
-                        className="inline-flex items-center text-primary-400 hover:text-primary-300 font-medium"
-                      >
+                      <span className="inline-flex items-center text-primary-400 group-hover:text-primary-300 font-medium">
                         {t('newsletter.viewNewsletter')}
                         <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 </motion.article>
@@ -120,6 +132,14 @@ export default function Newsletter() {
           )}
         </div>
       </section>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        src={lightboxImage?.src || ''}
+        alt={lightboxImage?.alt || ''}
+        isOpen={!!lightboxImage}
+        onClose={() => setLightboxImage(null)}
+      />
     </>
   );
 }

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowRight } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 export default function Content() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.posts(language, Category.CONTENT_COPY),
@@ -21,6 +22,10 @@ export default function Content() {
   });
 
   const contents = data?.data || [];
+
+  const handleTileClick = (slug: string) => {
+    navigate(`/projects/${slug}`);
+  };
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
@@ -50,7 +55,8 @@ export default function Content() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="card-hover group"
+                className="card-hover group cursor-pointer"
+                onClick={() => handleTileClick(item.slug)}
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-pink/20 mb-4">
                   <FileText className="w-6 h-6 text-primary-400" />
@@ -72,13 +78,10 @@ export default function Content() {
                   </div>
                 )}
 
-                <Link
-                  to={`/projects/${item.slug}`}
-                  className="inline-flex items-center text-primary-400 hover:text-primary-300 text-sm font-medium"
-                >
+                <span className="inline-flex items-center text-primary-400 group-hover:text-primary-300 text-sm font-medium">
                   {t('common.viewMore')}
                   <ArrowRight className="ml-1 w-4 h-4" />
-                </Link>
+                </span>
               </motion.article>
             ))}
           </div>
