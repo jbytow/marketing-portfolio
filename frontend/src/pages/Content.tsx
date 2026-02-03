@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { FileText, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileText, ArrowRight } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -71,10 +72,13 @@ export default function Content() {
                   </div>
                 )}
 
-                <button className="inline-flex items-center text-primary-400 hover:text-primary-300 text-sm font-medium">
-                  View Sample
-                  <ExternalLink className="ml-1 w-4 h-4" />
-                </button>
+                <Link
+                  to={`/projects/${item.slug}`}
+                  className="inline-flex items-center text-primary-400 hover:text-primary-300 text-sm font-medium"
+                >
+                  {t('common.viewMore')}
+                  <ArrowRight className="ml-1 w-4 h-4" />
+                </Link>
               </motion.article>
             ))}
           </div>
