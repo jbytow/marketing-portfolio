@@ -24,7 +24,7 @@ export default function Content() {
   const contents = data?.data || [];
 
   const handleTileClick = (slug: string) => {
-    navigate(`/projects/${slug}`);
+    navigate(`/content/${slug}`);
   };
 
   if (isLoading) {

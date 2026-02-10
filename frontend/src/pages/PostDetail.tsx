@@ -21,10 +21,11 @@ export default function PostDetail() {
   const { t } = useTranslation();
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  // Determine if this is a newsletter based on URL path
+  // Determine section based on URL path
   const isNewsletter = location.pathname.startsWith('/newsletter');
-  const backPath = isNewsletter ? '/newsletter' : '/projects';
-  const backLabelKey = isNewsletter ? 'newsletter.title' : 'projects.title';
+  const isContent = location.pathname.startsWith('/content');
+  const backPath = isNewsletter ? '/newsletter' : isContent ? '/content' : '/projects';
+  const backLabelKey = isNewsletter ? 'newsletter.title' : isContent ? 'content.title' : 'projects.title';
 
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.post(language, slug!),
@@ -123,8 +124,8 @@ export default function PostDetail() {
             </motion.div>
           ) : null}
 
-          {/* Excerpt */}
-          {post.excerpt && (
+          {/* Excerpt - shown for projects, hidden for content (where it duplicates the article start) */}
+          {!isContent && post.excerpt && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

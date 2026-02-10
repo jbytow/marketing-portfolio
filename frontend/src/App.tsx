@@ -51,6 +51,7 @@ function App() {
           <Route path="newsletter" element={<Newsletter />} />
           <Route path="newsletter/:slug" element={<NewsletterDetail />} />
           <Route path="content" element={<Content />} />
+          <Route path="content/:slug" element={<PostDetail />} />
           <Route path="skills" element={<Skills />} />
           <Route path="contact" element={<Contact />} />
         </Route>
