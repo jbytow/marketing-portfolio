@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
+import type { Theme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { settingsApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 
@@ -23,6 +25,7 @@ const navItems = [
 export default function Header() {
   const { t } = useTranslation();
   const { language, toggleLanguage } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { data: settingsData } = useQuery({
@@ -63,6 +66,26 @@ export default function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-2">
+            {/* Theme Switcher */}
+            <div className="flex items-center bg-dark-800 border border-dark-700 rounded-xl p-0.5 gap-0.5">
+              {(['light', 'dark', 'rose'] as Theme[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  aria-label={`${t} theme`}
+                  title={t === 'light' ? 'Light' : t === 'dark' ? 'Dark' : 'Rose'}
+                  className={clsx(
+                    'px-2 py-1 rounded-lg text-base leading-none transition-all duration-200 select-none',
+                    theme === t
+                      ? 'bg-dark-700 shadow-sm'
+                      : 'opacity-40 hover:opacity-75 hover:bg-dark-700/40'
+                  )}
+                >
+                  {t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '🌸'}
+                </button>
+              ))}
+            </div>
+
             {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
