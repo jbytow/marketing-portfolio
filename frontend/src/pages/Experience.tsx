@@ -23,6 +23,15 @@ function calculateMonthsDuration(startDate: string, endDate: string | null): num
   return Math.max(1, months + 1); // At least 1 month
 }
 
+// Descriptions are sometimes authored as "- line one\n- line two" instead of using
+// the separate achievements field — split those into real bullet items.
+function parseDescriptionItems(description: string): string[] {
+  return description
+    .split('\n')
+    .map((line) => line.trim().replace(/^[-•*]\s*/, ''))
+    .filter(Boolean);
+}
+
 export default function Experience() {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -64,7 +73,11 @@ export default function Experience() {
               <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500 via-accent-pink to-accent-cyan" />
 
               <div className="space-y-8">
-                {experiences.map((exp, index) => (
+                {experiences.map((exp, index) => {
+                  const descriptionItems = exp.description ? parseDescriptionItems(exp.description) : [];
+                  const descriptionIsList = descriptionItems.length > 1;
+
+                  return (
                   <motion.div
                     key={exp.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -98,7 +111,18 @@ export default function Experience() {
                       </div>
 
                       {exp.description && (
-                        <p className="text-dark-300 mb-4">{exp.description}</p>
+                        descriptionIsList ? (
+                          <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 mb-4">
+                            {descriptionItems.map((item, i) => (
+                              <li key={i} className="flex items-start text-dark-300 text-sm">
+                                <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-primary-400 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-dark-300 mb-4">{exp.description}</p>
+                        )
                       )}
 
                       {exp.achievements && exp.achievements.length > 0 && (
@@ -113,7 +137,8 @@ export default function Experience() {
                       )}
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

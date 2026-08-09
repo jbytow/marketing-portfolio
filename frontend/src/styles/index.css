@@ -134,7 +134,7 @@
   font-family: 'Henny Penny', 'Poppins', system-ui, sans-serif;
 }
 
-[data-theme="rose"] header {
+[data-theme="rose"] .site-header {
   background-color: rgba(237, 224, 220, 0.88) !important;
   border-bottom-color: rgba(115, 25, 27, 0.1) !important;
 }
@@ -358,6 +358,12 @@
   --tw-prose-captions: #7a5050;
   --tw-prose-code: #73191B;
   --tw-prose-hr: rgba(115, 25, 27, 0.12);
+}
+
+/* ─── "Made with love" heart: filled, red leaning into pink ─── */
+[data-theme="rose"] .rose-heart {
+  fill: currentColor;
+  color: #E8485F;
 }
 
 /* ─── Selection & scrollbar ─── */
@@ -844,7 +850,7 @@ body.page-levitate {
   color: #0f172a;
 }
 
-[data-theme="light"] header {
+[data-theme="light"] .site-header {
   background-color: rgba(244, 246, 255, 0.92) !important;
   border-bottom-color: #e2e8f0 !important;
 }

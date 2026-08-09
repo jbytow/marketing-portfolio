@@ -110,7 +110,7 @@ export default function Footer() {
           </p>
           <p className="text-dark-500 text-sm flex items-center flex-wrap justify-center gap-1">
             {t('footer.madeWith')}{' '}
-            <Heart className="w-4 h-4 text-accent-pink" />{' '}
+            <Heart className="w-4 h-4 text-accent-pink rose-heart" />{' '}
             {t('footer.by')}{' '}
             <a
               href="https://jbytow.pl"
