@@ -218,5 +218,11 @@
     "by": "by",
     "quickLinks": "Quick Links",
     "tagline": "Creating impactful marketing campaigns and building brand stories that resonate."
+  },
+  "rose": {
+    "enchantButton": "✨ Enchant",
+    "prettierButton": "🌈 Make it prettier",
+    "prettierToast": "Much better.",
+    "grandpaToast": "And I'll be a grandpa myself one day"
   }
 }

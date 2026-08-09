@@ -61,10 +61,10 @@ export default function Header() {
     }
   }
 
-  function handleThemeClick(t: Theme) {
-    setTheme(t);
-    if (t === 'dark') {
-      toast('I ja też kiedyś będę dziadkiem');
+  function handleThemeClick(nextTheme: Theme) {
+    setTheme(nextTheme);
+    if (nextTheme === 'dark') {
+      toast(t('rose.grandpaToast'));
     }
   }
 

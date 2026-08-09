@@ -218,5 +218,11 @@
     "by": "przez",
     "quickLinks": "Szybkie linki",
     "tagline": "Tworzenie skutecznych kampanii marketingowych i budowanie historii marki, które rezonują."
+  },
+  "rose": {
+    "enchantButton": "✨ Zaczaruj",
+    "prettierButton": "🌈 Upiększ to",
+    "prettierToast": "Dużo lepiej.",
+    "grandpaToast": "I ja też kiedyś będę dziadkiem"
   }
 }

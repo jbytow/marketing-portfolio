@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { ROSE_EXPLOSION_EVENT } from './RoseExplosion';
 import { KPI_BLESS_ALL_EVENT } from './KpiBlessing';
 
@@ -8,7 +8,7 @@ const EFFECT_DURATION_MS = 3000;
 
 export default function MakePrettierButton() {
   const { theme } = useTheme();
-  const { language } = useLanguage();
+  const { t } = useTranslation();
 
   if (theme !== 'rose') return null;
 
@@ -18,7 +18,7 @@ export default function MakePrettierButton() {
     window.dispatchEvent(new Event(KPI_BLESS_ALL_EVENT));
     setTimeout(() => {
       document.documentElement.classList.remove('prettier-mode');
-      toast(language === 'pl' ? 'Dużo lepiej.' : 'Much better.');
+      toast(t('rose.prettierToast'));
     }, EFFECT_DURATION_MS);
   }
 
@@ -27,9 +27,9 @@ export default function MakePrettierButton() {
       onClick={handleClick}
       className="fixed bottom-5 right-5 z-40 px-3 py-2 rounded-full text-sm font-medium shadow-lg select-none prettier-button"
       aria-label="Make it prettier"
-      title="🌈 Make it prettier"
+      title={t('rose.prettierButton')}
     >
-      🌈 Make it prettier
+      {t('rose.prettierButton')}
     </button>
   );
 }

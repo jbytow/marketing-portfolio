@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 import { TINY_FAIRY_PEEK_TRIGGER_EVENT } from './TinyFairyPeek';
 
@@ -5,6 +6,7 @@ const LEVITATE_DURATION_MS = 1000;
 
 export default function EnchantButton() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   if (theme !== 'rose') return null;
 
@@ -19,9 +21,9 @@ export default function EnchantButton() {
       onClick={handleClick}
       className="fixed bottom-5 left-5 z-40 px-3 py-2 rounded-full text-sm font-medium shadow-lg select-none enchant-button"
       aria-label="Enchant"
-      title="✨ Enchant"
+      title={t('rose.enchantButton')}
     >
-      ✨ Enchant
+      {t('rose.enchantButton')}
     </button>
   );
 }
