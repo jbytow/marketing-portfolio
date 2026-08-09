@@ -130,7 +130,7 @@ export default function Header() {
                     'px-2 py-1 rounded-lg text-base leading-none transition-all duration-200 select-none',
                     theme === t
                       ? 'bg-dark-700 shadow-sm'
-                      : 'opacity-40 hover:opacity-75 hover:bg-dark-700/40'
+                      : 'bg-black/10 opacity-70 hover:opacity-100 hover:bg-dark-700/40'
                   )}
                 >
                   {THEME_META[t].emoji}
