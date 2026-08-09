@@ -361,9 +361,9 @@
 }
 
 /* ─── "Made with love" heart: filled, red leaning into pink ─── */
-[data-theme="rose"] .rose-heart {
+[data-theme="rose"] .rose-heart.text-accent-pink {
   fill: currentColor;
-  color: #E8485F;
+  color: #E8485F !important;
 }
 
 /* ─── Selection & scrollbar ─── */

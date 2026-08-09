@@ -13,7 +13,6 @@ import CursorCardTilt from './effects/CursorCardTilt';
 import MidnightRose from './effects/MidnightRose';
 import TinyFairyPeek from './effects/TinyFairyPeek';
 import MakePrettierButton from './effects/MakePrettierButton';
-import MidnightRoseTestButton from './effects/MidnightRoseTestButton';
 
 export default function Layout() {
   return (
@@ -39,7 +38,6 @@ export default function Layout() {
       <MidnightRose />
       <TinyFairyPeek />
       <MakePrettierButton />
-      <MidnightRoseTestButton />
     </div>
   );
 }
