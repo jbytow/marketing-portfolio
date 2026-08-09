@@ -1,4 +1,5 @@
 import { useTheme } from '@/contexts/ThemeContext';
+import { TINY_FAIRY_PEEK_TRIGGER_EVENT } from './TinyFairyPeek';
 
 const LEVITATE_DURATION_MS = 1000;
 
@@ -10,6 +11,7 @@ export default function EnchantButton() {
   function handleClick() {
     document.body.classList.add('page-levitate');
     setTimeout(() => document.body.classList.remove('page-levitate'), LEVITATE_DURATION_MS);
+    window.dispatchEvent(new Event(TINY_FAIRY_PEEK_TRIGGER_EVENT));
   }
 
   return (

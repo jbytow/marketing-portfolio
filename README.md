@@ -40,7 +40,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 | Rose bloom | Switching into the Rose theme triggers a radial "blooming" flash |
 | KPI blessing | Clicking a homepage stat has a 2% chance to bless it with a golden glow |
 | Rose explosion | 7–10 rapid clicks on the logo (which hints at this on hover) trigger a screen-wide petal shower |
-| Enchant button | A pointless "✨ Enchant" button gently levitates the whole page for a second |
+| Enchant button | A pointless "✨ Enchant" button gently levitates the whole page for a second and sends the tiny fairy peeking in |
 | Idle fairy | After 30s of inactivity, a hand-drawn pixel-art fairy flies corner to corner, facing whichever way she's travelling |
 | Tiny fairy peek | Every 30–120s, the same fairy peeks in from a screen edge, waves, and darts off |
 | Magic cursor | The mouse pointer becomes a wand that sprinkles a light trail of sparkles as it moves |
