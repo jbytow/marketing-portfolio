@@ -121,6 +121,12 @@
   @apply bg-dark-500;
 }
 
+/* Theme switcher icons: dark contour hugging the glyph so pale emoji (e.g. 👴)
+   stay readable against any background, without a boxy backdrop chip. */
+.theme-switch-emoji {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.55)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
 /* ===== ROSE THEME (burgundy #73191B + gold #C9A84C) ===== */
 
 /* ─── Base ─── */
