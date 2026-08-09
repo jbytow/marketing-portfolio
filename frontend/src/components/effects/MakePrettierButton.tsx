@@ -1,5 +1,6 @@
 import toast from 'react-hot-toast';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ROSE_EXPLOSION_EVENT } from './RoseExplosion';
 import { KPI_BLESS_ALL_EVENT } from './KpiBlessing';
 
@@ -7,6 +8,7 @@ const EFFECT_DURATION_MS = 3000;
 
 export default function MakePrettierButton() {
   const { theme } = useTheme();
+  const { language } = useLanguage();
 
   if (theme !== 'rose') return null;
 
@@ -16,7 +18,7 @@ export default function MakePrettierButton() {
     window.dispatchEvent(new Event(KPI_BLESS_ALL_EVENT));
     setTimeout(() => {
       document.documentElement.classList.remove('prettier-mode');
-      toast('Much better.');
+      toast(language === 'pl' ? 'Dużo lepiej.' : 'Much better.');
     }, EFFECT_DURATION_MS);
   }
 
