@@ -661,44 +661,21 @@ body.page-levitate {
   100% { transform: translate(var(--spark-dx), 10px) scale(0.4); opacity: 0; }
 }
 
-/* ─── Midnight Rose: lawendowy nastrój po zmroku ─── */
-.rose-midnight-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(123, 97, 219, 0.12), transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(76, 29, 149, 0.14), transparent 50%);
-}
-
-[data-theme="rose"].rose-midnight body {
-  background-image: linear-gradient(150deg, rgba(76, 29, 149, 0.08), transparent 60%);
-}
-
+/* ─── Midnight Rose: jeden księżyc lata tam i z powrotem, bez zmiany koloru tła ─── */
 .rose-midnight-moon {
   position: fixed;
   top: 8vh;
-  left: -5vw;
-  font-size: 1.4rem;
-  opacity: 0;
+  left: -8vw;
+  font-size: 4.2rem;
+  opacity: 0.8;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(147, 112, 219, 0.7));
-  animation: rose-midnight-drift 40s linear infinite;
-}
-
-.rose-midnight-moon-2 {
-  top: 18vh;
-  font-size: 1rem;
-  animation-delay: 18s;
-  animation-duration: 55s;
+  filter: drop-shadow(0 0 12px rgba(201, 168, 76, 0.6));
+  animation: rose-midnight-drift 30s ease-in-out infinite alternate;
 }
 
 @keyframes rose-midnight-drift {
-  0% { transform: translateX(0); opacity: 0; }
-  10% { opacity: 0.5; }
-  90% { opacity: 0.5; }
-  100% { transform: translateX(110vw); opacity: 0; }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(116vw); }
 }
 
 .rose-midnight-banner {

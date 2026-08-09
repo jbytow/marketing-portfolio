@@ -46,7 +46,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 | Magic cursor | The mouse pointer becomes a wand that sprinkles a light trail of sparkles as it moves |
 | Cursor spell | Drawing a circle gesture with the cursor makes the whole page glow, sends out sparks, and casts "✨ Campaignus Maximus ✨" |
 | Cursor card tilt | Swiping fast over a card tilts it toward the cursor and sparks bounce off |
-| Midnight Rose | Opening the app late at night (22:00–05:00) shifts the mood toward lavender, with drifting moons and a "Late night marketing magic detected" banner |
+| Midnight Rose | Opening the app late at night (22:00–05:00) sends a big moon drifting back and forth across the screen, plus a "Late night marketing magic detected" banner |
 | Make it prettier | A hidden-in-plain-sight button pulses every button, tilts every card, showers petals, and blesses every stat at once — then reverts with a "Much better." toast |
 
 ## Built With
