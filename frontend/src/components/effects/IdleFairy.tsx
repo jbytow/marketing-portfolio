@@ -5,8 +5,6 @@ import { spawnSpark } from './sparkLayer';
 import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
 import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
 
-export const IDLE_FAIRY_TEST_EVENT = 'rose-idle-fairy-test';
-
 const IDLE_THRESHOLD_MS = 30000;
 const REPEAT_IDLE_MS = 45000;
 const FLIGHT_DURATION_MS = 5000;
@@ -79,19 +77,13 @@ export default function IdleFairy() {
       scheduleIdle(IDLE_THRESHOLD_MS);
     }
 
-    function handleTest() {
-      startFlight();
-    }
-
     scheduleIdle(IDLE_THRESHOLD_MS);
     ACTIVITY_EVENTS.forEach((evt) => window.addEventListener(evt, handleActivity, { passive: true }));
-    window.addEventListener(IDLE_FAIRY_TEST_EVENT, handleTest);
 
     return () => {
       clearTimeout(idleTimer.current);
       clearTimeout(removeTimer.current);
       ACTIVITY_EVENTS.forEach((evt) => window.removeEventListener(evt, handleActivity));
-      window.removeEventListener(IDLE_FAIRY_TEST_EVENT, handleTest);
     };
   }, [theme]);
 

@@ -5,8 +5,6 @@ import { spawnSpark } from './sparkLayer';
 import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
 import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
 
-export const TINY_FAIRY_TEST_EVENT = 'rose-tiny-fairy-test';
-
 const MIN_INTERVAL_MS = 5 * 60 * 1000;
 const MAX_INTERVAL_MS = 10 * 60 * 1000;
 const PEEK_DURATION_MS = 2200;
@@ -49,10 +47,8 @@ export default function TinyFairyPeek() {
     }
 
     schedule();
-    window.addEventListener(TINY_FAIRY_TEST_EVENT, triggerPeek);
     return () => {
       clearTimeout(timer.current);
-      window.removeEventListener(TINY_FAIRY_TEST_EVENT, triggerPeek);
     };
   }, [theme]);
 
