@@ -29,6 +29,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import KpiBlessing from '@/components/effects/KpiBlessing';
 
 const iconMap: Record<string, LucideIcon> = {
   target: Target,
@@ -177,9 +178,9 @@ export default function Home() {
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-pink/20 mb-4">
                       <Icon className="w-7 h-7 text-primary-400" />
                     </div>
-                    <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+                    <KpiBlessing className="text-3xl md:text-4xl font-bold gradient-text mb-2">
                       {stat.value}
-                    </div>
+                    </KpiBlessing>
                     <div className="text-dark-400 text-sm">{stat.label}</div>
                   </motion.div>
                 );

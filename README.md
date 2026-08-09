@@ -26,7 +26,28 @@ The application features a clean, responsive design with smooth animations, comp
 - **Modern UI/UX**:
   - Responsive mobile-first design
   - Framer Motion animations
-  - Dark theme with gradient accents
+  - Three switchable themes: Light, Dark, and Rose
+
+## 🌸 Rose Theme — Magic Effects
+
+Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun animated easter eggs, layered on top of the normal UI:
+
+| Effect | Trigger |
+|--------|---------|
+| Magic hover | Hovering a button/card adds a gold glow + twinkling sparkles |
+| Fairy dust | Clicking a button/link bursts stars, hearts & mini roses from the click point |
+| Rose-petal loading spinner | Loading states spin a little rose instead of a plain ring |
+| Rose bloom | Switching into the Rose theme triggers a radial "blooming" flash |
+| KPI blessing | Clicking a homepage stat has a 2% chance to bless it with a golden glow |
+| Rose explosion | 7–10 rapid clicks on the logo (which hints at this on hover) trigger a screen-wide petal shower |
+| Enchant button | A pointless "✨ Enchant" button gently levitates the whole page for a second |
+| Idle fairy | After 30s of inactivity, a hand-drawn pixel-art fairy flies corner to corner, facing whichever way she's travelling |
+| Tiny fairy peek | Rarely (every 5–10 min), the same fairy peeks in from a screen edge, waves, and darts off |
+| Magic cursor | The mouse pointer becomes a wand that sprinkles a light trail of sparkles as it moves |
+| Cursor spell | Drawing a circle gesture with the cursor makes the whole page glow, sends out sparks, and casts "✨ Campaignus Maximus ✨" |
+| Cursor card tilt | Swiping fast over a card tilts it toward the cursor and sparks bounce off |
+| Midnight Rose | Opening the app late at night (22:00–05:00) shifts the mood toward lavender, with drifting moons and a "Late night marketing magic detected" banner |
+| Make it prettier | A hidden-in-plain-sight button pulses every button, tilts every card, showers petals, and blesses every stat at once — then reverts with a "Much better." toast |
 
 ## Built With
 

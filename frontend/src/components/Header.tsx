@@ -1,15 +1,35 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { Theme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { settingsApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
+import { ROSE_EXPLOSION_EVENT } from '@/components/effects/RoseExplosion';
+
+const LOGO_CLICK_WINDOW_MS = 1500;
+function randomExplosionThreshold() {
+  return 7 + Math.floor(Math.random() * 4); // 7-10
+}
+
+// Light theme is temporarily disabled — Rose is the default, Dark is the only alt.
+const THEME_OPTIONS: Theme[] = [
+  // 'light',
+  'rose',
+  'dark',
+];
+
+const THEME_META: Record<Theme, { emoji: string; label: string }> = {
+  light: { emoji: '☀️', label: 'Light' },
+  dark: { emoji: '👴', label: 'Dark' },
+  rose: { emoji: '🌸', label: 'Rose' },
+};
 
 const navItems = [
   { path: '/', labelKey: 'nav.home' },
@@ -27,6 +47,26 @@ export default function Header() {
   const { language, toggleLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const logoClicks = useRef<number[]>([]);
+  const explosionThreshold = useRef(randomExplosionThreshold());
+
+  function handleLogoClick() {
+    if (theme !== 'rose') return;
+    const now = Date.now();
+    logoClicks.current = [...logoClicks.current, now].filter((t) => now - t < LOGO_CLICK_WINDOW_MS);
+    if (logoClicks.current.length >= explosionThreshold.current) {
+      window.dispatchEvent(new Event(ROSE_EXPLOSION_EVENT));
+      logoClicks.current = [];
+      explosionThreshold.current = randomExplosionThreshold();
+    }
+  }
+
+  function handleThemeClick(t: Theme) {
+    setTheme(t);
+    if (t === 'dark') {
+      toast('I ja też kiedyś będę dziadkiem');
+    }
+  }
 
   const { data: settingsData } = useQuery({
     queryKey: queryKeys.settings(language),
@@ -40,8 +80,20 @@ export default function Header() {
       <div className="container">
         <nav className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="text-xl md:text-2xl font-display font-bold gradient-text">
+          <Link
+            to="/"
+            onClick={handleLogoClick}
+            className={clsx(
+              'relative text-xl md:text-2xl font-display font-bold gradient-text',
+              theme === 'rose' && 'rose-logo-link'
+            )}
+          >
             {settings?.siteName || 'Portfolio'}
+            {theme === 'rose' && (
+              <span className="rose-logo-hint" aria-hidden="true">
+                ✨ psst… try clicking fast
+              </span>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
@@ -68,12 +120,12 @@ export default function Header() {
           <div className="flex items-center space-x-2">
             {/* Theme Switcher */}
             <div className="flex items-center bg-dark-800 border border-dark-700 rounded-xl p-0.5 gap-0.5">
-              {(['light', 'dark', 'rose'] as Theme[]).map((t) => (
+              {THEME_OPTIONS.map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTheme(t)}
+                  onClick={() => handleThemeClick(t)}
                   aria-label={`${t} theme`}
-                  title={t === 'light' ? 'Light' : t === 'dark' ? 'Dark' : 'Rose'}
+                  title={THEME_META[t].label}
                   className={clsx(
                     'px-2 py-1 rounded-lg text-base leading-none transition-all duration-200 select-none',
                     theme === t
@@ -81,7 +133,7 @@ export default function Header() {
                       : 'opacity-40 hover:opacity-75 hover:bg-dark-700/40'
                   )}
                 >
-                  {t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '🌸'}
+                  {THEME_META[t].emoji}
                 </button>
               ))}
             </div>

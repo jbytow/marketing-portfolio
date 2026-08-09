@@ -2,6 +2,18 @@ import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
+import FairyDust from './effects/FairyDust';
+import RoseBloom from './effects/RoseBloom';
+import RoseExplosion from './effects/RoseExplosion';
+import EnchantButton from './effects/EnchantButton';
+import IdleFairy from './effects/IdleFairy';
+import MagicCursor from './effects/MagicCursor';
+import CursorSpell from './effects/CursorSpell';
+import CursorCardTilt from './effects/CursorCardTilt';
+import MidnightRose from './effects/MidnightRose';
+import TinyFairyPeek from './effects/TinyFairyPeek';
+import MakePrettierButton from './effects/MakePrettierButton';
+import FairyTestButtons from './effects/FairyTestButtons';
 
 export default function Layout() {
   return (
@@ -16,6 +28,18 @@ export default function Layout() {
         <Outlet />
       </motion.main>
       <Footer />
+      <FairyDust />
+      <RoseBloom />
+      <RoseExplosion />
+      <EnchantButton />
+      <IdleFairy />
+      <MagicCursor />
+      <CursorSpell />
+      <CursorCardTilt />
+      <MidnightRose />
+      <TinyFairyPeek />
+      <MakePrettierButton />
+      <FairyTestButtons />
     </div>
   );
 }

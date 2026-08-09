@@ -8,14 +8,15 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
+  theme: 'rose',
   setTheme: () => {},
 });
 
+// Light theme is temporarily disabled (see Header's theme switcher) — Rose is the default.
 function getInitialTheme(): Theme {
   const saved = localStorage.getItem('theme') as Theme;
-  if (saved && (['light', 'dark', 'rose'] as Theme[]).includes(saved)) return saved;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (saved === 'dark' || saved === 'rose') return saved;
+  return 'rose';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

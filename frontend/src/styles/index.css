@@ -129,6 +129,11 @@
   color: #2d1a1a;
 }
 
+/* Headings use a storybook display face in Rose only — Dark keeps Poppins */
+[data-theme="rose"] .font-display {
+  font-family: 'Henny Penny', 'Poppins', system-ui, sans-serif;
+}
+
 [data-theme="rose"] header {
   background-color: rgba(237, 224, 220, 0.88) !important;
   border-bottom-color: rgba(115, 25, 27, 0.1) !important;
@@ -306,6 +311,40 @@
 [data-theme="rose"] .label { color: #573232 !important; }
 [data-theme="rose"] .section-subheading { color: #7a5050 !important; }
 
+/* ─── Logo: subtle pulse + delayed hint that it's clickable (rapid-click easter egg) ─── */
+.rose-logo-link {
+  animation: rose-logo-pulse 4s ease-in-out infinite;
+}
+
+@keyframes rose-logo-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(201, 168, 76, 0)); }
+  50% { filter: drop-shadow(0 0 6px rgba(201, 168, 76, 0.45)); }
+}
+
+.rose-logo-hint {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  translate: -50% 6px;
+  white-space: nowrap;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #C9A84C;
+  background: rgba(255, 251, 249, 0.95);
+  border: 1px solid rgba(115, 25, 27, 0.15);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease 0.5s, translate 0.3s ease 0.5s;
+}
+
+.rose-logo-link:hover .rose-logo-hint {
+  opacity: 1;
+  translate: -50% 2px;
+}
+
 /* ─── Prose (About text) ─── */
 [data-theme="rose"] .prose-invert {
   --tw-prose-body: #3d2020;
@@ -326,6 +365,476 @@
 [data-theme="rose"] ::-webkit-scrollbar-track { background: #E4D4D1 !important; }
 [data-theme="rose"] ::-webkit-scrollbar-thumb { background: rgba(115, 25, 27, 0.22) !important; border-radius: 9999px; }
 [data-theme="rose"] ::-webkit-scrollbar-thumb:hover { background: rgba(201, 168, 76, 0.55) !important; }
+
+/* ===== ROSE THEME — MAGIC FX (hover sparkles, fairy dust, bloom transition) ===== */
+
+/* ─── Magiczny hover: glow + 2 mrugające sparkle na przeciwległych rogach ─── */
+[data-theme="rose"] .card-hover,
+[data-theme="rose"] .btn {
+  position: relative;
+}
+
+[data-theme="rose"] .card-hover:hover,
+[data-theme="rose"] .btn:hover {
+  filter: drop-shadow(0 0 12px rgba(201, 168, 76, 0.45));
+}
+
+[data-theme="rose"] .card-hover::before,
+[data-theme="rose"] .card-hover::after,
+[data-theme="rose"] .btn::before,
+[data-theme="rose"] .btn::after {
+  content: '✨';
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  line-height: 1;
+}
+
+[data-theme="rose"] .card-hover::before,
+[data-theme="rose"] .btn::before {
+  top: -6px;
+  left: 8%;
+  font-size: 0.9rem;
+}
+
+[data-theme="rose"] .card-hover::after,
+[data-theme="rose"] .btn::after {
+  bottom: -6px;
+  right: 10%;
+  font-size: 0.7rem;
+}
+
+[data-theme="rose"] .card-hover:hover::before,
+[data-theme="rose"] .btn:hover::before {
+  animation: sparkle-twinkle 1.1s ease-in-out infinite;
+}
+
+[data-theme="rose"] .card-hover:hover::after,
+[data-theme="rose"] .btn:hover::after {
+  animation: sparkle-twinkle 1.1s ease-in-out infinite 0.35s;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(15deg); }
+}
+
+/* ─── Fairy dust: burst gwiazdek/serduszek/róż w miejscu kliknięcia ─── */
+.fairy-dust-particle {
+  position: fixed;
+  translate: -50% -50%;
+  pointer-events: none;
+  z-index: 9998;
+  font-size: 0.9rem;
+  animation: fairy-dust-fly 0.7s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes fairy-dust-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fairy-dx), var(--fairy-dy)) scale(0.4) rotate(var(--fairy-rot));
+  }
+}
+
+/* ─── Rose bloom: krótka animacja "rozkwitania" po wejściu w motyw ─── */
+.rose-bloom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.35) 0%, rgba(115, 25, 27, 0.22) 35%, transparent 70%);
+  animation: rose-bloom 0.9s ease-out forwards;
+}
+
+@keyframes rose-bloom {
+  0% { opacity: 0; transform: scale(0); }
+  30% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+
+/* ─── KPI Blessing: 2% szansy na złoty glow po kliknięciu w wynik ─── */
+.kpi-blessed-glow {
+  animation: kpi-bless-glow 1.2s ease-in-out;
+}
+
+@keyframes kpi-bless-glow {
+  0%, 100% { text-shadow: none; filter: none; }
+  50% {
+    text-shadow: 0 0 16px rgba(255, 215, 0, 0.9), 0 0 32px rgba(201, 168, 76, 0.7);
+    filter: brightness(1.3);
+  }
+}
+
+/* ─── Rose Explosion: 7-10 klik w logo → deszcz płatków ─── */
+.rose-explosion-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.rose-petal {
+  position: absolute;
+  top: -5%;
+  animation-name: rose-petal-fall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes rose-petal-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--petal-drift), 115vh) rotate(var(--petal-rot)); opacity: 0.15; }
+}
+
+/* ─── Enchant button: kompletnie zbędny przycisk, całość unosi się na sekundę ─── */
+.enchant-button {
+  background: linear-gradient(135deg, #73191B, #C9A84C);
+  color: #fff5f4;
+  border: 1px solid rgba(201, 168, 76, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.enchant-button:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+body.page-levitate {
+  animation: page-levitate 1s ease-in-out;
+}
+
+@keyframes page-levitate {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
+}
+
+/* ─── Idle fairy: po 30s bezczynności przelatuje z rogu do rogu ─── */
+.idle-fairy {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9997;
+  pointer-events: none;
+  animation: idle-fairy-fly 5s ease-in-out forwards;
+}
+
+.idle-fairy img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 4px 10px rgba(115, 25, 27, 0.35));
+}
+
+@keyframes idle-fairy-fly {
+  0% { transform: translate(var(--fairy-from-x), var(--fairy-from-y)) scale(0.8) rotate(-8deg); opacity: 0; }
+  8% { opacity: 1; }
+  50% { transform: translate(var(--fairy-mid-x), var(--fairy-mid-y)) scale(1) rotate(6deg); }
+  92% { opacity: 1; }
+  100% { transform: translate(var(--fairy-to-x), var(--fairy-to-y)) scale(0.8) rotate(-8deg); opacity: 0; }
+}
+
+/* ─── Magic cursor: różdżka zamiast wskaźnika myszy ─── */
+.magic-cursor-active,
+.magic-cursor-active * {
+  cursor: none !important;
+}
+
+.magic-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  pointer-events: none;
+  transform: translate(-200px, -200px);
+  will-change: transform;
+}
+
+.magic-cursor img {
+  display: block;
+  width: 59px;
+  height: 64px;
+  margin: -4px 0 0 -10px;
+  filter: drop-shadow(0 2px 4px rgba(115, 25, 27, 0.35));
+}
+
+/* ─── Cursor Spell: zatoczenie kółka kursorem odpala zaklęcie ─── */
+.cursor-spell-page-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(201, 168, 76, 0.14), transparent 65%);
+  animation: cursor-spell-page-flash 1.4s ease-out forwards;
+}
+
+@keyframes cursor-spell-page-flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.cursor-spell-fx {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  translate: -50% -50%;
+}
+
+.cursor-spell-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 140px;
+  height: 140px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.5), transparent 70%);
+  animation: cursor-spell-glow-pulse 1.6s ease-out forwards;
+}
+
+@keyframes cursor-spell-glow-pulse {
+  0% { transform: scale(0.2); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.cursor-spell-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 1rem;
+  animation: cursor-spell-spark-fly 1s ease-out forwards;
+}
+
+@keyframes cursor-spell-spark-fly {
+  0% { transform: translate(-50%, -50%) rotate(var(--spell-angle)) translateX(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--spell-angle)) translateX(70px); opacity: 0; }
+}
+
+.cursor-spell-text {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  translate: -50% 0;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #73191B;
+  text-shadow: 0 0 10px rgba(201, 168, 76, 0.8);
+  animation: cursor-spell-text-fade 1.6s ease forwards;
+}
+
+@keyframes cursor-spell-text-fade {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  20% { opacity: 1; transform: translate(-50%, 0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+/* ─── Kursor nad kartą: przechył + odbijające się iskry ─── */
+.cursor-spark-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9996;
+  pointer-events: none;
+}
+
+.cursor-spark {
+  position: fixed;
+  font-size: 0.8rem;
+  animation: cursor-spark-bounce 0.6s ease-out forwards;
+}
+
+@keyframes cursor-spark-bounce {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  60% { transform: translate(calc(var(--spark-dx) * 0.7), calc(var(--spark-dy) * 1.3)) scale(1.1); opacity: 1; }
+  100% { transform: translate(var(--spark-dx), 10px) scale(0.4); opacity: 0; }
+}
+
+/* ─── Midnight Rose: lawendowy nastrój po zmroku ─── */
+.rose-midnight-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(123, 97, 219, 0.12), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(76, 29, 149, 0.14), transparent 50%);
+}
+
+[data-theme="rose"].rose-midnight body {
+  background-image: linear-gradient(150deg, rgba(76, 29, 149, 0.08), transparent 60%);
+}
+
+.rose-midnight-moon {
+  position: fixed;
+  top: 8vh;
+  left: -5vw;
+  font-size: 1.4rem;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(147, 112, 219, 0.7));
+  animation: rose-midnight-drift 40s linear infinite;
+}
+
+.rose-midnight-moon-2 {
+  top: 18vh;
+  font-size: 1rem;
+  animation-delay: 18s;
+  animation-duration: 55s;
+}
+
+@keyframes rose-midnight-drift {
+  0% { transform: translateX(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateX(110vw); opacity: 0; }
+}
+
+.rose-midnight-banner {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  z-index: 9999;
+  background: rgba(76, 29, 149, 0.9);
+  color: #f3e8ff;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 24px rgba(76, 29, 149, 0.4);
+  animation: rose-midnight-banner-fade 5s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes rose-midnight-banner-fade {
+  0% { opacity: 0; transform: translate(-50%, -8px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+/* ─── Tiny Fairy: rzadko zagląda z krawędzi, macha różdżką i znika ─── */
+.tiny-fairy-peek {
+  position: fixed;
+  z-index: 9997;
+  pointer-events: none;
+}
+
+.tiny-fairy-peek img {
+  display: block;
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 4px 10px rgba(115, 25, 27, 0.35));
+}
+
+.tiny-fairy-peek-left {
+  left: 0;
+  animation: tiny-fairy-peek-left 2.2s ease-in-out forwards;
+}
+
+.tiny-fairy-peek-right {
+  right: 0;
+  animation: tiny-fairy-peek-right 2.2s ease-in-out forwards;
+}
+
+@keyframes tiny-fairy-peek-left {
+  0% { transform: translateX(-6rem); opacity: 0; }
+  20% { transform: translateX(0.5rem); opacity: 1; }
+  35% { transform: translateX(1.5rem) rotate(-8deg); }
+  50% { transform: translateX(0.5rem) rotate(8deg); }
+  80% { transform: translateX(0.5rem); opacity: 1; }
+  100% { transform: translateX(-6rem); opacity: 0; }
+}
+
+@keyframes tiny-fairy-peek-right {
+  0% { transform: translateX(6rem); opacity: 0; }
+  20% { transform: translateX(-0.5rem); opacity: 1; }
+  35% { transform: translateX(-1.5rem) rotate(8deg); }
+  50% { transform: translateX(-0.5rem) rotate(-8deg); }
+  80% { transform: translateX(-0.5rem); opacity: 1; }
+  100% { transform: translateX(6rem); opacity: 0; }
+}
+
+/* ─── Make it prettier: krótkotrwały chaos + toast na koniec ─── */
+.prettier-button {
+  background: linear-gradient(135deg, #C9A84C, #73191B);
+  color: #fff5f4;
+  border: 1px solid rgba(115, 25, 27, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.prettier-button:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+[data-theme="rose"].prettier-mode .card,
+[data-theme="rose"].prettier-mode .card-hover {
+  animation: prettier-card-wiggle 3s ease-in-out;
+  filter: drop-shadow(0 0 14px rgba(201, 168, 76, 0.5));
+}
+
+[data-theme="rose"].prettier-mode .btn {
+  animation: prettier-btn-pulse 1s ease-in-out infinite;
+}
+
+@keyframes prettier-card-wiggle {
+  0%, 50%, 100% { transform: none; }
+  10% { transform: rotate(-1.5deg) translateY(-2px); }
+  20% { transform: rotate(1.5deg) translateY(-2px); }
+  30% { transform: rotate(-1deg); }
+  40% { transform: rotate(1deg); }
+}
+
+@keyframes prettier-btn-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(201, 168, 76, 0); }
+  50% { box-shadow: 0 0 18px rgba(201, 168, 76, 0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="rose"] .card-hover::before,
+  [data-theme="rose"] .card-hover::after,
+  [data-theme="rose"] .btn::before,
+  [data-theme="rose"] .btn::after,
+  .fairy-dust-particle,
+  .rose-bloom-overlay,
+  .rose-explosion-layer,
+  .idle-fairy,
+  .cursor-spell-fx,
+  .cursor-spell-page-glow,
+  .cursor-spark-layer,
+  .rose-midnight-moon,
+  .rose-midnight-banner,
+  .tiny-fairy-peek {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .kpi-blessed-glow,
+  body.page-levitate,
+  .rose-logo-link,
+  [data-theme="rose"].prettier-mode .card,
+  [data-theme="rose"].prettier-mode .card-hover,
+  [data-theme="rose"].prettier-mode .btn {
+    animation: none !important;
+  }
+
+  .rose-logo-hint {
+    transition: none !important;
+  }
+
+  .magic-cursor-active,
+  .magic-cursor-active * {
+    cursor: auto !important;
+  }
+
+  .magic-cursor {
+    display: none !important;
+  }
+}
 
 /* ===== LIGHT THEME (białe tła + fiolet/róż jak w dark) ===== */
 
