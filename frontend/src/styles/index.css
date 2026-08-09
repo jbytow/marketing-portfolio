@@ -131,7 +131,8 @@
 
 /* Headings use a storybook display face in Rose only — Dark keeps Poppins */
 [data-theme="rose"] .font-display {
-  font-family: 'Henny Penny', 'Poppins', system-ui, sans-serif;
+  /* Henny Penny has no Polish diacritics — Eagle Lake fills in just those glyphs */
+  font-family: 'Henny Penny', 'Eagle Lake', 'Poppins', system-ui, sans-serif;
 }
 
 [data-theme="rose"] .site-header {
