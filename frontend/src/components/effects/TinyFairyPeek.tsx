@@ -5,8 +5,8 @@ import { spawnSpark } from './sparkLayer';
 import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
 import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
 
-const MIN_INTERVAL_MS = 5 * 60 * 1000;
-const MAX_INTERVAL_MS = 10 * 60 * 1000;
+const MIN_INTERVAL_MS = 30 * 1000;
+const MAX_INTERVAL_MS = 120 * 1000;
 const PEEK_DURATION_MS = 2200;
 const SPARK_INTERVAL_MS = 110;
 

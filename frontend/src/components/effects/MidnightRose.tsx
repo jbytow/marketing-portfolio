@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 
+export const MIDNIGHT_ROSE_TEST_EVENT = 'rose-midnight-test';
+
 const CHECK_INTERVAL_MS = 60000;
 const BANNER_DURATION_MS = 5000;
+const TEST_OVERRIDE_MS = 20000;
 
 function isLateNight(date = new Date()) {
   const h = date.getHours();
@@ -12,6 +15,7 @@ function isLateNight(date = new Date()) {
 export default function MidnightRose() {
   const { theme } = useTheme();
   const [midnight, setMidnight] = useState(() => isLateNight());
+  const [testOverride, setTestOverride] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
@@ -19,7 +23,16 @@ export default function MidnightRose() {
     return () => clearInterval(interval);
   }, []);
 
-  const active = theme === 'rose' && midnight;
+  useEffect(() => {
+    function handleTest() {
+      setTestOverride(true);
+      setTimeout(() => setTestOverride(false), TEST_OVERRIDE_MS);
+    }
+    window.addEventListener(MIDNIGHT_ROSE_TEST_EVENT, handleTest);
+    return () => window.removeEventListener(MIDNIGHT_ROSE_TEST_EVENT, handleTest);
+  }, []);
+
+  const active = theme === 'rose' && (midnight || testOverride);
 
   useEffect(() => {
     document.documentElement.classList.toggle('rose-midnight', active);

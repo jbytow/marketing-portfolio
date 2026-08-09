@@ -42,7 +42,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 | Rose explosion | 7–10 rapid clicks on the logo (which hints at this on hover) trigger a screen-wide petal shower |
 | Enchant button | A pointless "✨ Enchant" button gently levitates the whole page for a second |
 | Idle fairy | After 30s of inactivity, a hand-drawn pixel-art fairy flies corner to corner, facing whichever way she's travelling |
-| Tiny fairy peek | Rarely (every 5–10 min), the same fairy peeks in from a screen edge, waves, and darts off |
+| Tiny fairy peek | Every 30–120s, the same fairy peeks in from a screen edge, waves, and darts off |
 | Magic cursor | The mouse pointer becomes a wand that sprinkles a light trail of sparkles as it moves |
 | Cursor spell | Drawing a circle gesture with the cursor makes the whole page glow, sends out sparks, and casts "✨ Campaignus Maximus ✨" |
 | Cursor card tilt | Swiping fast over a card tilts it toward the cursor and sparks bounce off |
