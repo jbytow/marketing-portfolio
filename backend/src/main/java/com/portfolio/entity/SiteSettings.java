@@ -90,6 +90,10 @@ public class SiteSettings {
     @Column(name = "stats_items", columnDefinition = "jsonb")
     private List<Map<String, String>> statsItems;
 
+    @Column(name = "rose_force_motion")
+    @Builder.Default
+    private boolean roseForceMotion = false;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

@@ -41,4 +41,5 @@ public class SiteSettingsDto {
     private String[] aboutTagsEn;
     private String[] aboutTagsPl;
     private List<StatItemDto> statsItems;
+    private boolean roseForceMotion;
 }

@@ -102,6 +102,9 @@ public class SiteSettingsService {
             }
             settings.setStatsItems(statsItemsMaps);
         }
+        if (request.getRoseForceMotion() != null) {
+            settings.setRoseForceMotion(request.getRoseForceMotion());
+        }
 
         settings = siteSettingsRepository.save(settings);
         return mapToDto(settings, locale);
@@ -137,6 +140,7 @@ public class SiteSettingsService {
                 .aboutTagsEn(settings.getAboutTagsEn())
                 .aboutTagsPl(settings.getAboutTagsPl())
                 .statsItems(mapStatsItems(settings.getStatsItems(), locale))
+                .roseForceMotion(settings.isRoseForceMotion())
                 .build();
     }
 

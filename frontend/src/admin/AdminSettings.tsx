@@ -34,6 +34,7 @@ export default function AdminSettings() {
     aboutTagsEn: [],
     aboutTagsPl: [],
     statsItems: [],
+    roseForceMotion: false,
   });
 
   const { data, isLoading } = useQuery({
@@ -71,6 +72,7 @@ export default function AdminSettings() {
           labelEn: s.labelEn,
           labelPl: s.labelPl,
         })) || [],
+        roseForceMotion: settings.roseForceMotion || false,
       });
     }
   }, [data]);
@@ -205,6 +207,26 @@ export default function AdminSettings() {
                 placeholder="Natalia Zakulecka"
               />
             </div>
+          </div>
+          <div className="pt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.roseForceMotion || false}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, roseForceMotion: e.target.checked }))
+                }
+                className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
+              />
+              <span className="text-sm text-dark-200">
+                Rose theme: always show animations (ignore visitor's "reduce motion" setting)
+              </span>
+            </label>
+            <p className="text-xs text-dark-500 mt-1 ml-6">
+              Off by default — the decorative Rose effects (fairy, sparkles, cursor spell, etc.)
+              stay hidden for visitors whose browser/OS requests reduced motion. Turn this on to
+              force them to show for everyone regardless.
+            </p>
           </div>
         </div>
 

@@ -189,6 +189,7 @@ export interface SiteSettings {
   aboutTagsEn: string[];
   aboutTagsPl: string[];
   statsItems: StatItem[];
+  roseForceMotion: boolean;
 }
 
 export interface StatItem {
@@ -316,6 +317,7 @@ export interface SiteSettingsUpdateRequest {
   aboutTagsEn?: string[];
   aboutTagsPl?: string[];
   statsItems?: StatItemInput[];
+  roseForceMotion?: boolean;
 }
 
 export interface StatItemInput {

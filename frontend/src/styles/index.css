@@ -784,44 +784,48 @@ body.page-levitate {
   50% { box-shadow: 0 0 18px rgba(201, 168, 76, 0.6); }
 }
 
+/* Rose's decorative animations respect prefers-reduced-motion by default —
+   unless an admin has flipped "always show animations" on in Settings,
+   which stamps <html class="rose-force-motion"> and short-circuits all of
+   this back off. */
 @media (prefers-reduced-motion: reduce) {
-  [data-theme="rose"] .card-hover::before,
-  [data-theme="rose"] .card-hover::after,
-  [data-theme="rose"] .btn::before,
-  [data-theme="rose"] .btn::after,
-  .fairy-dust-particle,
-  .rose-bloom-overlay,
-  .rose-explosion-layer,
-  .idle-fairy,
-  .cursor-spell-fx,
-  .cursor-spell-page-glow,
-  .cursor-spark-layer,
-  .rose-midnight-moon,
-  .rose-midnight-banner,
-  .tiny-fairy-peek {
+  html:not(.rose-force-motion) [data-theme="rose"] .card-hover::before,
+  html:not(.rose-force-motion) [data-theme="rose"] .card-hover::after,
+  html:not(.rose-force-motion) [data-theme="rose"] .btn::before,
+  html:not(.rose-force-motion) [data-theme="rose"] .btn::after,
+  html:not(.rose-force-motion) .fairy-dust-particle,
+  html:not(.rose-force-motion) .rose-bloom-overlay,
+  html:not(.rose-force-motion) .rose-explosion-layer,
+  html:not(.rose-force-motion) .idle-fairy,
+  html:not(.rose-force-motion) .cursor-spell-fx,
+  html:not(.rose-force-motion) .cursor-spell-page-glow,
+  html:not(.rose-force-motion) .cursor-spark-layer,
+  html:not(.rose-force-motion) .rose-midnight-moon,
+  html:not(.rose-force-motion) .rose-midnight-banner,
+  html:not(.rose-force-motion) .tiny-fairy-peek {
     display: none !important;
     animation: none !important;
   }
 
-  .kpi-blessed-glow,
-  body.page-levitate,
-  .rose-logo-link,
-  [data-theme="rose"].prettier-mode .card,
-  [data-theme="rose"].prettier-mode .card-hover,
-  [data-theme="rose"].prettier-mode .btn {
+  html:not(.rose-force-motion) .kpi-blessed-glow,
+  html:not(.rose-force-motion) body.page-levitate,
+  html:not(.rose-force-motion) .rose-logo-link,
+  html:not(.rose-force-motion)[data-theme="rose"].prettier-mode .card,
+  html:not(.rose-force-motion)[data-theme="rose"].prettier-mode .card-hover,
+  html:not(.rose-force-motion)[data-theme="rose"].prettier-mode .btn {
     animation: none !important;
   }
 
-  .rose-logo-hint {
+  html:not(.rose-force-motion) .rose-logo-hint {
     transition: none !important;
   }
 
-  .magic-cursor-active,
-  .magic-cursor-active * {
+  html:not(.rose-force-motion) .magic-cursor-active,
+  html:not(.rose-force-motion) .magic-cursor-active * {
     cursor: auto !important;
   }
 
-  .magic-cursor {
+  html:not(.rose-force-motion) .magic-cursor {
     display: none !important;
   }
 }

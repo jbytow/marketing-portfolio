@@ -34,4 +34,5 @@ public class SiteSettingsUpdateRequest {
     private String[] aboutTagsEn;
     private String[] aboutTagsPl;
     private List<StatItemDto> statsItems;
+    private Boolean roseForceMotion;
 }
