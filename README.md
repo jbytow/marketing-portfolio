@@ -6,6 +6,22 @@ The application features a clean, responsive design with smooth animations, comp
 
 **Live:** [https://zakulecka.pl](https://zakulecka.pl)
 
+## Why a CMS, Not a Static Site
+
+This wasn't built as a one-off static page. The brief came from a real case: a marketing
+professional needed a portfolio that could keep pace with her career — new campaigns, new
+roles, updated skills — without needing a developer involved every time something changed.
+
+A hand-coded static site solves the "day one" problem but creates a new one: it goes stale,
+and every meaningful update (a new project, a reworked bio, a skills reshuffle) turns into a
+mini rebuild. Two or three years in, it's effectively due for a rewrite.
+
+So the site owner is a first-class user, not just the visitor. Everything that would normally
+require touching code — posts, experience entries, skills, newsletters, site copy, even the
+homepage stats — lives behind the admin panel instead, editable in English and Polish, with no
+deploy required. The portfolio is meant to grow alongside the person it represents, like a CV
+that updates itself.
+
 ## Features
 
 - **Bilingual Support**: Full English and Polish language support with seamless switching
