@@ -34,7 +34,7 @@ export default function AdminSettings() {
     aboutTagsEn: [],
     aboutTagsPl: [],
     statsItems: [],
-    roseForceMotion: false,
+    roseForceMotion: true,
   });
 
   const { data, isLoading } = useQuery({
@@ -223,9 +223,9 @@ export default function AdminSettings() {
               </span>
             </label>
             <p className="text-xs text-dark-500 mt-1 ml-6">
-              Off by default — the decorative Rose effects (fairy, sparkles, cursor spell, etc.)
-              stay hidden for visitors whose browser/OS requests reduced motion. Turn this on to
-              force them to show for everyone regardless.
+              On by default — the decorative Rose effects (fairy, sparkles, cursor spell, etc.)
+              show for everyone regardless of a reduced-motion setting. Turn this off to let
+              visitors whose browser/OS requests reduced motion keep them hidden.
             </p>
           </div>
         </div>

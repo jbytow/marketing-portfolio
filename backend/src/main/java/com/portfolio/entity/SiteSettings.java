@@ -92,7 +92,7 @@ public class SiteSettings {
 
     @Column(name = "rose_force_motion")
     @Builder.Default
-    private boolean roseForceMotion = false;
+    private boolean roseForceMotion = true;
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;

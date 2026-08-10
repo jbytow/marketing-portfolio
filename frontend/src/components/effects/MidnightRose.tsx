@@ -36,7 +36,7 @@ export default function MidnightRose() {
   return (
     <>
       <span className="rose-midnight-moon" aria-hidden="true">🌙</span>
-      {showBanner && <div className="rose-midnight-banner">🌙 Late night marketing magic detected</div>}
+      {showBanner && <div className="rose-midnight-chip">🌙 Late night marketing magic detected</div>}
     </>
   );
 }

@@ -453,7 +453,7 @@
 }
 
 /* ─── Rose bloom: krótka animacja "rozkwitania" po wejściu w motyw ─── */
-.rose-bloom-overlay {
+.rose-bloom-flash {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -685,7 +685,7 @@ body.page-levitate {
   100% { transform: translateX(116vw); }
 }
 
-.rose-midnight-banner {
+.rose-midnight-chip {
   position: fixed;
   top: 90px;
   left: 50%;
@@ -696,11 +696,11 @@ body.page-levitate {
   border-radius: 9999px;
   font-size: 0.85rem;
   box-shadow: 0 8px 24px rgba(76, 29, 149, 0.4);
-  animation: rose-midnight-banner-fade 5s ease forwards;
+  animation: rose-midnight-chip-fade 5s ease forwards;
   pointer-events: none;
 }
 
-@keyframes rose-midnight-banner-fade {
+@keyframes rose-midnight-chip-fade {
   0% { opacity: 0; transform: translate(-50%, -8px); }
   10% { opacity: 1; transform: translate(-50%, 0); }
   85% { opacity: 1; }
@@ -794,14 +794,14 @@ body.page-levitate {
   html:not(.rose-force-motion) [data-theme="rose"] .btn::before,
   html:not(.rose-force-motion) [data-theme="rose"] .btn::after,
   html:not(.rose-force-motion) .fairy-dust-particle,
-  html:not(.rose-force-motion) .rose-bloom-overlay,
+  html:not(.rose-force-motion) .rose-bloom-flash,
   html:not(.rose-force-motion) .rose-explosion-layer,
   html:not(.rose-force-motion) .idle-fairy,
   html:not(.rose-force-motion) .cursor-spell-fx,
   html:not(.rose-force-motion) .cursor-spell-page-glow,
   html:not(.rose-force-motion) .cursor-spark-layer,
   html:not(.rose-force-motion) .rose-midnight-moon,
-  html:not(.rose-force-motion) .rose-midnight-banner,
+  html:not(.rose-force-motion) .rose-midnight-chip,
   html:not(.rose-force-motion) .tiny-fairy-peek {
     display: none !important;
     animation: none !important;

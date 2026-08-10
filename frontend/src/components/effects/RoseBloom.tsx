@@ -20,5 +20,5 @@ export default function RoseBloom() {
 
   if (!show) return null;
 
-  return <div className="rose-bloom-overlay" aria-hidden="true" />;
+  return <div className="rose-bloom-flash" aria-hidden="true" />;
 }
