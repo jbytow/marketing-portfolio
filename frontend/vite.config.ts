@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  // Absolute base: a relative base once produced /assets/assets/* URLs on nested SPA routes
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {

@@ -203,6 +203,11 @@ docker-compose up --build
    - Backend API: http://localhost:8080/api
    - Admin Panel: http://localhost:5173/admin
 
+### Production Deployment
+
+Production uses `docker-compose.prod.yml`; the frontend is published additively with
+`frontend/deploy.sh` so returning visitors never hit deleted chunks. See [DEPLOY.md](DEPLOY.md).
+
 ### Local Development
 
 #### Backend

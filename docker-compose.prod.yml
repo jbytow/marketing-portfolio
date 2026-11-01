@@ -57,7 +57,11 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL}
+    image: portfolio-frontend-prod
     container_name: portfolio-frontend-prod
+    volumes:
+      # Accumulated assets of past builds (see frontend/deploy.sh); shadows the dist baked into the image
+      - ./frontend/www:/usr/share/nginx/html:ro
     expose:
       - "80"
     depends_on:
