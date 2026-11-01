@@ -24,7 +24,8 @@ handles `vite:preloadError` with a single page reload, which fetches the current
 
 ## Deploying a new frontend build
 
-On the server, in the repository root:
+On the server, in the repository root, as the user that owns the checkout (not root; files
+created by root in `.git` or `frontend/www` block later pulls and deploys):
 
 ```bash
 git pull
