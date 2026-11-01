@@ -17,7 +17,10 @@ Caching rules in `frontend/nginx.conf`:
 |---|---|
 | `index.html`, SPA routes | `Cache-Control: no-cache` (browser revalidates, 304 when unchanged) |
 | `*.js`, `*.css`, images, fonts | `Cache-Control: public, immutable`, `expires 1y` |
-| `*.map` | 403 (source maps are built but not published) |
+| `*.map` | 403 (built with `sourcemap: 'hidden'`, so bundles do not reference them either) |
+
+If a tab still fails to load a chunk (for example one removed by `prune`), `frontend/src/main.tsx`
+handles `vite:preloadError` with a single page reload, which fetches the current `index.html`.
 
 ## Deploying a new frontend build
 

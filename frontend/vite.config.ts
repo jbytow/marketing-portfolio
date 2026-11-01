@@ -35,6 +35,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Maps are still emitted for local debugging, but bundles carry no sourceMappingURL
+    sourcemap: 'hidden',
   },
 });

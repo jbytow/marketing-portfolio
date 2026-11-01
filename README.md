@@ -166,6 +166,9 @@ Implementing optimistic UI updates for drag-and-drop reordering while maintainin
 ### 6. Cloudflare Tunnel Integration
 Configuring secure public access through Cloudflare Tunnel while maintaining proper HTTPS termination and WebSocket support for development hot reload.
 
+### 7. Returning Visitors Hitting Deleted Chunks
+After deploys, returning visitors got 404s on lazy-loaded chunks and a black screen: their browsers kept an older `index.html`, while each new image shipped only the latest `dist`. Fixed systemically: `index.html` is served with `no-cache`, hashed assets stay `immutable` and accumulate across deploys in a mounted `frontend/www`, and `frontend/deploy.sh` swaps `index.html` atomically only after checking that every file it references is published. Old generations are pruned by policy, and a `vite:preloadError` handler reloads a stale tab once (see [DEPLOY.md](DEPLOY.md)).
+
 ## Getting Started
 
 ### Prerequisites

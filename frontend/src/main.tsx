@@ -28,6 +28,17 @@ function ThemedToaster() {
   );
 }
 
+// A tab opened before a deploy may request chunks that were pruned since; reloading fetches the
+// current index.html. The timestamp guard stops a reload loop if the chunk is missing for real.
+const CHUNK_RELOAD_KEY = 'chunk-reload-at';
+window.addEventListener('vite:preloadError', (event) => {
+  const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? 0);
+  if (Date.now() - lastReload < 10_000) return;
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  event.preventDefault();
+  window.location.reload();
+});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
