@@ -9,6 +9,7 @@ import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 import MediaManager from '@/admin/components/MediaManager';
 import RichTextEditor from '@/components/RichTextEditor';
 
@@ -61,6 +62,10 @@ export default function AdminPostForm() {
     caseStudyTestimonialAuthor: '',
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const [media, setMedia] = useState<Media[]>([]);
   const [newHashtag, setNewHashtag] = useState('');
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
@@ -85,7 +90,7 @@ export default function AdminPostForm() {
   useEffect(() => {
     if (postData?.data && !postFetching && seededId !== id) {
       const post = postData.data;
-      setFormData({
+      const seeded: PostCreateRequest = {
         category: post.category,
         titleEn: post.titleEn ?? '',
         titlePl: post.titlePl ?? '',
@@ -106,7 +111,9 @@ export default function AdminPostForm() {
         caseStudyTestimonialEn: post.caseStudyTestimonialEn || '',
         caseStudyTestimonialPl: post.caseStudyTestimonialPl || '',
         caseStudyTestimonialAuthor: post.caseStudyTestimonialAuthor || '',
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
       setMedia(post.media || []);
       setSeededId(id ?? null);
       // Auto-expand if there's existing case study content in either language
@@ -119,6 +126,7 @@ export default function AdminPostForm() {
   const createMutation = useMutation({
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
       toast.success('Post created successfully');
@@ -132,6 +140,7 @@ export default function AdminPostForm() {
   const updateMutation = useMutation({
     mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
@@ -214,7 +223,7 @@ export default function AdminPostForm() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate('/admin/posts')}
+            onClick={() => confirmLeave() && navigate('/admin/posts')}
             className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -600,7 +609,7 @@ export default function AdminPostForm() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/posts')}
+            onClick={() => confirmLeave() && navigate('/admin/posts')}
             className="btn-secondary"
           >
             {t('common.cancel')}
