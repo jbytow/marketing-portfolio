@@ -1,4 +1,5 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { motion, MotionConfig } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Header from './Header';
@@ -20,9 +21,19 @@ import { useSiteSettings } from '@/lib/useSiteSettings';
 
 export default function Layout() {
   const location = useLocation();
+  const navigationType = useNavigationType();
+  const previousPath = useRef(location.pathname);
   const { t } = useTranslation();
   const { data: settings } = useSiteSettings();
   const forceMotion = settings?.data?.roseForceMotion ?? false;
+
+  // Compared against the previous path because a search-param change (?hashtag=) is also a PUSH
+  // but must keep the position; back/forward (POP) is left to the browser's own restoration.
+  useEffect(() => {
+    if (previousPath.current === location.pathname) return;
+    previousPath.current = location.pathname;
+    if (navigationType !== 'POP') window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, navigationType]);
 
   // 'user' honours prefers-reduced-motion; the admin's force-motion setting overrides it,
   // matching the CSS gate in index.css.
