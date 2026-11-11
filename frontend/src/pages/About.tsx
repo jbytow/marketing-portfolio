@@ -14,7 +14,12 @@ export default function About() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading: settingsLoading } = useSiteSettings();
+  const {
+    data: settingsData,
+    isPending: settingsPending,
+    isError: settingsError,
+    refetch: refetchSettings,
+  } = useSiteSettings();
 
   const { data: interestsData } = useQuery({
     queryKey: queryKeys.interests(language),
@@ -24,8 +29,23 @@ export default function About() {
   const settings = settingsData?.data;
   const interests = interestsData?.data || [];
 
-  if (settingsLoading) {
+  if (settingsPending) {
     return <LoadingSpinner fullScreen />;
+  }
+
+  if (settingsError && !settingsData) {
+    return (
+      <section className="py-20">
+        <div className="container">
+          <div className="text-center py-12">
+            <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+            <button type="button" onClick={() => refetchSettings()} className="btn-secondary">
+              {t('common.retry')}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
