@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spawnSpark } from './sparkLayer';
+import { roseMotionAllowed, spawnSpark } from './sparkLayer';
 
 const SPEED_THRESHOLD = 0.9; // px/ms — only "fast" movement tilts the card
 const MAX_TILT_DEG = 7;
@@ -33,6 +33,12 @@ export default function CursorCardTilt() {
     }
 
     function handleMove(e: MouseEvent) {
+      if (!roseMotionAllowed()) {
+        clearTimeout(resetTimer.current);
+        resetActive();
+        return;
+      }
+
       const now = performance.now();
       const prev = lastPoint.current;
       lastPoint.current = { x: e.clientX, y: e.clientY, t: now };

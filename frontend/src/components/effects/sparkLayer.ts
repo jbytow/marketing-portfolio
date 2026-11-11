@@ -18,7 +18,16 @@ interface SparkOptions {
   duration?: number;
 }
 
+// Evaluated per call: RoseForceMotion toggles .rose-force-motion asynchronously after the settings load.
+export function roseMotionAllowed() {
+  return (
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    document.documentElement.classList.contains('rose-force-motion')
+  );
+}
+
 export function spawnSpark(x: number, y: number, opts: SparkOptions) {
+  if (!roseMotionAllowed()) return;
   const el = document.createElement('span');
   el.className = 'cursor-spark';
   el.textContent = opts.emoji ?? '✨';
@@ -30,4 +39,6 @@ export function spawnSpark(x: number, y: number, opts: SparkOptions) {
   if (opts.duration) el.style.animationDuration = `${opts.duration}s`;
   getSparkLayer().appendChild(el);
   el.addEventListener('animationend', () => el.remove());
+  // Safety net: animationend never fires when the layer is hidden or the tab is throttled
+  setTimeout(() => el.remove(), (opts.duration ?? 0.6) * 1000 + 200);
 }
