@@ -21,6 +21,7 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final MediaService mediaService;
 
     public List<PostDto> getAllPublishedPosts(String locale) {
         return postRepository.findAllPublished().stream()
@@ -41,7 +42,9 @@ public class PostService {
     }
 
     public PostDto getPostBySlug(String slug, String locale) {
+        // Public route: a draft answers exactly like a missing slug so a guessed or shared link reveals nothing.
         Post post = postRepository.findBySlug(slug)
+                .filter(found -> Boolean.TRUE.equals(found.getPublished()))
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + slug));
         return mapToDto(post, locale, View.PUBLIC_DETAIL);
     }
@@ -190,6 +193,8 @@ public class PostService {
         if (!postRepository.existsById(id)) {
             throw new EntityNotFoundException("Post not found: " + id);
         }
+        // Without this the files stay on the volume and keep being served under their old URLs.
+        mediaService.deleteAllForPost(id);
         postRepository.deleteById(id);
     }
 

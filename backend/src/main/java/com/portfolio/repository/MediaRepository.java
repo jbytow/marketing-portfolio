@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -18,6 +19,8 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Page<Media> findByPostIdIsNull(Pageable pageable);
 
     Page<Media> findByType(MediaType type, Pageable pageable);
+
+    List<Media> findByPostId(UUID postId);
 
     @Query("SELECT COALESCE(MAX(m.displayOrder), 0) FROM Media m WHERE m.post.id = :postId")
     int getMaxDisplayOrderForPost(@Param("postId") UUID postId);

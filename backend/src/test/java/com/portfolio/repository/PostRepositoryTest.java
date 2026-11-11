@@ -2,6 +2,8 @@ package com.portfolio.repository;
 
 import com.portfolio.config.TestContainersConfig;
 import com.portfolio.entity.Category;
+import com.portfolio.entity.Media;
+import com.portfolio.entity.MediaType;
 import com.portfolio.entity.Post;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,6 +42,9 @@ class PostRepositoryTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private MediaRepository mediaRepository;
 
     private Post publishedPost1;
     private Post publishedPost2;
@@ -100,6 +106,58 @@ class PostRepositoryTest {
             Optional<Post> result = postRepository.findBySlug("non-existent-slug");
 
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("media of a post")
+    class MediaOfPost {
+
+        private Media persistMedia(Post post, MediaType type) {
+            Media media = Media.builder()
+                    .post(post)
+                    .type(type)
+                    .filename(type == MediaType.YOUTUBE ? null : "images/" + UUID.randomUUID() + ".jpg")
+                    .url("/api/media/x")
+                    .build();
+            return entityManager.persist(media);
+        }
+
+        @Test
+        @DisplayName("findByPostId should return only that post's media")
+        void findByPostIdReturnsOnlyThatPostsMedia() {
+            Media image = persistMedia(draftPost, MediaType.IMAGE);
+            Media video = persistMedia(draftPost, MediaType.YOUTUBE);
+            persistMedia(publishedPost1, MediaType.IMAGE);
+            persistMedia(null, MediaType.IMAGE);
+            entityManager.flush();
+            entityManager.clear();
+
+            assertThat(mediaRepository.findByPostId(draftPost.getId()))
+                    .extracting(Media::getId)
+                    .containsExactlyInAnyOrder(image.getId(), video.getId());
+        }
+
+        @Test
+        @DisplayName("deleting the media rows and then the post should leave other media untouched")
+        void deleteMediaThenPost() {
+            persistMedia(draftPost, MediaType.IMAGE);
+            persistMedia(draftPost, MediaType.YOUTUBE);
+            Media otherPostMedia = persistMedia(publishedPost1, MediaType.IMAGE);
+            Media unattached = persistMedia(null, MediaType.IMAGE);
+            entityManager.flush();
+            entityManager.clear();
+
+            // Same sequence as PostService.deletePost; Post.media cascades REMOVE onto rows already deleted here.
+            mediaRepository.deleteAll(mediaRepository.findByPostId(draftPost.getId()));
+            postRepository.deleteById(draftPost.getId());
+            entityManager.flush();
+            entityManager.clear();
+
+            assertThat(postRepository.findById(draftPost.getId())).isEmpty();
+            assertThat(mediaRepository.findAll())
+                    .extracting(Media::getId)
+                    .containsExactlyInAnyOrder(otherPostMedia.getId(), unattached.getId());
         }
     }
 

@@ -37,7 +37,9 @@ public class NewsletterService {
     }
 
     public NewsletterDto getBySlug(String slug, String locale) {
+        // Public route: a draft answers exactly like a missing slug so a guessed or shared link reveals nothing.
         Newsletter newsletter = newsletterRepository.findBySlug(slug)
+                .filter(found -> Boolean.TRUE.equals(found.getPublished()))
                 .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + slug));
         return mapToDto(newsletter, locale);
     }

@@ -27,6 +27,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,6 +39,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -346,6 +348,84 @@ class MediaServiceTest {
             mediaService.deleteMedia(id);
 
             assertThatCode(this::commit).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteAllForPost")
+    class DeleteAllForPost {
+
+        private final UUID postId = UUID.randomUUID();
+
+        @BeforeEach
+        void startTransactionSynchronization() {
+            TransactionSynchronizationManager.initSynchronization();
+        }
+
+        @AfterEach
+        void clearTransactionSynchronization() {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        private void commit() {
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        }
+
+        @Test
+        @DisplayName("deletes every row, then only the stored files after commit")
+        void deletesRowsThenFilesAfterCommit() throws Exception {
+            Media first = imageMedia(UUID.randomUUID());
+            Media second = imageMedia(UUID.randomUUID());
+            Media video = youTubeMedia(UUID.randomUUID());
+            List<Media> media = List.of(first, second, video);
+            given(mediaRepository.findByPostId(postId)).willReturn(media);
+
+            mediaService.deleteAllForPost(postId);
+            verify(storageService, never()).delete(any());
+            commit();
+
+            InOrder order = inOrder(mediaRepository, storageService);
+            order.verify(mediaRepository).deleteAll(media);
+            order.verify(storageService).delete(first.getFilename());
+            order.verify(storageService).delete(second.getFilename());
+            verify(storageService, times(2)).delete(any());
+        }
+
+        @Test
+        @DisplayName("rolled back delete keeps the files")
+        void rollbackKeepsFiles() throws Exception {
+            given(mediaRepository.findByPostId(postId))
+                    .willReturn(List.of(imageMedia(UUID.randomUUID()), imageMedia(UUID.randomUUID())));
+
+            mediaService.deleteAllForPost(postId);
+            // afterCommit is never called when the transaction rolls back
+
+            verify(storageService, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("a failed file delete is not propagated and does not stop the other files")
+        void fileDeleteFailureDoesNotStopTheRest() throws Exception {
+            Media broken = imageMedia(UUID.randomUUID());
+            Media fine = imageMedia(UUID.randomUUID());
+            given(mediaRepository.findByPostId(postId)).willReturn(List.of(broken, fine));
+            willThrow(new IOException("disk gone")).given(storageService).delete(broken.getFilename());
+
+            mediaService.deleteAllForPost(postId);
+
+            assertThatCode(this::commit).doesNotThrowAnyException();
+            verify(storageService).delete(fine.getFilename());
+        }
+
+        @Test
+        @DisplayName("a post without media touches neither rows nor storage")
+        void postWithoutMedia() throws Exception {
+            given(mediaRepository.findByPostId(postId)).willReturn(List.of());
+
+            mediaService.deleteAllForPost(postId);
+            commit();
+
+            verify(storageService, never()).delete(any());
         }
     }
 

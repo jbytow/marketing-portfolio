@@ -65,6 +65,25 @@ class NewsletterControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/newsletters/{slug} should answer a draft with the same 404 envelope as an unknown slug")
+    void shouldReturn404ForDraft() throws Exception {
+        Newsletter draft = Newsletter.builder()
+                .id(UUID.randomUUID())
+                .slug("draft-recap")
+                .titleEn("Draft recap")
+                .titlePl("Szkic podsumowania")
+                .published(false)
+                .build();
+        given(newsletterRepository.findBySlug("draft-recap")).willReturn(Optional.of(draft));
+
+        mockMvc.perform(get("/api/newsletters/draft-recap"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Newsletter not found: draft-recap"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
     @DisplayName("GET /api/newsletters/{slug} should return the newsletter in the requested language")
     void shouldReturnNewsletterInPolish() throws Exception {
         Newsletter newsletter = Newsletter.builder()

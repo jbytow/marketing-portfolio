@@ -131,6 +131,18 @@ class NewsletterServiceTest {
             assertThat(result.getTitle()).isEqualTo("Spring recap");
             assertThat(result.getContent()).isEqualTo("Content EN");
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"en", "pl"})
+        @DisplayName("should hide a draft behind the same not-found answer as a missing slug")
+        void shouldHideDraft(String locale) {
+            sampleNewsletter.setPublished(false);
+            given(newsletterRepository.findBySlug("spring-recap")).willReturn(Optional.of(sampleNewsletter));
+
+            assertThatThrownBy(() -> newsletterService.getBySlug("spring-recap", locale))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessage("Newsletter not found: spring-recap");
+        }
     }
 
     @Nested
