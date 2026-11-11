@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { useTranslation } from 'react-i18next';
@@ -19,24 +19,26 @@ export default function KpiBlessing({ children, className }: KpiBlessingProps) {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const [blessed, setBlessed] = useState(false);
+  const blessTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const startBlessing = useCallback(() => {
+    setBlessed(true);
+    clearTimeout(blessTimer.current);
+    blessTimer.current = setTimeout(() => setBlessed(false), BLESS_DURATION_MS);
+  }, []);
 
   function handleClick() {
     if (theme !== 'rose' || blessed) return;
-    if (Math.random() < BLESS_CHANCE) {
-      setBlessed(true);
-      setTimeout(() => setBlessed(false), BLESS_DURATION_MS);
-    }
+    if (Math.random() < BLESS_CHANCE) startBlessing();
   }
 
   useEffect(() => {
     if (theme !== 'rose') return;
-    function handleBlessAll() {
-      setBlessed(true);
-      setTimeout(() => setBlessed(false), BLESS_DURATION_MS);
-    }
-    window.addEventListener(KPI_BLESS_ALL_EVENT, handleBlessAll);
-    return () => window.removeEventListener(KPI_BLESS_ALL_EVENT, handleBlessAll);
-  }, [theme]);
+    window.addEventListener(KPI_BLESS_ALL_EVENT, startBlessing);
+    return () => window.removeEventListener(KPI_BLESS_ALL_EVENT, startBlessing);
+  }, [theme, startBlessing]);
+
+  useEffect(() => () => clearTimeout(blessTimer.current), []);
 
   const motionAllowed = roseMotionAllowed();
 

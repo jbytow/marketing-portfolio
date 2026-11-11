@@ -25,6 +25,7 @@ export default function TinyFairyPeek() {
   const { theme } = useTheme();
   const [peek, setPeek] = useState<{ id: number; edge: (typeof EDGES)[number]; top: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
+  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const counter = useRef(0);
   const fairyElRef = useRef<HTMLDivElement | null>(null);
   const sparkleFrame = useRef<number>();
@@ -37,7 +38,8 @@ export default function TinyFairyPeek() {
       const top = 20 + Math.random() * 55;
       const id = ++counter.current;
       setPeek({ id, edge, top });
-      setTimeout(() => setPeek(null), PEEK_DURATION_MS);
+      clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setPeek(null), PEEK_DURATION_MS);
     }
 
     function schedule() {
@@ -52,6 +54,8 @@ export default function TinyFairyPeek() {
     window.addEventListener(TINY_FAIRY_PEEK_TRIGGER_EVENT, triggerPeek);
     return () => {
       clearTimeout(timer.current);
+      clearTimeout(hideTimer.current);
+      setPeek(null);
       window.removeEventListener(TINY_FAIRY_PEEK_TRIGGER_EVENT, triggerPeek);
     };
   }, [theme]);

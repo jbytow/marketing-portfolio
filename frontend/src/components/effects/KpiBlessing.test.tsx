@@ -55,4 +55,16 @@ describe('KpiBlessing', () => {
     const caption = screen.getByText(/blessed/);
     expect(caption.style.transform).toBe('');
   });
+
+  it('keeps the caption for a full duration after a second trigger', () => {
+    mockReducedMotion(false);
+    const { container } = render(<KpiBlessing>42</KpiBlessing>);
+    bless();
+    act(() => void vi.advanceTimersByTime(1000));
+    bless();
+    act(() => void vi.advanceTimersByTime(500));
+    expect(container.querySelector('.kpi-blessed-glow')).not.toBeNull();
+    act(() => void vi.advanceTimersByTime(800));
+    expect(container.querySelector('.kpi-blessed-glow')).toBeNull();
+  });
 });
