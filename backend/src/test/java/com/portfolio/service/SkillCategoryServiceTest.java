@@ -5,6 +5,7 @@ import com.portfolio.dto.SkillCategoryCreateRequest;
 import com.portfolio.dto.SkillCategoryDto;
 import com.portfolio.dto.SkillCategoryUpdateRequest;
 import com.portfolio.dto.SkillCategoryWithSkillsDto;
+import com.portfolio.dto.SoftSkillDto;
 import com.portfolio.entity.SkillCategory;
 import com.portfolio.entity.SoftSkill;
 import com.portfolio.repository.SkillCategoryRepository;
@@ -174,6 +175,42 @@ class SkillCategoryServiceTest {
             assertThat(result.get(0).getName()).isEqualTo("Content Creation");
             assertThat(result.get(0).getSkills()).hasSize(1);
             assertThat(result.get(0).getSkills().get(0).getName()).isEqualTo("Writing");
+        }
+
+        @Test
+        @DisplayName("should map nested skills with every localized field")
+        void shouldMapNestedSkillsPerLocale() {
+            SoftSkill skill = SoftSkill.builder()
+                    .id(UUID.randomUUID())
+                    .nameEn("Writing")
+                    .namePl("Pisanie")
+                    .descriptionEn("Clear copy")
+                    .descriptionPl("Jasne teksty")
+                    .professionalUsageEn("Blog posts")
+                    .professionalUsagePl("Wpisy na bloga")
+                    .icon("pen")
+                    .category(sampleCategory)
+                    .displayOrder(1)
+                    .build();
+            given(skillCategoryRepository.findAllByOrderByDisplayOrderAsc())
+                    .willReturn(List.of(sampleCategory));
+            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
+                    .willReturn(List.of(skill));
+
+            SoftSkillDto en = skillCategoryService.getAllCategoriesWithSkills("en").get(0).getSkills().get(0);
+            SoftSkillDto pl = skillCategoryService.getAllCategoriesWithSkills("pl").get(0).getSkills().get(0);
+
+            assertThat(en.getName()).isEqualTo("Writing");
+            assertThat(en.getDescription()).isEqualTo("Clear copy");
+            assertThat(en.getProfessionalUsage()).isEqualTo("Blog posts");
+            assertThat(en.getCategoryName()).isEqualTo("Content Creation");
+            assertThat(pl.getName()).isEqualTo("Pisanie");
+            assertThat(pl.getDescription()).isEqualTo("Jasne teksty");
+            assertThat(pl.getProfessionalUsage()).isEqualTo("Wpisy na bloga");
+            assertThat(pl.getCategoryName()).isEqualTo("Tworzenie Treści");
+            assertThat(pl.getCategoryId()).isEqualTo(categoryId);
+            assertThat(pl.getNameEn()).isEqualTo("Writing");
+            assertThat(pl.getIcon()).isEqualTo("pen");
         }
 
         @Test
