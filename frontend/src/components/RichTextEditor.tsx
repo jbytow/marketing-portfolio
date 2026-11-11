@@ -1,8 +1,4 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
   Bold,
@@ -22,6 +18,7 @@ import {
   Quote,
 } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
+import { richTextExtensions } from '@/lib/richTextExtensions';
 
 interface RichTextEditorProps {
   content: Record<string, unknown>;
@@ -36,21 +33,7 @@ export default function RichTextEditor({
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary-400 underline',
-        },
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
+      ...richTextExtensions,
       Placeholder.configure({
         placeholder,
       }),
