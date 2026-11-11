@@ -1,9 +1,9 @@
 package com.portfolio.service;
 
-import com.github.slugify.Slugify;
 import com.portfolio.dto.*;
 import com.portfolio.entity.*;
 import com.portfolio.repository.PostRepository;
+import com.portfolio.util.SlugUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,6 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final Slugify slugify = Slugify.builder().build();
 
     public List<PostDto> getAllPublishedPosts(String locale) {
         return postRepository.findAllPublished().stream()
@@ -83,10 +82,10 @@ public class PostService {
 
     @Transactional
     public PostDto createPost(PostCreateRequest request, String locale) {
-        String slug = request.getSlug();
-        if (slug == null || slug.isBlank()) {
-            slug = generateUniqueSlug(request.getTitleEn());
-        }
+        String slugSource = request.getSlug() == null || request.getSlug().isBlank()
+                ? request.getTitleEn()
+                : request.getSlug();
+        String slug = generateUniqueSlug(slugSource);
 
         Post post = Post.builder()
                 .category(request.getCategory())
@@ -131,8 +130,15 @@ public class PostService {
         if (request.getTitlePl() != null) {
             post.setTitlePl(request.getTitlePl());
         }
-        if (request.getSlug() != null) {
-            post.setSlug(request.getSlug());
+        // A cleared slug field keeps the current slug, so a published URL never silently changes or empties.
+        if (request.getSlug() != null && !request.getSlug().isBlank()) {
+            String slug = SlugUtils.toSlug(request.getSlug());
+            if (!slug.equals(post.getSlug())) {
+                if (postRepository.existsBySlug(slug)) {
+                    throw new IllegalArgumentException("Slug already in use");
+                }
+                post.setSlug(slug);
+            }
         }
         if (request.getExcerptEn() != null) {
             post.setExcerptEn(request.getExcerptEn());
@@ -215,8 +221,8 @@ public class PostService {
         }
     }
 
-    private String generateUniqueSlug(String title) {
-        String baseSlug = slugify.slugify(title);
+    private String generateUniqueSlug(String source) {
+        String baseSlug = SlugUtils.toSlug(source);
         String slug = baseSlug;
         int counter = 1;
 

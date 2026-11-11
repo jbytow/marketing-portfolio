@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -294,6 +296,72 @@ class PostServiceTest {
             verify(postRepository).save(postCaptor.capture());
             assertThat(postCaptor.getValue().getPublished()).isFalse();
         }
+
+        @Test
+        @DisplayName("should normalize a provided slug")
+        void shouldNormalizeProvidedSlug() {
+            PostCreateRequest request = newCreateRequest("Some Title");
+            request.setSlug(" My Slug ");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("my-slug");
+        }
+
+        @Test
+        @DisplayName("should append a number to a provided slug that is already taken")
+        void shouldMakeProvidedSlugUnique() {
+            PostCreateRequest request = newCreateRequest("Some Title");
+            request.setSlug("taken-slug");
+            stubSaveForCreate();
+            given(postRepository.existsBySlug("taken-slug")).willReturn(true);
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("taken-slug-1");
+        }
+
+        @Test
+        @DisplayName("should generate the slug from the title when the provided slug is blank")
+        void shouldGenerateSlugWhenProvidedSlugIsBlank() {
+            PostCreateRequest request = newCreateRequest("Campaign for Łódź");
+            request.setSlug("   ");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("campaign-for-lodz");
+        }
+
+        @Test
+        @DisplayName("should never store a blank slug for a symbol-only title")
+        void shouldNotStoreBlankSlugForSymbolTitle() {
+            PostCreateRequest request = newCreateRequest("!!! ???");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isNotBlank().doesNotStartWith("-");
+        }
+
+        private PostCreateRequest newCreateRequest(String titleEn) {
+            PostCreateRequest request = new PostCreateRequest();
+            request.setCategory(Category.CAMPAIGNS);
+            request.setTitleEn(titleEn);
+            request.setTitlePl(titleEn);
+            return request;
+        }
+
+        private void stubSaveForCreate() {
+            lenient().when(postRepository.existsBySlug(anyString())).thenReturn(false);
+            given(postRepository.getMaxDisplayOrder(any())).willReturn(0);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+        }
     }
 
     @Nested
@@ -331,6 +399,65 @@ class PostServiceTest {
             verify(postRepository).save(postCaptor.capture());
             assertThat(postCaptor.getValue().getTitleEn()).isEqualTo(originalTitle);
             assertThat(postCaptor.getValue().getExcerptEn()).isEqualTo("New Excerpt");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"", "   "})
+        @DisplayName("should keep the existing slug when the slug field is cleared")
+        void shouldKeepSlugWhenBlank(String blankSlug) {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(blankSlug);
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("test-title-en");
+        }
+
+        @Test
+        @DisplayName("should normalize a new slug")
+        void shouldNormalizeNewSlug() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.existsBySlug("my-slug")).willReturn(false);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(" My Slug ");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("my-slug");
+        }
+
+        @Test
+        @DisplayName("should reject a slug owned by another post")
+        void shouldRejectSlugOfAnotherPost() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.existsBySlug("other-post")).willReturn(true);
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug("Other Post");
+
+            assertThatThrownBy(() -> postService.updatePost(postId, request, "en"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Slug already in use");
+            verify(postRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should accept the post's own unchanged slug")
+        void shouldAcceptOwnSlug() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            lenient().when(postRepository.existsBySlug("test-title-en")).thenReturn(true);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug("test-title-en");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("test-title-en");
         }
 
         @Test

@@ -5,13 +5,12 @@ import com.portfolio.dto.NewsletterDto;
 import com.portfolio.dto.NewsletterUpdateRequest;
 import com.portfolio.entity.Newsletter;
 import com.portfolio.repository.NewsletterRepository;
+import com.portfolio.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,9 @@ public class NewsletterService {
         Newsletter newsletter = Newsletter.builder()
                 .titleEn(request.getTitleEn())
                 .titlePl(request.getTitlePl())
-                .slug(generateSlug(request.getSlug(), request.getTitleEn()))
+                .slug(generateUniqueSlug(request.getSlug() == null || request.getSlug().isBlank()
+                        ? request.getTitleEn()
+                        : request.getSlug()))
                 .contentEn(request.getContentEn())
                 .contentPl(request.getContentPl())
                 .image1(request.getImage1())
@@ -77,8 +78,15 @@ public class NewsletterService {
         if (request.getTitlePl() != null) {
             newsletter.setTitlePl(request.getTitlePl());
         }
-        if (request.getSlug() != null) {
-            newsletter.setSlug(request.getSlug());
+        // A cleared slug field keeps the current slug, so a published URL never silently changes or empties.
+        if (request.getSlug() != null && !request.getSlug().isBlank()) {
+            String slug = SlugUtils.toSlug(request.getSlug());
+            if (!slug.equals(newsletter.getSlug())) {
+                if (newsletterRepository.existsBySlug(slug)) {
+                    throw new IllegalArgumentException("Slug already in use");
+                }
+                newsletter.setSlug(slug);
+            }
         }
         if (request.getContentEn() != null) {
             newsletter.setContentEn(request.getContentEn());
@@ -114,24 +122,16 @@ public class NewsletterService {
         newsletterRepository.deleteById(id);
     }
 
-    private String generateSlug(String customSlug, String title) {
-        String baseSlug = customSlug != null && !customSlug.isBlank() ? customSlug : title;
-
-        String slug = Normalizer.normalize(baseSlug, Normalizer.Form.NFD)
-                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
-                .toLowerCase(Locale.ENGLISH)
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-
-        String finalSlug = slug;
+    private String generateUniqueSlug(String source) {
+        String baseSlug = SlugUtils.toSlug(source);
+        String slug = baseSlug;
         int counter = 1;
-        while (newsletterRepository.existsBySlug(finalSlug)) {
-            finalSlug = slug + "-" + counter++;
+
+        while (newsletterRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
         }
 
-        return finalSlug;
+        return slug;
     }
 
     private NewsletterDto mapToDto(Newsletter newsletter, String locale) {
