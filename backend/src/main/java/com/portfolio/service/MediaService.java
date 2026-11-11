@@ -175,7 +175,10 @@ public class MediaService {
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
-        storageService.delete(media.getFilename());
+        // YouTube rows have no stored file
+        if (media.getFilename() != null) {
+            storageService.delete(media.getFilename());
+        }
         mediaRepository.delete(media);
     }
 
