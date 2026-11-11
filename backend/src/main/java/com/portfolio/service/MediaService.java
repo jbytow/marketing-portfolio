@@ -9,11 +9,14 @@ import com.portfolio.repository.MediaRepository;
 import com.portfolio.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,8 +27,12 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class MediaService {
+
+    // VARCHAR(255) columns of the media table (V1__initial_schema.sql)
+    private static final int MAX_TEXT_COLUMN_LENGTH = 255;
 
     private final MediaRepository mediaRepository;
     private final PostRepository postRepository;
@@ -66,8 +73,10 @@ public class MediaService {
 
     @Transactional
     public MediaDto uploadMedia(MultipartFile file, UUID postId, String altTextEn, String altTextPl, String locale) throws IOException {
-        String filename = storageService.store(file);
-        MediaType type = storageService.getMediaType(file.getContentType());
+        // Everything that can reject the upload runs before the file is written, so a rejected
+        // request does not leave an orphan file on the volume.
+        requireMaxLength("altTextEn", altTextEn);
+        requireMaxLength("altTextPl", altTextPl);
 
         Post post = null;
         int displayOrder = 0;
@@ -77,11 +86,14 @@ public class MediaService {
             displayOrder = mediaRepository.getMaxDisplayOrderForPost(postId) + 1;
         }
 
+        String filename = storageService.store(file);
+        MediaType type = storageService.getMediaType(file.getContentType());
+
         Media media = Media.builder()
                 .post(post)
                 .type(type)
                 .filename(filename)
-                .originalName(file.getOriginalFilename())
+                .originalName(truncate(file.getOriginalFilename()))
                 .mimeType(file.getContentType())
                 .size(file.getSize())
                 .url("/api/media/" + filename)
@@ -90,8 +102,30 @@ public class MediaService {
                 .displayOrder(displayOrder)
                 .build();
 
-        media = mediaRepository.save(media);
+        try {
+            // Flush so a failing INSERT surfaces here, while the stored file can still be removed
+            media = mediaRepository.saveAndFlush(media);
+        } catch (RuntimeException e) {
+            try {
+                storageService.delete(filename);
+            } catch (IOException | RuntimeException cleanupFailure) {
+                e.addSuppressed(cleanupFailure);
+            }
+            throw e;
+        }
         return mapToDto(media, locale);
+    }
+
+    private static void requireMaxLength(String field, String value) {
+        if (value != null && value.length() > MAX_TEXT_COLUMN_LENGTH) {
+            throw new IllegalArgumentException(field + " must be at most " + MAX_TEXT_COLUMN_LENGTH + " characters");
+        }
+    }
+
+    private static String truncate(String value) {
+        return value != null && value.length() > MAX_TEXT_COLUMN_LENGTH
+                ? value.substring(0, MAX_TEXT_COLUMN_LENGTH)
+                : value;
     }
 
     @Transactional
@@ -175,11 +209,28 @@ public class MediaService {
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
-        // YouTube rows have no stored file
-        if (media.getFilename() != null) {
-            storageService.delete(media.getFilename());
-        }
         mediaRepository.delete(media);
+
+        // YouTube rows have no stored file
+        String filename = media.getFilename();
+        if (filename != null) {
+            // The file goes only once the row is gone for good; a rollback must not leave a row
+            // that points to a deleted file.
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    deleteStoredFile(filename);
+                }
+            });
+        }
+    }
+
+    private void deleteStoredFile(String filename) {
+        try {
+            storageService.delete(filename);
+        } catch (IOException | RuntimeException e) {
+            log.warn("Media row deleted but its file could not be removed: {} ({})", filename, e.getMessage());
+        }
     }
 
     private MediaDto mapToDto(Media media, String locale) {
