@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
-import { generateHTML, useEditor, type AnyExtension } from '@tiptap/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { generateHTML, useEditor, type AnyExtension, type Editor } from '@tiptap/react';
 import RichTextContent from './RichTextContent';
 import RichTextEditor from './RichTextEditor';
 import { richTextExtensions } from '@/lib/richTextExtensions';
@@ -178,6 +178,47 @@ describe('RichTextContent', () => {
     const { container } = render(<RichTextContent content={{}} />);
 
     expect(container.innerHTML).toBe('');
+  });
+});
+
+function renderEditor(content: Record<string, unknown>): Editor {
+  render(<RichTextEditor content={content} onChange={() => {}} />);
+  const results = vi.mocked(useEditor).mock.results;
+  return results[results.length - 1].value as Editor;
+}
+
+describe('RichTextEditor toolbar', () => {
+  // fireEvent.click is what Enter or Space on a focused button dispatches
+  it.each([
+    ['Bold (Ctrl+B)', (editor: Editor) => editor.isActive('bold')],
+    ['Heading 2', (editor: Editor) => editor.isActive('heading', { level: 2 })],
+    ['Align Center', (editor: Editor) => editor.isActive({ textAlign: 'center' })],
+    ['Bullet List', (editor: Editor) => editor.isActive('bulletList')],
+  ])('runs %j on click and reports it as pressed', (title, isApplied) => {
+    const editor = renderEditor({ type: 'doc', content: [paragraph('Hello')] });
+    act(() => {
+      editor.commands.selectAll();
+    });
+
+    fireEvent.click(screen.getByTitle(title));
+
+    expect(isApplied(editor)).toBe(true);
+    expect(screen.getByTitle(title).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTitle('Strikethrough').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('keeps the focused toolbar button mounted while the text changes', () => {
+    const editor = renderEditor({ type: 'doc', content: [paragraph('Hello')] });
+    const bold = screen.getByTitle('Bold (Ctrl+B)');
+    bold.focus();
+
+    act(() => {
+      editor.commands.insertContent(' world');
+    });
+
+    expect(editor.getText()).toBe('Hello world');
+    expect(screen.getByTitle('Bold (Ctrl+B)')).toBe(bold);
+    expect(document.activeElement).toBe(bold);
   });
 });
 

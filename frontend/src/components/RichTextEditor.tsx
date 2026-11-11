@@ -20,6 +20,47 @@ import {
 import { useCallback, useEffect } from 'react';
 import { richTextExtensions } from '@/lib/richTextExtensions';
 
+function ToolbarButton({
+  onAction,
+  isActive = false,
+  disabled = false,
+  children,
+  title,
+}: {
+  onAction: () => void;
+  isActive?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      // Keeps the editor selection; the action runs on click so Enter and Space work too
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onAction}
+      disabled={disabled}
+      title={title}
+      aria-pressed={isActive}
+      className={`p-2 rounded transition-colors flex-shrink-0 ${
+        isActive
+          ? 'bg-primary-500/20 text-primary-400'
+          : 'text-dark-400 hover:text-dark-100 hover:bg-dark-700'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Divider() {
+  return <div className="hidden sm:block w-px h-6 bg-dark-600 mx-1" />;
+}
+
+function ToolbarGroup({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center gap-0.5">{children}</div>;
+}
+
 interface RichTextEditorProps {
   content: Record<string, unknown>;
   onChange: (content: Record<string, unknown>) => void;
@@ -78,43 +119,6 @@ export default function RichTextEditor({
   if (!editor) {
     return null;
   }
-
-  const ToolbarButton = ({
-    onAction,
-    isActive = false,
-    disabled = false,
-    children,
-    title,
-  }: {
-    onAction: () => void;
-    isActive?: boolean;
-    disabled?: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
-    <button
-      type="button"
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onAction();
-      }}
-      disabled={disabled}
-      title={title}
-      className={`p-2 rounded transition-colors flex-shrink-0 ${
-        isActive
-          ? 'bg-primary-500/20 text-primary-400'
-          : 'text-dark-400 hover:text-dark-100 hover:bg-dark-700'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    >
-      {children}
-    </button>
-  );
-
-  const Divider = () => <div className="hidden sm:block w-px h-6 bg-dark-600 mx-1" />;
-
-  const ToolbarGroup = ({ children }: { children: React.ReactNode }) => (
-    <div className="flex items-center gap-0.5">{children}</div>
-  );
 
   return (
     <div className="border border-dark-600 rounded-lg overflow-hidden bg-dark-800">
