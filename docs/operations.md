@@ -213,7 +213,7 @@ docker compose -f docker-compose.prod.yml build --pull
 ```
 
 - Dependencies (`npm audit` on the frontend, the Maven BOM upgraded through Spring Boot versions) are owner decisions.
-- Backups are manual. There is no automated backup today (owner decision D9). All application data lives in two volumes, `postgres_data_prod` and `uploads_data_prod`:
+- Backups: the whole VM is backed up to Proxmox Backup Server (PBS) on a separate host, which covers both data volumes (`postgres_data_prod`, `uploads_data_prod`); a VM backup of a running PostgreSQL is crash-consistent, so a restore replays WAL on start. The application-level commands below are for the point-in-time dump before a migration that drops or alters objects, and for restoring a single object without rolling the VM back. The restore path has not been exercised yet (owner decision D9: test it once on a copy):
 
 ```bash
 docker exec portfolio-db-prod pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB" > /opt/backups/portfolio-$(date +%F).dump

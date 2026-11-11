@@ -187,6 +187,15 @@ Configuring secure public access through Cloudflare Tunnel while maintaining pro
 ### 7. Returning Visitors Hitting Deleted Chunks
 After deploys, returning visitors got 404s on lazy-loaded chunks and a black screen: their browsers kept an older `index.html`, while each new image shipped only the latest `dist`. Fixed systemically: `index.html` is served with `no-cache`, hashed assets stay `immutable` and accumulate across deploys in a mounted `frontend/www`, and `frontend/deploy.sh` swaps `index.html` atomically only after checking that every file it references is published. Old generations are pruned by policy, and a `vite:preloadError` handler reloads a stale tab once (see [docs/operations.md](docs/operations.md)).
 
+### 8. Database Tests That Silently Did Not Run
+`PostRepositoryTest` was marked `disabledWithoutDocker`, and Testcontainers 1.19.3 spoke Docker API 1.32, which Docker 29 rejects. The suite reported success with ten tests skipped, so a drift between entities and the Flyway schema had no way to surface. On Windows, Docker only existed inside WSL. Fixed by forwarding the WSL socket to `127.0.0.1:2375`, bumping Testcontainers, adding `MigrationSchemaTest` (Flyway on a real PostgreSQL plus `ddl-auto: validate`), and treating "0 skipped" as the pass criterion in the README and the runbook.
+
+### 9. Rate Limiting That Counted Every Visitor as One
+`limit_req_zone $binary_remote_addr` behind Cloudflare Tunnel only ever saw the connector's address, so the whole site shared one 10 r/s bucket, images included. The configuration looked textbook; the symptom only appears under traffic. Fixed with `map $http_cf_connecting_ip` (falling back to the remote address), separate zones for media, OAuth and the contact form, 429 instead of 503, and forwarded headers that the edge overwrites instead of appending to. Open: a LAN client reaching port 80 directly could still forge the header (owner decision on binding the port to the cloudflared source).
+
+### 10. Every Visitor Opened a Login Session
+With `oauth2Login` as the only entry point and no `AuthenticationEntryPoint` for `/api/**`, the `GET /api/admin/auth/me` probe that runs on every page view answered 302 to Google and created a server-side HTTP session per visitor; the frontend's 401 handling was dead code. Fixed with `HttpStatusEntryPoint(401)` for `/api/**`, a `SecurityConfigTest` that drives the real filter chain instead of a test-only configuration, and a 5-minute session timeout for the OAuth handshake.
+
 ## Getting Started
 
 ### Prerequisites
