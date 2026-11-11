@@ -31,7 +31,7 @@ export default function AdminExperienceForm() {
   const [newAchievementEn, setNewAchievementEn] = useState('');
   const [newAchievementPl, setNewAchievementPl] = useState('');
 
-  const { data: expData, isLoading: expLoading } = useQuery({
+  const { data: expData, isLoading: expLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.experience(id!),
     queryFn: () => adminExperiencesApi.getById(id!),
     enabled: isEditing,
@@ -58,7 +58,7 @@ export default function AdminExperienceForm() {
     mutationFn: (data: ExperienceCreateRequest) => adminExperiencesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
       toast.success('Experience created successfully');
       navigate('/admin/experiences');
     },
@@ -72,7 +72,7 @@ export default function AdminExperienceForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experience(id!) });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
       toast.success('Experience updated successfully');
       navigate('/admin/experiences');
     },
@@ -140,6 +140,18 @@ export default function AdminExperienceForm() {
 
   if (expLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !expData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (

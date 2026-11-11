@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Upload, X } from 'lucide-react';
 import { adminNewslettersApi, adminMediaApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -29,7 +31,7 @@ export default function AdminNewsletterForm() {
 
   const [uploading, setUploading] = useState<1 | 2 | 3 | null>(null);
 
-  const { data: newsletterData, isLoading } = useQuery({
+  const { data: newsletterData, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.newsletter(id!),
     queryFn: () => adminNewslettersApi.getById(id!),
     enabled: isEditing,
@@ -55,7 +57,13 @@ export default function AdminNewsletterForm() {
     mutationFn: (data: NewsletterCreateRequest) => adminNewslettersApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success('Newsletter created successfully');
       navigate('/admin/newsletters');
+    },
+    onError: () => {
+      toast.error('Failed to create newsletter');
     },
   });
 
@@ -64,7 +72,13 @@ export default function AdminNewsletterForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success('Newsletter updated successfully');
       navigate('/admin/newsletters');
+    },
+    onError: () => {
+      toast.error('Failed to update newsletter');
     },
   });
 
@@ -89,8 +103,9 @@ export default function AdminNewsletterForm() {
         ...prev,
         [`image${slot}`]: imageUrl,
       }));
-    } catch {
-      // Upload failed silently - user will see no image appeared
+    } catch (error) {
+      const serverMessage = axios.isAxiosError(error) ? error.response?.data?.message : undefined;
+      toast.error(serverMessage || 'Failed to upload image');
     } finally {
       setUploading(null);
     }
@@ -105,6 +120,18 @@ export default function AdminNewsletterForm() {
 
   if (isEditing && isLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !newsletterData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;

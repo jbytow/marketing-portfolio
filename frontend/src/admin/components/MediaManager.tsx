@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
   closestCenter,
@@ -18,10 +18,25 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Upload, Youtube, X, GripVertical, Image as ImageIcon } from 'lucide-react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { getMediaUrl } from '@/lib/mediaUrl';
+import { queryKeys } from '@/lib/queryKeys';
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_MESSAGE = 'File too large (max 50 MB)';
+
+// Surface the server's reason instead of a generic failure; 413 comes from the proxy without a body
+function getUploadErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 413) return MAX_UPLOAD_MESSAGE;
+    const message = error.response?.data?.message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
+}
 
 interface MediaManagerProps {
   postId: string;
@@ -69,6 +84,7 @@ function SortableMediaItem({ item, onDelete }: SortableMediaItemProps) {
 
       {/* Delete button */}
       <button
+        type="button"
         onClick={() => onDelete(item.id)}
         className="absolute top-2 right-2 p-1 rounded bg-red-500/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 z-10"
       >
@@ -104,6 +120,15 @@ function SortableMediaItem({ item, onDelete }: SortableMediaItemProps) {
 export default function MediaManager({ postId, media, onMediaChange }: MediaManagerProps) {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // The mounted post form seeds its fields only once per post, so refetching the detail
+  // here keeps the cache fresh without touching unsaved edits.
+  const invalidatePostQueries = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(postId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -117,11 +142,12 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     onSuccess: (response) => {
       if (response.data) {
         onMediaChange([...media, response.data]);
+        invalidatePostQueries();
         toast.success('Media uploaded');
       }
     },
-    onError: () => {
-      toast.error('Failed to upload media');
+    onError: (error) => {
+      toast.error(getUploadErrorMessage(error, 'Failed to upload media'));
     },
   });
 
@@ -130,6 +156,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     onSuccess: (response) => {
       if (response.data) {
         onMediaChange([...media, response.data]);
+        invalidatePostQueries();
         setYoutubeUrl('');
         toast.success('YouTube video added');
       }
@@ -143,6 +170,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: (_, deletedId) => {
       onMediaChange(media.filter((m) => m.id !== deletedId));
+      invalidatePostQueries();
       toast.success('Media deleted');
     },
     onError: () => {
@@ -153,6 +181,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
   const reorderMutation = useMutation({
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminMediaApi.reorder(postId, items),
+    onSuccess: invalidatePostQueries,
     onError: () => {
       toast.error('Failed to save order');
     },
@@ -162,10 +191,21 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
       setIsUploading(true);
-      for (const file of Array.from(files)) {
-        await uploadMutation.mutateAsync(file);
+      try {
+        for (const file of Array.from(files)) {
+          if (file.size > MAX_UPLOAD_BYTES) {
+            toast.error(`${file.name}: ${MAX_UPLOAD_MESSAGE}`);
+            continue;
+          }
+          try {
+            await uploadMutation.mutateAsync(file);
+          } catch {
+            // onError already showed the reason; keep going with the remaining files
+          }
+        }
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     },
     [uploadMutation]
   );
@@ -188,7 +228,9 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    if (window.confirm('Are you sure you want to delete this media item?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -199,6 +241,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       const newIndex = media.findIndex((m) => m.id === over.id);
       const newMedia = arrayMove(media, oldIndex, newIndex);
 
+      const previous = media;
       // Update local state immediately
       onMediaChange(newMedia);
 
@@ -207,7 +250,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
         id: m.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      reorderMutation.mutate(reorderItems, { onError: () => onMediaChange(previous) });
     }
   };
 
@@ -223,7 +266,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
           type="file"
           id="media-upload"
           multiple
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
           onChange={(e) => handleFileUpload(e.target.files)}
           className="hidden"
         />
@@ -240,7 +283,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
                 Drop files here or click to upload
               </span>
               <span className="text-sm text-dark-500 mt-1">
-                Images and videos supported
+                JPEG, PNG, GIF, WebP, MP4 and WebM, up to 50 MB
               </span>
             </>
           )}
@@ -255,6 +298,12 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
             type="text"
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleYouTubeAdd();
+              }
+            }}
             placeholder="Paste YouTube URL..."
             className="input pl-10"
           />

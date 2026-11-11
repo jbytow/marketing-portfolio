@@ -45,14 +45,25 @@ export default function AdminPostForm() {
   const [newHashtag, setNewHashtag] = useState('');
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  const { data: postData, isLoading: postLoading } = useQuery({
+  // Post id the form was seeded for. Later refetches (window focus, reconnect, invalidation
+  // after a media operation) must not overwrite unsaved edits.
+  const [seededId, setSeededId] = useState<string | null>(null);
+
+  const {
+    data: postData,
+    isLoading: postLoading,
+    isFetching: postFetching,
+    isError: loadFailed,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.admin.post(id!),
     queryFn: () => adminPostsApi.getById(id!),
     enabled: isEditing,
   });
 
+  // Wait for the fetch to finish: cached data may be stale and about to be replaced.
   useEffect(() => {
-    if (postData?.data) {
+    if (postData?.data && !postFetching && seededId !== id) {
       const post = postData.data;
       setFormData({
         category: post.category,
@@ -77,19 +88,19 @@ export default function AdminPostForm() {
         caseStudyTestimonialAuthor: post.caseStudyTestimonialAuthor || '',
       });
       setMedia(post.media || []);
+      setSeededId(id ?? null);
       // Auto-expand if there's existing case study content
       if (post.hasCaseStudy) {
         setCaseStudyExpanded(true);
       }
     }
-  }, [postData]);
+  }, [postData, postFetching, seededId, id]);
 
   const createMutation = useMutation({
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
@@ -101,11 +112,10 @@ export default function AdminPostForm() {
   const updateMutation = useMutation({
     mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['post'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },
@@ -164,8 +174,20 @@ export default function AdminPostForm() {
     formData.caseStudyResultsEn
   );
 
-  if (postLoading) {
+  if (postLoading || (isEditing && postData?.data && seededId !== id)) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !postData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (

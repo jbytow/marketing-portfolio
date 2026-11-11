@@ -21,7 +21,7 @@ export default function AdminSkillCategoryForm() {
     namePl: '',
   });
 
-  const { data: categoryData, isLoading: categoryLoading } = useQuery({
+  const { data: categoryData, isLoading: categoryLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.skillCategory(id!),
     queryFn: () => adminSkillCategoriesApi.getById(id!),
     enabled: isEditing,
@@ -41,7 +41,7 @@ export default function AdminSkillCategoryForm() {
     mutationFn: (data: SkillCategoryCreateRequest) => adminSkillCategoriesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategories() });
-      queryClient.invalidateQueries({ queryKey: ['skillCategories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Category created successfully');
       navigate('/admin/skill-categories');
     },
@@ -55,7 +55,7 @@ export default function AdminSkillCategoryForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategories() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategory(id!) });
-      queryClient.invalidateQueries({ queryKey: ['skillCategories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Category updated successfully');
       navigate('/admin/skill-categories');
     },
@@ -85,6 +85,18 @@ export default function AdminSkillCategoryForm() {
 
   if (categoryLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !categoryData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (

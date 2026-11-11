@@ -6,6 +6,7 @@ import { Save, Plus, Trash2 } from 'lucide-react';
 import { adminSettingsApi } from '@/services/api';
 import { SiteSettingsUpdateRequest, StatItemInput } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminSettings() {
@@ -37,7 +38,7 @@ export default function AdminSettings() {
     roseForceMotion: true,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.settings(),
     queryFn: () => adminSettingsApi.get(),
   });
@@ -82,7 +83,7 @@ export default function AdminSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings() });
       // Invalidate all public settings queries (matches all languages)
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.settings() });
       toast.success(t('admin.settings.title') + ' updated successfully');
     },
     onError: () => {
@@ -92,7 +93,11 @@ export default function AdminSettings() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(formData);
+    // A cleared input leaves an empty string behind, which would render an icon linking nowhere
+    const socialLinks = Object.fromEntries(
+      Object.entries(formData.socialLinks ?? {}).filter(([, url]) => url?.trim())
+    );
+    updateMutation.mutate({ ...formData, socialLinks });
   };
 
   const handleChange = (
@@ -169,6 +174,18 @@ export default function AdminSettings() {
 
   if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !data) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -382,7 +399,7 @@ export default function AdminSettings() {
             />
             {formData.profileImage && (
               <img
-                src={formData.profileImage}
+                src={getMediaUrl(formData.profileImage)}
                 alt="Profile preview"
                 className="mt-4 w-32 h-32 rounded-full object-cover"
               />

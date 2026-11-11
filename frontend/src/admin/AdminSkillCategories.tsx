@@ -22,7 +22,7 @@ export default function AdminSkillCategories() {
     mutationFn: (id: string) => adminSkillCategoriesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategories() });
-      queryClient.invalidateQueries({ queryKey: ['skillCategories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkills() });
       toast.success('Category deleted successfully');
       setDeleteId(null);

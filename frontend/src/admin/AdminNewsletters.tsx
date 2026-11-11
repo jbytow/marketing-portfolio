@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { adminNewslettersApi } from '@/services/api';
@@ -23,6 +24,16 @@ export default function AdminNewsletters() {
     mutationFn: (id: string) => adminNewslettersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success('Newsletter deleted successfully');
+    },
+    onError: () => {
+      toast.error('Failed to delete newsletter');
+    },
+    // Close the modal on failure too, otherwise it stays open with no feedback
+    onSettled: () => {
       setDeleteId(null);
     },
   });
@@ -33,6 +44,13 @@ export default function AdminNewsletters() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success('Newsletter status updated');
+    },
+    onError: () => {
+      toast.error('Failed to update newsletter status');
     },
   });
 

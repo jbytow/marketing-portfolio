@@ -124,6 +124,7 @@ export default function AdminInterests() {
     mutationFn: (id: string) => adminInterestsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
       toast.success('Interest deleted');
     },
     onError: () => {
@@ -134,9 +135,12 @@ export default function AdminInterests() {
   const reorderMutation = useMutation({
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminInterestsApi.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+    },
     onError: () => {
       toast.error('Failed to reorder');
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
     },
   });
 
@@ -152,7 +156,10 @@ export default function AdminInterests() {
         id: item.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      // The refetch after a failure returns an identical payload, so the [data] effect would not
+      // restore the old order; roll back explicitly.
+      const previous = interests;
+      reorderMutation.mutate(reorderItems, { onError: () => setInterests(previous) });
     }
   };
 
