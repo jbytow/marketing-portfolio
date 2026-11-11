@@ -9,12 +9,14 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -84,6 +86,34 @@ class MigrationSchemaTest extends IntegrationTestBase {
                 String.class);
 
         assertThat(nullable).isEmpty();
+    }
+
+    @Test
+    @DisplayName("V17 (purge of non-admin Google accounts) is applied")
+    void appliesV17() {
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '17' AND success",
+                Integer.class)).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("V17 deletes non-admin and NULL-flag users, keeps admins, and can run twice")
+    void v17PurgesNonAdminUsers() throws IOException {
+        String insert = "INSERT INTO users (email, name, provider, provider_id, is_admin) VALUES (?, ?, 'google', ?, ?)";
+        jdbcTemplate.update(insert, "owner@v17.test", "Owner", "sub-owner", true);
+        jdbcTemplate.update(insert, "stranger@v17.test", "Stranger", "sub-stranger", false);
+        jdbcTemplate.update(insert, "legacy@v17.test", "Legacy", "sub-legacy", null);
+        String v17 = new ClassPathResource("db/migration/V17__delete_non_admin_users.sql")
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        jdbcTemplate.execute(v17);
+        jdbcTemplate.execute(v17);
+
+        assertThat(jdbcTemplate.queryForList("SELECT email FROM users WHERE email LIKE '%@v17.test'", String.class))
+                .containsExactly("owner@v17.test");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE is_admin IS NOT TRUE", Integer.class)).isZero();
     }
 
     @Test
