@@ -17,7 +17,7 @@ interface Face {
 }
 
 const faces: Face[] = Array.from(fontsCss.matchAll(/@font-face\s*\{([^}]*)\}/g), ([, body]) => {
-  const get = (property: string) => body.match(new RegExp(`${property}:\s*([^;]+);`))?.[1].trim() ?? '';
+  const get = (property: string) => body.match(new RegExp(`${property}: *([^;]+);`))?.[1].trim() ?? '';
   return {
     family: get('font-family').replace(/['"]/g, ''),
     weight: get('font-weight'),
