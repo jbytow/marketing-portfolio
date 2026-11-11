@@ -34,6 +34,14 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Per-tab language pushed by LanguageProvider. Reading localStorage here would let another tab
+// switch the header under this tab's language-keyed query cache.
+let apiLanguage = 'en';
+
+export const setApiLanguage = (language: string): void => {
+  apiLanguage = language;
+};
+
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_URL,
@@ -44,9 +52,7 @@ const createApiClient = (): AxiosInstance => {
   });
 
   client.interceptors.request.use((config) => {
-    // Language preference from localStorage (not sensitive)
-    const language = localStorage.getItem('language') || 'en';
-    config.headers['Accept-Language'] = language;
+    config.headers['Accept-Language'] = apiLanguage;
 
     return config;
   });

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { setApiLanguage } from '@/services/api';
 
 type Language = 'en' | 'pl';
 
@@ -13,9 +14,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation();
-  const [language, setLanguageState] = useState<Language>(
-    (localStorage.getItem('language') as Language) || 'en'
-  );
+  // The API header must be set synchronously (not in an effect): child queries fire before this provider's effects.
+  const [language, setLanguageState] = useState<Language>(() => {
+    const initial = (localStorage.getItem('language') as Language) || 'en';
+    setApiLanguage(initial);
+    return initial;
+  });
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -24,11 +28,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [language, i18n]);
 
   const setLanguage = (lang: Language) => {
+    setApiLanguage(lang);
     setLanguageState(lang);
   };
 
   const toggleLanguage = () => {
-    setLanguageState((prev) => (prev === 'en' ? 'pl' : 'en'));
+    setLanguage(language === 'en' ? 'pl' : 'en');
   };
 
   return (
