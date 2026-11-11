@@ -357,6 +357,13 @@
       "openLogin": "Sign in in a new tab",
       "close": "Close"
     },
+    "preview": {
+      "button": "Preview",
+      "draftBanner": "Draft preview: visitors cannot see this page until it is published.",
+      "publishedBanner": "Preview of the published page.",
+      "backToEditor": "Back to the editor",
+      "language": "Previewed language"
+    },
     "unsaved": {
       "confirmLeave": "You have unsaved changes. Leave without saving?"
     },

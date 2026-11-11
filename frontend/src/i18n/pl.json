@@ -357,6 +357,13 @@
       "openLogin": "Zaloguj w nowej karcie",
       "close": "Zamknij"
     },
+    "preview": {
+      "button": "Podgląd",
+      "draftBanner": "Podgląd wersji roboczej: odwiedzający nie zobaczą tej strony, dopóki nie zostanie opublikowana.",
+      "publishedBanner": "Podgląd opublikowanej strony.",
+      "backToEditor": "Powrót do edytora",
+      "language": "Język podglądu"
+    },
     "unsaved": {
       "confirmLeave": "Masz niezapisane zmiany. Wyjść bez zapisywania?"
     },

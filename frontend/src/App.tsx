@@ -30,6 +30,7 @@ const AdminLogin = page(() => import('./admin/AdminLogin'));
 const AdminDashboard = page(() => import('./admin/AdminDashboard'));
 const AdminPosts = page(() => import('./admin/AdminPosts'));
 const AdminPostForm = page(() => import('./admin/AdminPostForm'));
+const AdminPostPreview = page(() => import('./admin/AdminPostPreview'));
 const AdminSoftSkills = page(() => import('./admin/AdminSoftSkills'));
 const AdminSoftSkillForm = page(() => import('./admin/AdminSoftSkillForm'));
 const AdminSkillCategories = page(() => import('./admin/AdminSkillCategories'));
@@ -38,6 +39,7 @@ const AdminExperiences = page(() => import('./admin/AdminExperiences'));
 const AdminExperienceForm = page(() => import('./admin/AdminExperienceForm'));
 const AdminNewsletters = page(() => import('./admin/AdminNewsletters'));
 const AdminNewsletterForm = page(() => import('./admin/AdminNewsletterForm'));
+const AdminNewsletterPreview = page(() => import('./admin/AdminNewsletterPreview'));
 const AdminInterests = page(() => import('./admin/AdminInterests'));
 const AdminInterestForm = page(() => import('./admin/AdminInterestForm'));
 const AdminMedia = page(() => import('./admin/AdminMedia'));
@@ -85,9 +87,11 @@ function App() {
             <Route path="posts" element={<AdminPosts />} />
             <Route path="posts/new" element={<AdminPostForm />} />
             <Route path="posts/:id/edit" element={<AdminPostForm />} />
+            <Route path="posts/:id/preview" element={<AdminPostPreview />} />
             <Route path="newsletters" element={<AdminNewsletters />} />
             <Route path="newsletters/new" element={<AdminNewsletterForm />} />
             <Route path="newsletters/:id/edit" element={<AdminNewsletterForm />} />
+            <Route path="newsletters/:id/preview" element={<AdminNewsletterPreview />} />
             <Route path="experiences" element={<AdminExperiences />} />
             <Route path="experiences/new" element={<AdminExperienceForm />} />
             <Route path="experiences/:id/edit" element={<AdminExperienceForm />} />

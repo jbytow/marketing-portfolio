@@ -13,9 +13,14 @@ vi.mock('./components/Layout', () => ({
     </div>
   ),
 }));
+const auth = vi.hoisted(() => ({ isAuthenticated: true }));
 vi.mock('./contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: () => ({ isAuthenticated: true, isLoading: false, user: { isAdmin: true } }),
+  useAuth: () => ({
+    isAuthenticated: auth.isAuthenticated,
+    isLoading: false,
+    user: { isAdmin: auth.isAuthenticated },
+  }),
 }));
 vi.mock('./admin/AdminLayout', () => ({
   default: () => (
@@ -26,6 +31,9 @@ vi.mock('./admin/AdminLayout', () => ({
 }));
 vi.mock('./pages/About', () => ({ default: () => <h1>About stub</h1> }));
 vi.mock('./admin/AdminDashboard', () => ({ default: () => <h1>Dashboard stub</h1> }));
+vi.mock('./admin/AdminLogin', () => ({ default: () => <h1>Login stub</h1> }));
+vi.mock('./admin/AdminPostPreview', () => ({ default: () => <h1>Post preview stub</h1> }));
+vi.mock('./admin/AdminNewsletterPreview', () => ({ default: () => <h1>Newsletter preview stub</h1> }));
 
 function renderAt(path: string) {
   return render(
@@ -76,5 +84,35 @@ describe('catch-all routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'About stub' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Page not found' })).toBeNull();
+  });
+});
+
+describe('draft preview routes', () => {
+  const previews = [
+    ['/admin/posts/p1/preview', 'Post preview stub'],
+    ['/admin/newsletters/n1/preview', 'Newsletter preview stub'],
+  ];
+
+  beforeAll(async () => {
+    await i18n.changeLanguage('en');
+  });
+  afterEach(() => {
+    cleanup();
+    auth.isAuthenticated = true;
+  });
+
+  it.each(previews)('routes %s to the preview page inside the admin layout', async (path, heading) => {
+    renderAt(path);
+
+    expect(await screen.findByRole('heading', { name: heading })).toBeTruthy();
+    expect(screen.getByTestId('admin-layout')).toBeTruthy();
+  });
+
+  it.each(previews)('sends %s to the login page when not authenticated', async (path, heading) => {
+    auth.isAuthenticated = false;
+    renderAt(path);
+
+    expect(await screen.findByRole('heading', { name: 'Login stub' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: heading })).toBeNull();
   });
 });

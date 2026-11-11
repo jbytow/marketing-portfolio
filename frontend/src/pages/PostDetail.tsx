@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ChevronDown, ChevronUp, Target, Lightbulb, TrendingUp, Quote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { AxiosError } from 'axios';
+import type { Post } from '@/types';
 import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
@@ -15,55 +16,17 @@ import HashtagList from '@/components/HashtagList';
 import MediaCarousel from '@/components/MediaCarousel';
 import RichTextContent from '@/components/RichTextContent';
 
-export default function PostDetail() {
-  const { slug } = useParams<{ slug: string }>();
-  const location = useLocation();
-  const { language } = useLanguage();
+interface PostDetailViewProps {
+  post: Post;
+  isContent: boolean;
+  backPath: string;
+  backLabel: string;
+}
+
+// Presentation only, so the admin draft preview renders exactly what the public page renders.
+export function PostDetailView({ post, isContent, backPath, backLabel }: PostDetailViewProps) {
   const { t } = useTranslation();
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
-
-  // PostDetail is routed under /projects/:slug and /content/:slug only; newsletters have their own page
-  const isContent = location.pathname.startsWith('/content');
-  const backPath = isContent ? '/content' : '/projects';
-  const backLabelKey = isContent ? 'post.backToContent' : 'post.backToProjects';
-
-  const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: queryKeys.post(language, slug!),
-    queryFn: () => postsApi.getBySlug(slug!),
-    enabled: !!slug,
-  });
-
-  const post = data?.data;
-
-  if (isPending) {
-    return <LoadingSpinner fullScreen />;
-  }
-
-  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
-  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !post);
-
-  if (isError && !isNotFound) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
-        <button type="button" onClick={() => refetch()} className="btn-secondary">
-          {t('common.retry')}
-        </button>
-      </div>
-    );
-  }
-
-  if (isNotFound || !post) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('post.notFound')}</h1>
-        <Link to={backPath} className="btn-secondary">
-          <ArrowLeft className="mr-2 w-5 h-5" />
-          {t(backLabelKey)}
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -85,7 +48,7 @@ export default function PostDetail() {
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              {t(backLabelKey)}
+              {backLabel}
             </Link>
           </motion.div>
 
@@ -290,5 +253,64 @@ export default function PostDetail() {
         </div>
       </article>
     </>
+  );
+}
+
+export default function PostDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const { language } = useLanguage();
+  const { t } = useTranslation();
+
+  // PostDetail is routed under /projects/:slug and /content/:slug only; newsletters have their own page
+  const isContent = location.pathname.startsWith('/content');
+  const backPath = isContent ? '/content' : '/projects';
+  const backLabelKey = isContent ? 'post.backToContent' : 'post.backToProjects';
+
+  const { data, isPending, isError, error, refetch } = useQuery({
+    queryKey: queryKeys.post(language, slug!),
+    queryFn: () => postsApi.getBySlug(slug!),
+    enabled: !!slug,
+  });
+
+  const post = data?.data;
+
+  if (isPending) {
+    return <LoadingSpinner fullScreen />;
+  }
+
+  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
+  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !post);
+
+  if (isError && !isNotFound) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-secondary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (isNotFound || !post) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('post.notFound')}</h1>
+        <Link to={backPath} className="btn-secondary">
+          <ArrowLeft className="mr-2 w-5 h-5" />
+          {t(backLabelKey)}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <PostDetailView
+      post={post}
+      isContent={isContent}
+      backPath={backPath}
+      backLabel={t(backLabelKey)}
+    />
   );
 }
