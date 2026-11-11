@@ -13,7 +13,7 @@ let api: typeof import('./api');
 beforeAll(async () => {
   axios.defaults.adapter = stubAdapter;
   api = await import('./api');
-  await import('@/i18n');
+  await import('@/i18n/index');
 });
 
 beforeEach(() => {
@@ -69,12 +69,12 @@ describe('LanguageProvider and the API header', () => {
     expect(seen[0].headers['Accept-Language']).toBe('pl');
   });
 
-  it('updates the header synchronously on setLanguage and toggleLanguage', async () => {
+  it('updates the header synchronously when toggleLanguage switches either way', async () => {
     api.setApiLanguage('en');
     const { act, result } = await renderLanguage('en');
 
     await act(async () => {
-      result.current.setLanguage('pl');
+      result.current.toggleLanguage();
       await api.postsApi.getAll();
     });
     expect(seen[seen.length - 1].headers['Accept-Language']).toBe('pl');

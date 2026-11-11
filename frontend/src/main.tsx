@@ -7,7 +7,7 @@ import App from './App';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemedToaster from './components/ThemedToaster';
-import './i18n';
+import './i18n/index';
 import './styles/index.css';
 
 // A tab opened before a deploy may request chunks that were pruned since; reloading fetches the
