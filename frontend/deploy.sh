@@ -144,6 +144,12 @@ prune() {
     | while IFS= read -r f; do rm -f -- "$f"; done
 }
 
+# Deploy and prune share one lock: prune could otherwise delete an old chunk that a running
+# deploy has just re-used (touch) but not yet recorded in its generation manifest.
+mkdir -p "$FRONTEND_DIR/.deploy"
+exec 9>"$FRONTEND_DIR/.deploy/lock"
+flock -n 9 || { echo 'another deploy/prune is running' >&2; exit 1; }
+
 case "${1:-deploy}" in
   deploy) deploy ;;
   prune) prune ;;
