@@ -21,6 +21,8 @@
         <java.version>21</java.version>
         <jjwt.version>0.12.3</jjwt.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <!-- Boot 3.2.1 manages Tomcat 10.1.17 (known CVEs); patch-level override within 10.1.x until the Boot upgrade -->
+        <tomcat.version>10.1.61</tomcat.version>
     </properties>
 
     <dependencies>
