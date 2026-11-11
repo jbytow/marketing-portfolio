@@ -207,6 +207,23 @@ describe('RichTextEditor toolbar', () => {
     expect(screen.getByTitle('Strikethrough').getAttribute('aria-pressed')).toBe('false');
   });
 
+  it.each([
+    ['brand.pl/kampania', 'https://brand.pl/kampania'],
+    ['  example.com  ', 'https://example.com'],
+    ['/about', '/about'],
+    ['mailto:a@b.pl', 'mailto:a@b.pl'],
+  ])('stores the link %j as %j', (entered, stored) => {
+    vi.spyOn(window, 'prompt').mockReturnValue(entered);
+    const editor = renderEditor({ type: 'doc', content: [paragraph('Hello')] });
+    act(() => {
+      editor.commands.selectAll();
+    });
+
+    fireEvent.click(screen.getByTitle('Add Link'));
+
+    expect(editor.getAttributes('link').href).toBe(stored);
+  });
+
   it('keeps the focused toolbar button mounted while the text changes', () => {
     const editor = renderEditor({ type: 'doc', content: [paragraph('Hello')] });
     const bold = screen.getByTitle('Bold (Ctrl+B)');

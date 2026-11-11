@@ -18,7 +18,7 @@ import {
   Quote,
 } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
-import { richTextExtensions } from '@/lib/richTextExtensions';
+import { normalizeLinkHref, richTextExtensions } from '@/lib/richTextExtensions';
 
 function ToolbarButton({
   onAction,
@@ -108,12 +108,12 @@ export default function RichTextEditor({
 
     if (url === null) return;
 
-    if (url === '') {
+    if (url.trim() === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
 
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: normalizeLinkHref(url) }).run();
   }, [editor]);
 
   if (!editor) {

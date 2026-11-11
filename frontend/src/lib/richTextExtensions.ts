@@ -24,3 +24,13 @@ export const richTextExtensions = [
     types: ['heading', 'paragraph'],
   }),
 ];
+
+// A bare host like "example.com" would be stored as a relative URL and resolve under the
+// current page (/projects/example.com), so links without a scheme default to https.
+export function normalizeLinkHref(href: string): string {
+  const trimmed = href.trim();
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || /^[/#]/.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
