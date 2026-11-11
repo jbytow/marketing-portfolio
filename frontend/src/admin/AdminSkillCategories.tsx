@@ -8,6 +8,7 @@ import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import { adminSkillCategoriesApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ConfirmDeleteModal from '@/admin/components/ConfirmDeleteModal';
 
 export default function AdminSkillCategories() {
   const { t } = useTranslation();
@@ -103,33 +104,14 @@ export default function AdminSkillCategories() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="card max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-dark-100 mb-2">
-              {t('common.confirm')} Delete
-            </h3>
-            <p className="text-dark-400 mb-6">
-              Are you sure you want to delete this category? Skills in this category will become uncategorized.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="btn-secondary"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => deleteMutation.mutate(deleteId)}
-                disabled={deleteMutation.isPending}
-                className="btn-primary bg-red-500 hover:bg-red-600 disabled:opacity-50"
-              >
-                {t('common.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteModal
+        open={deleteId !== null}
+        title={`${t('common.confirm')} Delete`}
+        message="Are you sure you want to delete this category? Skills in this category will become uncategorized."
+        isPending={deleteMutation.isPending}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }
