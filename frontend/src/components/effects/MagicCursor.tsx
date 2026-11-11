@@ -20,7 +20,17 @@ export default function MagicCursor() {
 
     document.documentElement.classList.add('magic-cursor-active');
 
+    function hideWand() {
+      if (cursorRef.current) cursorRef.current.style.opacity = '0';
+    }
+
+    // An iframe swallows mousemove, so the wand would freeze next to the native cursor
+    function handleOver(e: MouseEvent) {
+      if (e.target instanceof HTMLIFrameElement) hideWand();
+    }
+
     function handleMove(e: MouseEvent) {
+      if (cursorRef.current) cursorRef.current.style.opacity = '';
       pos.current = { x: e.clientX, y: e.clientY };
       if (frame.current == null) {
         frame.current = requestAnimationFrame(() => {
@@ -46,9 +56,15 @@ export default function MagicCursor() {
     }
 
     window.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseover', handleOver);
+    document.documentElement.addEventListener('mouseleave', hideWand);
+    window.addEventListener('blur', hideWand);
     return () => {
       document.documentElement.classList.remove('magic-cursor-active');
       window.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseover', handleOver);
+      document.documentElement.removeEventListener('mouseleave', hideWand);
+      window.removeEventListener('blur', hideWand);
       if (frame.current != null) cancelAnimationFrame(frame.current);
     };
   }, [theme]);
