@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import { useSiteSettings } from '@/lib/useSiteSettings';
 import { getMediaUrl } from '@/lib/mediaUrl';
+import { renderAboutText } from '@/lib/aboutText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function About() {
@@ -76,7 +77,7 @@ export default function About() {
               <div
                 className="prose prose-invert prose-lg max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: settings?.aboutText || `<p>${t('about.placeholder')}</p>`,
+                  __html: renderAboutText(settings?.aboutText, t('about.placeholder')),
                 }}
               />
 

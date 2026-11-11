@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { lazy, Suspense, ComponentType } from 'react';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,6 +22,7 @@ const PostDetail = page(() => import('./pages/PostDetail'));
 const Content = page(() => import('./pages/Content'));
 const Skills = page(() => import('./pages/Skills'));
 const Contact = page(() => import('./pages/Contact'));
+const NotFound = page(() => import('./pages/NotFound'));
 
 // Admin pages
 const AdminLayout = page(() => import('./admin/AdminLayout'));
@@ -60,6 +61,7 @@ function App() {
           <Route path="content/:slug" element={<PostDetail />} />
           <Route path="skills" element={<Skills />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
 
         {/* Admin Routes: AuthProvider only here, so public visitors never call /admin/auth/me */}
@@ -100,6 +102,7 @@ function App() {
             <Route path="interests/:id/edit" element={<AdminInterestForm />} />
             <Route path="media" element={<AdminMedia />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
         </Route>
         </Routes>

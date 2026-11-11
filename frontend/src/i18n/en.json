@@ -20,6 +20,11 @@
     "showLess": "Less",
     "loadError": "Could not load this content."
   },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you are looking for does not exist or has been moved.",
+    "backHome": "Back to the home page"
+  },
   "nav": {
     "home": "Home",
     "about": "About",
@@ -98,6 +103,7 @@
   "contact": {
     "title": "Get in Touch",
     "subtitle": "Let's work together on your next project",
+    "honeypot": "Leave this field empty",
     "form": {
       "name": "Your Name",
       "email": "Your Email",
@@ -248,7 +254,8 @@
   "media": {
     "videoUnsupported": "Your browser does not support video playback.",
     "youtubeVideo": "YouTube video",
-    "goToSlide": "Go to slide {{n}}"
+    "goToSlide": "Go to slide {{n}}",
+    "playVideo": "Play video"
   },
   "post": {
     "notFound": "Post not found"

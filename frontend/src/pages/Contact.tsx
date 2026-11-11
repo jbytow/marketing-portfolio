@@ -31,6 +31,7 @@ export default function Contact() {
     email: '',
     subject: '',
     message: '',
+    website: '',
   });
 
   const { data: settingsData, isLoading } = useSiteSettings();
@@ -45,7 +46,7 @@ export default function Contact() {
     try {
       await contactApi.submit(formData);
       toast.success(t('contact.form.success'));
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '', website: '' });
     } catch (err) {
       // 400 means the backend rejected the input itself, so retrying unchanged cannot work.
       const isRejected = (err as AxiosError)?.response?.status === 400;
@@ -141,6 +142,23 @@ export default function Contact() {
                     className="input resize-none"
                     maxLength={5000}
                     required
+                  />
+                </div>
+
+                {/* Honeypot: bots fill every field; kept off-screen rather than display:none, which many bots skip */}
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px' }}
+                >
+                  <label htmlFor="website">{t('contact.honeypot')}</label>
+                  <input
+                    type="text"
+                    id="website"
+                    name="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    tabIndex={-1}
+                    autoComplete="off"
                   />
                 </div>
 
