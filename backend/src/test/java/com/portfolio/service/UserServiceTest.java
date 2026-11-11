@@ -17,6 +17,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService")
@@ -69,32 +72,48 @@ class UserServiceTest {
             given(userRepository.findByEmail("ADMIN@test.com")).willReturn(Optional.empty());
             given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            User user = userService.processOAuthUser("ADMIN@test.com", "Admin", null, "google", "sub-1");
+            Optional<User> user = userService.processOAuthUser("ADMIN@test.com", "Admin", null, "google", "sub-1");
 
-            assertThat(user.getIsAdmin()).isTrue();
+            assertThat(user).hasValueSatisfying(saved -> {
+                assertThat(saved.getIsAdmin()).isTrue();
+                assertThat(saved.getEmail()).isEqualTo("ADMIN@test.com");
+                assertThat(saved.getProviderId()).isEqualTo("sub-1");
+            });
         }
 
         @Test
-        @DisplayName("creates an unknown new user as non-admin")
-        void newUnknownUserIsNotAdmin() {
-            given(userRepository.findByEmail("someone@test.com")).willReturn(Optional.empty());
-            given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
+        @DisplayName("a non-allowlisted e-mail is not saved: the repository is not touched at all")
+        void unknownEmailIsNotSaved() {
+            Optional<User> result = userService.processOAuthUser("someone@test.com", "Someone", "https://avatar", "google", "sub-2");
 
-            User user = userService.processOAuthUser("someone@test.com", "Someone", null, "google", "sub-2");
-
-            assertThat(user.getIsAdmin()).isFalse();
+            assertThat(result).isEmpty();
+            verify(userRepository, never()).findByEmail(any());
+            verify(userRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("demotes a former admin removed from the allowlist on the next login")
-        void demotesFormerAdmin() {
-            User formerAdmin = User.builder().email("former@test.com").name("Former").isAdmin(true).build();
-            given(userRepository.findByEmail("former@test.com")).willReturn(Optional.of(formerAdmin));
+        @DisplayName("a former admin removed from the allowlist is rejected without updating the stored row")
+        void delistedAdminIsNotUpdated() {
+            Optional<User> result = userService.processOAuthUser("former@test.com", "Former", null, "google", "sub-3");
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(userRepository);
+        }
+
+        @Test
+        @DisplayName("an allowlisted e-mail that is already stored is updated, not duplicated")
+        void existingAdminIsUpdated() {
+            User stored = User.builder().email("admin@test.com").name("Old").isAdmin(true).build();
+            given(userRepository.findByEmail("admin@test.com")).willReturn(Optional.of(stored));
             given(userRepository.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            User user = userService.processOAuthUser("former@test.com", "Former", null, "google", "sub-3");
+            Optional<User> result = userService.processOAuthUser("admin@test.com", "New Name", "https://avatar", "google", "sub-1");
 
-            assertThat(user.getIsAdmin()).isFalse();
+            assertThat(result).containsSame(stored);
+            verify(userRepository).save(stored);
+            assertThat(stored.getName()).isEqualTo("New Name");
+            assertThat(stored.getAvatarUrl()).isEqualTo("https://avatar");
+            assertThat(stored.getLastLoginAt()).isNotNull();
         }
     }
 }
