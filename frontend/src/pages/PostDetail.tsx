@@ -69,7 +69,7 @@ export default function PostDetail() {
     <>
       <Helmet>
         <title>{post.title} | Portfolio</title>
-        <meta name="description" content={post.excerpt} />
+        <meta name="description" content={post.excerpt ?? undefined} />
       </Helmet>
 
       <article className="py-20">
