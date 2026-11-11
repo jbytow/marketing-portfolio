@@ -31,11 +31,15 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -45,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -147,6 +152,9 @@ class GlobalExceptionHandlerTest {
                 Arguments.of(new HttpMessageNotReadableException("bad json", new MockHttpInputMessage(new byte[0])),
                         HttpStatus.BAD_REQUEST),
                 Arguments.of(new MissingServletRequestParameterException("page", "int"), HttpStatus.BAD_REQUEST),
+                Arguments.of(new MissingServletRequestPartException("file"), HttpStatus.BAD_REQUEST),
+                Arguments.of(new MultipartException("Current request is not a multipart request"),
+                        HttpStatus.BAD_REQUEST),
                 Arguments.of(new HttpRequestMethodNotSupportedException("PUT"), HttpStatus.METHOD_NOT_ALLOWED),
                 Arguments.of(new HttpMediaTypeNotSupportedException("text/plain not supported"),
                         HttpStatus.UNSUPPORTED_MEDIA_TYPE),
@@ -176,6 +184,51 @@ class GlobalExceptionHandlerTest {
         assertThat(event.getLevel()).isEqualTo(Level.WARN);
         assertThat(event.getThrowableProxy()).isNull();
         assertThat(event.getFormattedMessage()).contains("GET").contains("/api/posts").contains("203.0.113.7");
+    }
+
+    @Test
+    @DisplayName("other framework 4xx errors (ErrorResponse) are answered by their own status with one WARN")
+    void otherFrameworkClientErrorsKeepTheirStatus() throws Exception {
+        given(postService.getAllPublishedPosts("en")).willAnswer(invocation -> {
+            throw new MissingRequestHeaderException("X-Required", null);
+        });
+
+        mockMvc.perform(get("/api/posts").header("CF-Connecting-IP", "203.0.113.7"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+
+        assertThat(logEvents.list).hasSize(1);
+        assertThat(logEvents.list.get(0).getLevel()).isEqualTo(Level.WARN);
+        assertThat(logEvents.list.get(0).getThrowableProxy()).isNull();
+    }
+
+    @Test
+    @DisplayName("GET /api/posts with Accept: text/html returns 406 without a body and logs one WARN, no ERROR")
+    void unacceptableMediaTypeReturns406WithOneWarn() throws Exception {
+        mockMvc.perform(get("/api/posts")
+                        .header("Accept", "text/html")
+                        .header("CF-Connecting-IP", "203.0.113.7"))
+                .andExpect(status().isNotAcceptable())
+                .andExpect(content().string(""));
+
+        assertThat(logEvents.list).hasSize(1);
+        ILoggingEvent event = logEvents.list.get(0);
+        assertThat(event.getLevel()).isEqualTo(Level.WARN);
+        assertThat(event.getThrowableProxy()).isNull();
+        assertThat(event.getFormattedMessage()).contains("406").contains("/api/posts").contains("203.0.113.7");
+    }
+
+    @Test
+    @DisplayName("HttpMediaTypeNotAcceptableException thrown by a handler also answers 406 with one WARN")
+    void thrownNotAcceptableReturns406() throws Exception {
+        given(postService.getAllPublishedPosts("en")).willAnswer(invocation -> {
+            throw new HttpMediaTypeNotAcceptableException("no acceptable representation");
+        });
+
+        mockMvc.perform(get("/api/posts"))
+                .andExpect(status().isNotAcceptable());
+
+        assertThat(logEvents.list).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN);
     }
 
     @Test

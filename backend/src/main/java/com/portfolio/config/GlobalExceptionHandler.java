@@ -7,10 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -71,14 +76,16 @@ public class GlobalExceptionHandler {
 
     /**
      * Malformed input on mapped endpoints (bad enum in a path or query, invalid sort property,
-     * unreadable JSON, missing parameter). Scanners trigger these routinely, so one WARN line
+     * unreadable JSON, missing parameter, missing or non-multipart upload). Scanners trigger these routinely, so one WARN line
      * with no stack trace; the message is generic so parser details do not reach the client.
      */
     @ExceptionHandler({
             MethodArgumentTypeMismatchException.class,
             PropertyReferenceException.class,
             HttpMessageNotReadableException.class,
-            MissingServletRequestParameterException.class
+            MissingServletRequestParameterException.class,
+            MissingServletRequestPartException.class,
+            MultipartException.class
     })
     public ResponseEntity<ApiResponse<Void>> handleMalformedRequest(HttpServletRequest request) {
         return clientError(HttpStatus.BAD_REQUEST, "Invalid request", request);
@@ -88,6 +95,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                       HttpServletRequest request) {
         return clientError(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed", request);
+    }
+
+    /**
+     * Crawlers send Accept: text/html to JSON endpoints. No JSON error body can be written for
+     * that Accept (it would fail again), so the answer is body-less.
+     */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Void> handleMediaTypeNotAcceptable(HttpServletRequest request) {
+        logClientError(HttpStatus.NOT_ACCEPTABLE, request);
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -112,8 +129,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleResponseStatus(ResponseStatusException ex,
                                                                   HttpServletRequest request) {
-        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
-        String message = ex.getReason() != null ? ex.getReason() : status.getReasonPhrase();
+        HttpStatusCode status = ex.getStatusCode();
+        String message = ex.getReason() != null ? ex.getReason() : reasonPhrase(status);
         if (status.is5xxServerError()) {
             log.error("{} {} from {} failed with {}", request.getMethod(), request.getRequestURI(),
                     clientAddress(request), status.value(), ex);
@@ -134,16 +151,28 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "not found"));
     }
 
-    private ResponseEntity<ApiResponse<Void>> clientError(HttpStatus status, String message,
+    private ResponseEntity<ApiResponse<Void>> clientError(HttpStatusCode status, String message,
                                                           HttpServletRequest request) {
-        log.warn("{} {}: {} {} from {}", status.value(), status.getReasonPhrase(), request.getMethod(),
-                request.getRequestURI(), clientAddress(request));
+        logClientError(status, request);
         return ResponseEntity.status(status).body(ApiResponse.error(message));
+    }
+
+    private void logClientError(HttpStatusCode status, HttpServletRequest request) {
+        log.warn("{} {}: {} {} from {}", status.value(), reasonPhrase(status), request.getMethod(),
+                request.getRequestURI(), clientAddress(request));
+    }
+
+    private static String reasonPhrase(HttpStatusCode status) {
+        HttpStatus known = HttpStatus.resolve(status.value());
+        return known != null ? known.getReasonPhrase() : "Error";
     }
 
     /**
      * CF-Connecting-IP is set (not appended) by Cloudflare, so a client cannot choose it;
-     * X-Forwarded-For can be pre-filled by the client and is deliberately not read.
+     * the handler itself does not read X-Forwarded-For, which a client can pre-fill. Without
+     * the header the remote address is used; with forward-headers-strategy=framework that
+     * address is derived from X-Forwarded-For, so for direct-to-origin traffic it depends on
+     * the proxy in front overwriting that header.
      */
     private static String clientAddress(HttpServletRequest request) {
         String cloudflareAddress = request.getHeader("CF-Connecting-IP");
@@ -154,7 +183,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex, HttpServletRequest request) {
+        // Spring's own 4xx exceptions without an explicit handler above (missing header, handler
+        // method validation, ...) are client errors, not server faults.
+        if (ex instanceof ErrorResponse errorResponse && errorResponse.getStatusCode().is4xxClientError()) {
+            return clientError(errorResponse.getStatusCode(), reasonPhrase(errorResponse.getStatusCode()), request);
+        }
         log.error("Unexpected error: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("An unexpected error occurred"));
