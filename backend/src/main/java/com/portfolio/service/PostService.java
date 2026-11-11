@@ -289,30 +289,11 @@ public class PostService {
                             int orderB = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
                             return Integer.compare(orderA, orderB);
                         })
-                        .map(media -> mapMediaToDto(media, locale))
+                        .map(media -> MediaDto.from(media, locale))
                         .toList());
             }
         }
 
         return builder.build();
-    }
-
-    private MediaDto mapMediaToDto(Media media, String locale) {
-        return MediaDto.builder()
-                .id(media.getId())
-                .postId(media.getPost() != null ? media.getPost().getId() : null)
-                .type(media.getType())
-                .filename(media.getFilename())
-                .originalName(media.getOriginalName())
-                .mimeType(media.getMimeType())
-                .size(media.getSize())
-                .url(media.getUrl())
-                .altText(media.getAltText(locale))
-                .altTextEn(media.getAltTextEn())
-                .altTextPl(media.getAltTextPl())
-                .displayOrder(media.getDisplayOrder())
-                .videoUrl(media.getVideoUrl())
-                .createdAt(media.getCreatedAt())
-                .build();
     }
 }

@@ -3,6 +3,7 @@ package com.portfolio.service;
 import com.portfolio.dto.MediaDto;
 import com.portfolio.entity.Media;
 import com.portfolio.entity.MediaType;
+import com.portfolio.entity.Post;
 import com.portfolio.repository.MediaRepository;
 import com.portfolio.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -345,6 +346,47 @@ class MediaServiceTest {
             mediaService.deleteMedia(id);
 
             assertThatCode(this::commit).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    @DisplayName("MediaDto.from")
+    class MediaDtoMapping {
+
+        @Test
+        @DisplayName("should resolve alt text per locale and keep both raw alt texts")
+        void shouldResolveAltTextPerLocale() {
+            Media media = imageMedia(UUID.randomUUID());
+            media.setAltTextEn("A rose");
+            media.setAltTextPl("Róża");
+
+            assertThat(MediaDto.from(media, "pl").getAltText()).isEqualTo("Róża");
+            MediaDto en = MediaDto.from(media, "en");
+            assertThat(en.getAltText()).isEqualTo("A rose");
+            assertThat(en.getAltTextEn()).isEqualTo("A rose");
+            assertThat(en.getAltTextPl()).isEqualTo("Róża");
+            assertThat(en.getUrl()).isEqualTo(media.getUrl());
+        }
+
+        @Test
+        @DisplayName("should map a media item without a post to a null postId")
+        void shouldMapUnassignedMedia() {
+            Media media = youTubeMedia(UUID.randomUUID());
+
+            MediaDto dto = MediaDto.from(media, "en");
+
+            assertThat(dto.getPostId()).isNull();
+            assertThat(dto.getVideoUrl()).isEqualTo("https://youtu.be/dQw4w9WgXcQ");
+        }
+
+        @Test
+        @DisplayName("should carry the id of the owning post")
+        void shouldMapPostId() {
+            UUID postId = UUID.randomUUID();
+            Media media = imageMedia(UUID.randomUUID());
+            media.setPost(Post.builder().id(postId).build());
+
+            assertThat(MediaDto.from(media, "en").getPostId()).isEqualTo(postId);
         }
     }
 }
