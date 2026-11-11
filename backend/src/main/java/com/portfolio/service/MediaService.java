@@ -34,6 +34,13 @@ public class MediaService {
     // VARCHAR(255) columns of the media table (V1__initial_schema.sql)
     private static final int MAX_TEXT_COLUMN_LENGTH = 255;
 
+    // Share links from the YouTube apps put v= after other parameters (watch?si=..&v=..) and use
+    // /shorts/ and /live/; [^#]* keeps the match from reaching into the fragment.
+    private static final Pattern YOUTUBE_VIDEO_ID = Pattern.compile(
+            "(?:youtube(?:-nocookie)?\\.com/(?:watch\\?(?:[^#]*&)?v=|embed/|shorts/|live/)|youtu\\.be/)"
+                    + "([a-zA-Z0-9_-]{11})"
+    );
+
     private final MediaRepository mediaRepository;
     private final PostRepository postRepository;
     private final StorageService storageService;
@@ -169,14 +176,7 @@ public class MediaService {
     }
 
     private String extractYouTubeVideoId(String url) {
-        // Handle various YouTube URL formats
-        // https://www.youtube.com/watch?v=VIDEO_ID
-        // https://youtu.be/VIDEO_ID
-        // https://www.youtube.com/embed/VIDEO_ID
-        Pattern pattern = Pattern.compile(
-                "(?:youtube\\.com/(?:watch\\?v=|embed/)|youtu\\.be/)([a-zA-Z0-9_-]{11})"
-        );
-        Matcher matcher = pattern.matcher(url);
+        Matcher matcher = YOUTUBE_VIDEO_ID.matcher(url);
         if (matcher.find()) {
             return matcher.group(1);
         }

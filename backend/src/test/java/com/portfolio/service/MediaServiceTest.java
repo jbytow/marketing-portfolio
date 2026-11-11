@@ -171,6 +171,54 @@ class MediaServiceTest {
     }
 
     @Nested
+    @DisplayName("createYouTubeMedia")
+    class CreateYouTubeMedia {
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "https://www.youtube.com/watch?si=AbC-123_xyz&v=dQw4w9WgXcQ",
+                "https://www.youtube.com/watch?feature=share&t=10&v=dQw4w9WgXcQ&list=PL1",
+                "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+                "https://youtube.com/shorts/dQw4w9WgXcQ?si=abc",
+                "https://www.youtube.com/live/dQw4w9WgXcQ?si=abc",
+                "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                "https://youtu.be/dQw4w9WgXcQ",
+                "https://youtu.be/dQw4w9WgXcQ?t=42",
+                "https://m.youtube.com/watch?v=dQw4w9WgXcQ",
+                "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+                "youtube.com/watch?v=dQw4w9WgXcQ"
+        })
+        @DisplayName("accepts every YouTube link format and stores the embed URL")
+        void extractsVideoId(String videoUrl) {
+            given(mediaRepository.save(any(Media.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+            MediaDto result = mediaService.createYouTubeMedia(null, videoUrl, null, null, "en");
+
+            assertThat(result.getUrl()).isEqualTo("https://www.youtube.com/embed/dQw4w9WgXcQ");
+            assertThat(result.getVideoUrl()).isEqualTo(videoUrl);
+            assertThat(result.getType()).isEqualTo(MediaType.YOUTUBE);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "https://vimeo.com/123456789",
+                "https://www.youtube.com/watch?v=tooShort",
+                "https://www.youtube.com/watch?x=1#v=dQw4w9WgXcQ",
+                "https://www.youtube.com/watch?xv=dQw4w9WgXcQ",
+                "https://www.youtube.com/channel/UCdQw4w9WgXcQ",
+                "not a url"
+        })
+        @DisplayName("rejects links without a YouTube video id")
+        void rejectsNonYouTubeUrls(String videoUrl) {
+            assertThatThrownBy(() -> mediaService.createYouTubeMedia(null, videoUrl, null, null, "en"))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(mediaRepository, never()).save(any());
+        }
+    }
+
+    @Nested
     @DisplayName("deleteMedia")
     class DeleteMedia {
 
