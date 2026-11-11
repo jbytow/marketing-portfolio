@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import FxPortal from './FxPortal';
 import { useSparkTrail } from './sparkLayer';
-import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
-import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
+import fairySprite from '@/assets/effects/fairy-facing-left.webp';
 
 export const TINY_FAIRY_PEEK_TRIGGER_EVENT = 'rose-tiny-fairy-peek-trigger';
 
@@ -24,7 +23,8 @@ function randomInterval() {
 const EDGES = ['left', 'right'] as const;
 
 // Peeking in from the left edge means moving rightward into the screen (facing right), and vice versa.
-const FACING_FOR_EDGE = { left: fairyFacingRight, right: fairyFacingLeft } as const;
+// The sprite faces left; the img is mirrored (not the wrapper, whose transform is animated).
+const MIRROR_FOR_EDGE = { left: true, right: false } as const;
 
 export default function TinyFairyPeek() {
   const { theme } = useTheme();
@@ -77,7 +77,7 @@ export default function TinyFairyPeek() {
         style={{ top: `${peek.top}vh` }}
         aria-hidden="true"
       >
-        <img src={FACING_FOR_EDGE[peek.edge]} alt="" />
+        <img src={fairySprite} alt="" className={MIRROR_FOR_EDGE[peek.edge] ? '-scale-x-100' : undefined} />
       </div>
     </FxPortal>
   );

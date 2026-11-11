@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import FxPortal from './FxPortal';
 import { useSparkTrail } from './sparkLayer';
-import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
-import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
+import fairySprite from '@/assets/effects/fairy-facing-left.webp';
 
 const IDLE_THRESHOLD_MS = 30000;
 const REPEAT_IDLE_MS = 45000;
@@ -113,7 +112,7 @@ export default function IdleFairy() {
         }
         aria-hidden="true"
       >
-        <img src={flight.facing === 'left' ? fairyFacingLeft : fairyFacingRight} alt="" />
+        <img src={fairySprite} alt="" className={flight.facing === 'right' ? '-scale-x-100' : undefined} />
       </div>
     </FxPortal>
   );

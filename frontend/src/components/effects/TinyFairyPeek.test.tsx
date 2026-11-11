@@ -49,4 +49,17 @@ describe('TinyFairyPeek', () => {
     rerender(<TinyFairyPeek />);
     expect(peekCount()).toBe(0);
   });
+
+  it.each([
+    [0, 'left', true],
+    [0.9, 'right', false],
+  ])('mirrors the shared sprite only when peeking from the left edge (random %s -> %s)', (random, edge, mirrored) => {
+    vi.spyOn(Math, 'random').mockReturnValue(random);
+    render(<TinyFairyPeek />);
+    trigger();
+    expect(document.querySelector(`.tiny-fairy-peek-${edge}`)).not.toBeNull();
+    expect(document.querySelector('.tiny-fairy-peek img')!.classList.contains('-scale-x-100')).toBe(mirrored);
+    expect(document.querySelector('.tiny-fairy-peek')!.classList.contains('-scale-x-100')).toBe(false);
+    vi.restoreAllMocks();
+  });
 });

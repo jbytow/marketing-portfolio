@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spawnSpark } from './sparkLayer';
-import wandImg from '@/assets/effects/magic-cursor-wand.png';
+import wandImg from '@/assets/effects/magic-cursor-wand.webp';
 
 const TRAIL_MIN_DISTANCE = 28; // px moved before another trailing spark is allowed
 const TRAIL_MIN_INTERVAL_MS = 60;
@@ -13,12 +13,19 @@ export default function MagicCursor() {
   const pos = useRef({ x: -100, y: -100 });
   const lastSparkPos = useRef({ x: -1000, y: -1000 });
   const lastSparkTime = useRef(0);
+  const [wandLoaded, setWandLoaded] = useState(false);
+  const showWand = useMemo(() => theme === 'rose' && window.matchMedia('(pointer: fine)').matches, [theme]);
+
+  // The system cursor is hidden only once the wand can replace it, otherwise a slow
+  // download leaves the visitor without any pointer.
+  useEffect(() => {
+    if (!showWand || !wandLoaded) return;
+    document.documentElement.classList.add('magic-cursor-active');
+    return () => document.documentElement.classList.remove('magic-cursor-active');
+  }, [showWand, wandLoaded]);
 
   useEffect(() => {
-    if (theme !== 'rose') return;
-    if (!window.matchMedia('(pointer: fine)').matches) return;
-
-    document.documentElement.classList.add('magic-cursor-active');
+    if (!showWand) return;
 
     function hideWand() {
       if (cursorRef.current) cursorRef.current.style.opacity = '0';
@@ -60,20 +67,19 @@ export default function MagicCursor() {
     document.documentElement.addEventListener('mouseleave', hideWand);
     window.addEventListener('blur', hideWand);
     return () => {
-      document.documentElement.classList.remove('magic-cursor-active');
       window.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseover', handleOver);
       document.documentElement.removeEventListener('mouseleave', hideWand);
       window.removeEventListener('blur', hideWand);
       if (frame.current != null) cancelAnimationFrame(frame.current);
     };
-  }, [theme]);
+  }, [showWand]);
 
-  if (theme !== 'rose') return null;
+  if (!showWand) return null;
 
   return (
     <div ref={cursorRef} className="magic-cursor" aria-hidden="true">
-      <img src={wandImg} alt="" />
+      <img src={wandImg} alt="" onLoad={() => setWandLoaded(true)} />
     </div>
   );
 }

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import MagicCursor from './MagicCursor';
 
 vi.mock('@/contexts/ThemeContext', () => ({ useTheme: () => ({ theme: 'rose' }) }));
 
-function mockFinePointer() {
+function mockPointer(fine: boolean) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: query.includes('pointer: fine'),
+    matches: query.includes('pointer: fine') && fine,
     media: query,
   })) as unknown as typeof window.matchMedia;
 }
@@ -16,7 +16,7 @@ const moveMouse = () => window.dispatchEvent(new MouseEvent('mousemove', { clien
 
 describe('MagicCursor wand visibility', () => {
   beforeEach(() => {
-    mockFinePointer();
+    mockPointer(true);
   });
   afterEach(() => {
     cleanup();
@@ -79,5 +79,22 @@ describe('MagicCursor wand visibility', () => {
     unmount();
     own.forEach((entry) => expect(removed).toContainEqual(entry));
     vi.restoreAllMocks();
+  });
+
+  it('does not render the wand, or load its image, without a fine pointer', () => {
+    mockPointer(false);
+    render(<MagicCursor />);
+    expect(document.querySelector('.magic-cursor')).toBeNull();
+    expect(document.querySelector('.magic-cursor img')).toBeNull();
+    expect(document.documentElement.classList.contains('magic-cursor-active')).toBe(false);
+  });
+
+  it('hides the system cursor only after the wand image has loaded', () => {
+    const { unmount } = render(<MagicCursor />);
+    expect(document.documentElement.classList.contains('magic-cursor-active')).toBe(false);
+    fireEvent.load(document.querySelector('.magic-cursor img')!);
+    expect(document.documentElement.classList.contains('magic-cursor-active')).toBe(true);
+    unmount();
+    expect(document.documentElement.classList.contains('magic-cursor-active')).toBe(false);
   });
 });
