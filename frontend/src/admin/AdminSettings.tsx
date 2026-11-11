@@ -9,6 +9,7 @@ import { SiteSettingsUpdateRequest, StatItemInput } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 
 export default function AdminSettings() {
   const { t } = useTranslation();
@@ -39,6 +40,10 @@ export default function AdminSettings() {
     roseForceMotion: true,
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const { data, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.settings(),
     queryFn: () => adminSettingsApi.get(),
@@ -47,7 +52,7 @@ export default function AdminSettings() {
   useEffect(() => {
     if (data?.data) {
       const settings = data.data;
-      setFormData({
+      const seeded: SiteSettingsUpdateRequest = {
         heroTitleEn: settings.heroTitleEn || '',
         heroTitlePl: settings.heroTitlePl || '',
         heroSubtitleEn: settings.heroSubtitleEn || '',
@@ -75,13 +80,16 @@ export default function AdminSettings() {
           labelPl: s.labelPl,
         })) || [],
         roseForceMotion: settings.roseForceMotion || false,
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
     }
   }, [data]);
 
   const updateMutation = useMutation({
     mutationFn: (data: SiteSettingsUpdateRequest) => adminSettingsApi.update(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings() });
       // Invalidate all public settings queries (matches all languages)
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.settings() });

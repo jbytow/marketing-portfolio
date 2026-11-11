@@ -10,6 +10,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import { NewsletterCreateRequest } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 
 export default function AdminNewsletterForm() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,10 @@ export default function AdminNewsletterForm() {
     published: false,
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const [uploading, setUploading] = useState<1 | 2 | 3 | null>(null);
 
   const { data: newsletterData, isLoading, isError: loadFailed, refetch } = useQuery({
@@ -40,7 +45,7 @@ export default function AdminNewsletterForm() {
   useEffect(() => {
     if (newsletterData?.data) {
       const n = newsletterData.data;
-      setFormData({
+      const seeded: NewsletterCreateRequest = {
         titleEn: n.titleEn,
         titlePl: n.titlePl,
         contentEn: n.contentEn || '',
@@ -49,13 +54,16 @@ export default function AdminNewsletterForm() {
         image2: n.image2 || '',
         image3: n.image3 || '',
         published: n.published,
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
     }
   }, [newsletterData]);
 
   const createMutation = useMutation({
     mutationFn: (data: NewsletterCreateRequest) => adminNewslettersApi.create(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
@@ -70,6 +78,7 @@ export default function AdminNewsletterForm() {
   const updateMutation = useMutation({
     mutationFn: (data: NewsletterCreateRequest) => adminNewslettersApi.update(id!, data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
@@ -139,7 +148,7 @@ export default function AdminNewsletterForm() {
     <div>
       <div className="flex items-center gap-4 mb-8">
         <button
-          onClick={() => navigate('/admin/newsletters')}
+          onClick={() => confirmLeave() && navigate('/admin/newsletters')}
           className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -280,7 +289,7 @@ export default function AdminNewsletterForm() {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/newsletters')}
+            onClick={() => confirmLeave() && navigate('/admin/newsletters')}
             className="btn-secondary"
           >
             {t('common.cancel')}

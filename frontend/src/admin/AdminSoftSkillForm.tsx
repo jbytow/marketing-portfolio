@@ -9,6 +9,7 @@ import { adminSoftSkillsApi, adminSkillCategoriesApi } from '@/services/api';
 import { SoftSkillCreateRequest } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 
 export default function AdminSoftSkillForm() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,10 @@ export default function AdminSoftSkillForm() {
     categoryId: '',
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const { data: skillData, isLoading: skillLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.softSkill(id!),
     queryFn: () => adminSoftSkillsApi.getById(id!),
@@ -44,7 +49,7 @@ export default function AdminSoftSkillForm() {
   useEffect(() => {
     if (skillData?.data) {
       const skill = skillData.data;
-      setFormData({
+      const seeded: SoftSkillCreateRequest = {
         nameEn: skill.nameEn,
         namePl: skill.namePl,
         descriptionEn: skill.descriptionEn || '',
@@ -53,13 +58,16 @@ export default function AdminSoftSkillForm() {
         professionalUsagePl: skill.professionalUsagePl || '',
         icon: skill.icon || '',
         categoryId: skill.categoryId || '',
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
     }
   }, [skillData]);
 
   const createMutation = useMutation({
     mutationFn: (data: SoftSkillCreateRequest) => adminSoftSkillsApi.create(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkills() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Soft skill created successfully');
@@ -73,6 +81,7 @@ export default function AdminSoftSkillForm() {
   const updateMutation = useMutation({
     mutationFn: (data: SoftSkillCreateRequest) => adminSoftSkillsApi.update(id!, data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkills() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkill(id!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
@@ -128,7 +137,7 @@ export default function AdminSoftSkillForm() {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => navigate('/admin/soft-skills')}
+          onClick={() => confirmLeave() && navigate('/admin/soft-skills')}
           className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -266,7 +275,7 @@ export default function AdminSoftSkillForm() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/soft-skills')}
+            onClick={() => confirmLeave() && navigate('/admin/soft-skills')}
             className="btn-secondary"
           >
             {t('common.cancel')}
