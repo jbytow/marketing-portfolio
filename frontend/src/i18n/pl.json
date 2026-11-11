@@ -1,30 +1,24 @@
 {
   "common": {
-    "loading": "Ładowanie...",
-    "error": "Wystąpił błąd",
     "retry": "Spróbuj ponownie",
     "save": "Zapisz",
     "cancel": "Anuluj",
     "delete": "Usuń",
-    "edit": "Edytuj",
-    "create": "Utwórz",
     "search": "Szukaj",
-    "filter": "Filtruj",
     "all": "Wszystkie",
     "published": "Opublikowane",
     "draft": "Szkic",
     "actions": "Akcje",
     "confirm": "Potwierdź",
-    "back": "Wstecz",
     "backTo": "Powrót do",
     "next": "Dalej",
     "previous": "Poprzedni",
     "viewMore": "Zobacz więcej",
     "readMore": "Czytaj więcej",
-    "learnMore": "Dowiedz się więcej",
     "contactMe": "Skontaktuj się",
-    "downloadCV": "Pobierz CV",
-    "optional": "opcjonalne"
+    "optional": "opcjonalne",
+    "showLess": "Mniej",
+    "loadError": "Nie udało się wczytać treści."
   },
   "nav": {
     "home": "Strona główna",
@@ -32,11 +26,9 @@
     "experience": "Doświadczenie",
     "projects": "Projekty",
     "newsletter": "Newsletter",
-    "caseStudies": "Case Studies",
     "content": "Treści",
     "skills": "Umiejętności",
-    "contact": "Kontakt",
-    "admin": "Admin"
+    "contact": "Kontakt"
   },
   "home": {
     "hero": {
@@ -47,12 +39,6 @@
     "featured": {
       "title": "Wyróżnione prace",
       "subtitle": "Wybór moich ostatnich projektów i kampanii"
-    },
-    "stats": {
-      "campaigns": "Kampanii",
-      "clients": "Zadowolonych klientów",
-      "reach": "Zasięg",
-      "experience": "Lat doświadczenia"
     },
     "cta": {
       "title": "Gotowy, aby wynieść swoją markę na wyższy poziom?",
@@ -65,17 +51,24 @@
     "interests": {
       "title": "Moje zainteresowania",
       "subtitle": "Czym pasjonuję się poza pracą"
-    }
+    },
+    "profileImageAlt": "Zdjęcie profilowe",
+    "placeholder": "Treść tej sekcji pojawi się wkrótce..."
   },
   "experience": {
     "title": "Doświadczenie",
     "subtitle": "Moja ścieżka zawodowa",
-    "present": "Obecnie"
+    "present": "Obecnie",
+    "empty": "Nie ma jeszcze wpisów o doświadczeniu.",
+    "monthsShort": "mies."
   },
   "projects": {
     "title": "Projekty i kampanie",
     "subtitle": "Poznaj moje kampanie marketingowe i projekty",
-    "viewProject": "Zobacz projekt"
+    "viewProject": "Zobacz projekt",
+    "empty": "Nie ma jeszcze projektów.",
+    "emptyHashtag": "Brak projektów z hashtagiem #{{hashtag}}",
+    "filteredBy": "Filtr:"
   },
   "caseStudy": {
     "title": "Szczegóły Case Study",
@@ -87,11 +80,16 @@
   "newsletter": {
     "title": "Newsletter",
     "subtitle": "Bądź na bieżąco z moimi najnowszymi treściami",
-    "viewNewsletter": "Czytaj więcej"
+    "viewNewsletter": "Czytaj więcej",
+    "notFound": "Nie znaleziono newslettera",
+    "empty": "Nie ma jeszcze newsletterów.",
+    "noImage": "Brak obrazu",
+    "enlargeImage": "Powiększ obraz"
   },
   "content": {
     "title": "Treści i Copywriting",
-    "subtitle": "Teksty, które konwertują i angażują"
+    "subtitle": "Teksty, które konwertują i angażują",
+    "empty": "Nie ma jeszcze próbek treści."
   },
   "skills": {
     "title": "Umiejętności",
@@ -108,13 +106,15 @@
       "send": "Wyślij wiadomość",
       "sending": "Wysyłanie...",
       "success": "Wiadomość wysłana pomyślnie!",
-      "error": "Nie udało się wysłać wiadomości. Spróbuj ponownie."
+      "error": "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+      "invalid": "Niektóre pola są za długie lub niepoprawne. Sprawdź formularz."
     },
     "info": {
       "email": "Email",
       "phone": "Telefon",
       "location": "Lokalizacja",
-      "social": "Obserwuj mnie"
+      "social": "Obserwuj mnie",
+      "title": "Dane kontaktowe"
     }
   },
   "categories": {
@@ -204,12 +204,11 @@
       "seo": "Ustawienia SEO"
     },
     "auth": {
-      "login": "Zaloguj się",
       "logout": "Wyloguj się",
       "loginWith": "Zaloguj przez",
       "google": "Google",
-      "github": "GitHub",
-      "notAuthorized": "Nie masz uprawnień do panelu administracyjnego"
+      "notAuthorized": "Nie masz uprawnień do panelu administracyjnego",
+      "oauthFailed": "Logowanie przez Google nie powiodło się lub zostało przerwane. Spróbuj ponownie."
     }
   },
   "footer": {
@@ -220,9 +219,38 @@
     "tagline": "Tworzenie skutecznych kampanii marketingowych i budowanie historii marki, które rezonują."
   },
   "rose": {
-    "enchantButton": "✨ Zaczaruj",
-    "prettierButton": "🌈 Upiększ to",
+    "enchantButton": "Zaczaruj",
+    "prettierButton": "Upiększ to",
     "prettierToast": "Dużo lepiej.",
-    "grandpaToast": "I ja też kiedyś będę dziadkiem"
+    "grandpaToast": "I ja też kiedyś będę dziadkiem",
+    "logoHint": "✨ psst… spróbuj szybko klikać",
+    "kpiBlessing": "✨ Liczby zostały pobłogosławione ✨",
+    "midnightBanner": "🌙 Wykryto nocną magię marketingu"
+  },
+  "errors": {
+    "boundary": {
+      "title": "Coś poszło nie tak",
+      "message": "Wystąpił nieoczekiwany błąd. Odśwież stronę.",
+      "reload": "Odśwież stronę"
+    }
+  },
+  "a11y": {
+    "skipToContent": "Przejdź do treści",
+    "close": "Zamknij",
+    "toggleLanguage": "Zmień język",
+    "menu": "Menu"
+  },
+  "theme": {
+    "light": "Jasny motyw",
+    "dark": "Ciemny motyw",
+    "rose": "Różany motyw"
+  },
+  "media": {
+    "videoUnsupported": "Twoja przeglądarka nie obsługuje odtwarzania wideo.",
+    "youtubeVideo": "Film w serwisie YouTube",
+    "goToSlide": "Przejdź do slajdu {{n}}"
+  },
+  "post": {
+    "notFound": "Nie znaleziono wpisu"
   }
 }
