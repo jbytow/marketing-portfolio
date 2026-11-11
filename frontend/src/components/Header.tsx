@@ -25,10 +25,10 @@ const THEME_OPTIONS: Theme[] = [
   'dark',
 ];
 
-const THEME_META: Record<Theme, { emoji: string; label: string }> = {
-  light: { emoji: '☀️', label: 'Light' },
-  dark: { emoji: '👴', label: 'Dark' },
-  rose: { emoji: '🌸', label: 'Rose' },
+const THEME_EMOJI: Record<Theme, string> = {
+  light: '☀️',
+  dark: '👴',
+  rose: '🌸',
 };
 
 const navItems = [
@@ -53,7 +53,7 @@ export default function Header() {
   function handleLogoClick() {
     if (theme !== 'rose') return;
     const now = Date.now();
-    logoClicks.current = [...logoClicks.current, now].filter((t) => now - t < LOGO_CLICK_WINDOW_MS);
+    logoClicks.current = [...logoClicks.current, now].filter((clickedAt) => now - clickedAt < LOGO_CLICK_WINDOW_MS);
     if (logoClicks.current.length >= explosionThreshold.current) {
       window.dispatchEvent(new Event(ROSE_EXPLOSION_EVENT));
       logoClicks.current = [];
@@ -91,7 +91,7 @@ export default function Header() {
             {settings?.siteName || 'Portfolio'}
             {theme === 'rose' && (
               <span className="rose-logo-hint" aria-hidden="true">
-                ✨ psst… try clicking fast
+                {t('rose.logoHint')}
               </span>
             )}
           </Link>
@@ -120,20 +120,21 @@ export default function Header() {
           <div className="flex items-center space-x-2">
             {/* Theme Switcher */}
             <div className="flex items-center bg-dark-800 border border-dark-700 rounded-xl p-0.5 gap-0.5">
-              {THEME_OPTIONS.map((t) => (
+              {THEME_OPTIONS.map((option) => (
                 <button
-                  key={t}
-                  onClick={() => handleThemeClick(t)}
-                  aria-label={`${t} theme`}
-                  title={THEME_META[t].label}
+                  key={option}
+                  onClick={() => handleThemeClick(option)}
+                  aria-label={t(`theme.${option}`)}
+                  aria-pressed={theme === option}
+                  title={t(`theme.${option}`)}
                   className={clsx(
                     'px-2 py-1 rounded-lg text-base leading-none transition-all duration-200 select-none',
-                    theme === t
+                    theme === option
                       ? 'bg-dark-700 shadow-sm'
                       : 'opacity-40 hover:opacity-75 hover:bg-dark-700/40'
                   )}
                 >
-                  <span className="theme-switch-emoji">{THEME_META[t].emoji}</span>
+                  <span className="theme-switch-emoji">{THEME_EMOJI[option]}</span>
                 </button>
               ))}
             </div>
@@ -142,7 +143,7 @@ export default function Header() {
             <button
               onClick={toggleLanguage}
               className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-dark-300 hover:text-dark-100 rounded-lg hover:bg-dark-800 transition-colors"
-              aria-label="Toggle language"
+              aria-label={t('a11y.toggleLanguage')}
             >
               <Globe className="w-4 h-4" />
               <span className="uppercase">{language}</span>
@@ -152,7 +153,8 @@ export default function Header() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden p-2 text-dark-300 hover:text-dark-100 rounded-lg hover:bg-dark-800 transition-colors"
-              aria-label="Toggle menu"
+              aria-label={t('a11y.menu')}
+              aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>

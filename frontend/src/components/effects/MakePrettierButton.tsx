@@ -26,9 +26,8 @@ export default function MakePrettierButton() {
     <button
       onClick={handleClick}
       className="fixed bottom-5 right-5 z-40 px-3 py-2 rounded-full text-sm font-medium shadow-lg select-none prettier-button"
-      aria-label="Make it prettier"
-      title={t('rose.prettierButton')}
     >
+      <span aria-hidden="true">🌈 </span>
       {t('rose.prettierButton')}
     </button>
   );

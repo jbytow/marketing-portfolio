@@ -20,9 +20,8 @@ export default function EnchantButton() {
     <button
       onClick={handleClick}
       className="fixed bottom-5 left-5 z-40 px-3 py-2 rounded-full text-sm font-medium shadow-lg select-none enchant-button"
-      aria-label="Enchant"
-      title={t('rose.enchantButton')}
     >
+      <span aria-hidden="true">✨ </span>
       {t('rose.enchantButton')}
     </button>
   );

@@ -1,30 +1,24 @@
 {
   "common": {
-    "loading": "Loading...",
-    "error": "An error occurred",
     "retry": "Retry",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
     "search": "Search",
-    "filter": "Filter",
     "all": "All",
     "published": "Published",
     "draft": "Draft",
     "actions": "Actions",
     "confirm": "Confirm",
-    "back": "Back",
     "backTo": "Back to",
     "next": "Next",
     "previous": "Previous",
     "viewMore": "View More",
     "readMore": "Read More",
-    "learnMore": "Learn More",
     "contactMe": "Contact Me",
-    "downloadCV": "Download CV",
-    "optional": "optional"
+    "optional": "optional",
+    "showLess": "Less",
+    "loadError": "Could not load this content."
   },
   "nav": {
     "home": "Home",
@@ -32,11 +26,9 @@
     "experience": "Experience",
     "projects": "Projects",
     "newsletter": "Newsletter",
-    "caseStudies": "Case Studies",
     "content": "Content",
     "skills": "Skills",
-    "contact": "Contact",
-    "admin": "Admin"
+    "contact": "Contact"
   },
   "home": {
     "hero": {
@@ -47,12 +39,6 @@
     "featured": {
       "title": "Featured Work",
       "subtitle": "A selection of my recent projects and campaigns"
-    },
-    "stats": {
-      "campaigns": "Campaigns",
-      "clients": "Happy Clients",
-      "reach": "Audience Reach",
-      "experience": "Years Experience"
     },
     "cta": {
       "title": "Ready to elevate your brand?",
@@ -65,17 +51,24 @@
     "interests": {
       "title": "My Interests",
       "subtitle": "What I'm passionate about outside of work"
-    }
+    },
+    "profileImageAlt": "Profile photo",
+    "placeholder": "About content coming soon..."
   },
   "experience": {
     "title": "Experience",
     "subtitle": "My professional journey",
-    "present": "Present"
+    "present": "Present",
+    "empty": "No experience entries yet.",
+    "monthsShort": "mo."
   },
   "projects": {
     "title": "Projects & Campaigns",
     "subtitle": "Explore my marketing campaigns and projects",
-    "viewProject": "View Project"
+    "viewProject": "View Project",
+    "empty": "No projects yet.",
+    "emptyHashtag": "No projects found with hashtag #{{hashtag}}",
+    "filteredBy": "Filtered by:"
   },
   "caseStudy": {
     "title": "Case Study Details",
@@ -87,11 +80,16 @@
   "newsletter": {
     "title": "Newsletter",
     "subtitle": "Stay updated with my latest insights",
-    "viewNewsletter": "Read More"
+    "viewNewsletter": "Read More",
+    "notFound": "Newsletter not found",
+    "empty": "No newsletters yet.",
+    "noImage": "No image",
+    "enlargeImage": "Enlarge image"
   },
   "content": {
     "title": "Content & Copy",
-    "subtitle": "Writing that converts and engages"
+    "subtitle": "Writing that converts and engages",
+    "empty": "No content samples yet."
   },
   "skills": {
     "title": "Skills",
@@ -108,13 +106,15 @@
       "send": "Send Message",
       "sending": "Sending...",
       "success": "Message sent successfully!",
-      "error": "Failed to send message. Please try again."
+      "error": "Failed to send message. Please try again.",
+      "invalid": "Some fields are too long or invalid. Please check the form."
     },
     "info": {
       "email": "Email",
       "phone": "Phone",
       "location": "Location",
-      "social": "Follow Me"
+      "social": "Follow Me",
+      "title": "Contact Information"
     }
   },
   "categories": {
@@ -204,12 +204,11 @@
       "seo": "SEO Settings"
     },
     "auth": {
-      "login": "Login",
       "logout": "Logout",
       "loginWith": "Login with",
       "google": "Google",
-      "github": "GitHub",
-      "notAuthorized": "You are not authorized to access the admin panel"
+      "notAuthorized": "You are not authorized to access the admin panel",
+      "oauthFailed": "Google sign-in failed or was cancelled. Please try again."
     }
   },
   "footer": {
@@ -220,9 +219,38 @@
     "tagline": "Creating impactful marketing campaigns and building brand stories that resonate."
   },
   "rose": {
-    "enchantButton": "✨ Enchant",
-    "prettierButton": "🌈 Make it prettier",
+    "enchantButton": "Enchant",
+    "prettierButton": "Make it prettier",
     "prettierToast": "Much better.",
-    "grandpaToast": "And I'll be a grandpa myself one day"
+    "grandpaToast": "And I'll be a grandpa myself one day",
+    "logoHint": "✨ psst… try clicking fast",
+    "kpiBlessing": "✨ The numbers have been blessed ✨",
+    "midnightBanner": "🌙 Late night marketing magic detected"
+  },
+  "errors": {
+    "boundary": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred. Please reload the page.",
+      "reload": "Reload page"
+    }
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "close": "Close",
+    "toggleLanguage": "Change language",
+    "menu": "Menu"
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "rose": "Rose theme"
+  },
+  "media": {
+    "videoUnsupported": "Your browser does not support video playback.",
+    "youtubeVideo": "YouTube video",
+    "goToSlide": "Go to slide {{n}}"
+  },
+  "post": {
+    "notFound": "Post not found"
   }
 }
