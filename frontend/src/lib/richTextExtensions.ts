@@ -29,7 +29,8 @@ export const richTextExtensions = [
 // current page (/projects/example.com), so links without a scheme default to https.
 export function normalizeLinkHref(href: string): string {
   const trimmed = href.trim();
-  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || /^[/#]/.test(trimmed)) {
+  // "host:port" looks like "scheme:" but is not one, so a scheme needs "//" unless it is mailto/tel/sms
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || /^(mailto|tel|sms):/i.test(trimmed) || /^[/#]/.test(trimmed)) {
     return trimmed;
   }
   return `https://${trimmed}`;

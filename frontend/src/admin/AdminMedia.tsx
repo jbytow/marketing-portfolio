@@ -9,6 +9,7 @@ import { clsx } from 'clsx';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { invalidateMediaConsumers } from '@/lib/mediaInvalidation';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -51,6 +52,7 @@ export default function AdminMedia() {
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
+      invalidateMediaConsumers(queryClient);
       // Deleting the only item of the last page would otherwise leave an empty page
       if (page > 0 && media.length === 1) setPage(page - 1);
       setSelectedMedia(null);

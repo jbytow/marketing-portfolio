@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/i18n/index';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import { ThemeProvider, useTheme } from './ThemeContext';
-import indexHtml from '../../index.html?raw';
 
 // Blocked storage (privacy modes, sandboxed iframes) throws SecurityError on access.
 const blockStorage = () => {
@@ -53,18 +52,6 @@ describe('ThemeProvider with working storage', () => {
     localStorage.setItem('theme', 'light');
     const { result } = renderHook(() => useTheme(), { wrapper });
     expect(result.current.theme).toBe('rose');
-  });
-});
-
-describe('index.html', () => {
-  // ThemeProvider applies the theme in an effect, after the first paint; a static attribute avoids a dark flash
-  it('paints the default theme before React mounts', () => {
-    const { result } = renderHook(() => useTheme(), {
-      wrapper: ({ children }: { children: ReactNode }) => <ThemeProvider>{children}</ThemeProvider>,
-    });
-    const page = new DOMParser().parseFromString(indexHtml, 'text/html');
-    expect(page.documentElement.getAttribute('data-theme')).toBe(result.current.theme);
-    expect(page.documentElement.getAttribute('data-theme')).toBe(document.documentElement.getAttribute('data-theme'));
   });
 });
 

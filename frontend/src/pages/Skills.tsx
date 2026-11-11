@@ -43,14 +43,14 @@ export default function Skills() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.skillCategoriesWithSkills(language),
     queryFn: () => skillCategoriesApi.getAllWithSkills(),
   });
 
   const categories: SkillCategoryWithSkills[] = data?.data || [];
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -77,6 +77,15 @@ export default function Skills() {
             <h1 className="section-heading">{t('skills.title')}</h1>
             <p className="section-subheading mx-auto">{t('skills.subtitle')}</p>
           </motion.div>
+
+          {isError && !data && (
+            <div className="text-center py-12">
+              <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+              <button type="button" onClick={() => refetch()} className="btn-secondary">
+                {t('common.retry')}
+              </button>
+            </div>
+          )}
 
           {categories.filter(cat => cat.skills.length > 0).map((category, categoryIndex) => (
             <motion.div

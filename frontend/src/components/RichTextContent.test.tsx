@@ -210,6 +210,8 @@ describe('RichTextEditor toolbar', () => {
   it.each([
     ['brand.pl/kampania', 'https://brand.pl/kampania'],
     ['  example.com  ', 'https://example.com'],
+    ['example.com:8080/x', 'https://example.com:8080/x'],
+    ['localhost:5173', 'https://localhost:5173'],
     ['/about', '/about'],
     ['mailto:a@b.pl', 'mailto:a@b.pl'],
   ])('stores the link %j as %j', (entered, stored) => {

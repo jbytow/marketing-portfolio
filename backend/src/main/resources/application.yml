@@ -20,8 +20,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: ${MAX_FILE_SIZE:50MB}
-      max-request-size: ${MAX_FILE_SIZE:50MB}
+      max-file-size: 50MB
+      max-request-size: 50MB
 
   lifecycle:
     timeout-per-shutdown-phase: 8s
