@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import FxPortal from './FxPortal';
-import { spawnSpark } from './sparkLayer';
+import { useSparkTrail } from './sparkLayer';
 import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
 import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
 
@@ -10,7 +10,12 @@ export const TINY_FAIRY_PEEK_TRIGGER_EVENT = 'rose-tiny-fairy-peek-trigger';
 const MIN_INTERVAL_MS = 30 * 1000;
 const MAX_INTERVAL_MS = 120 * 1000;
 const PEEK_DURATION_MS = 2200;
-const SPARK_INTERVAL_MS = 110;
+const SPARK_TRAIL = {
+  spread: 26,
+  rise: { min: 12, range: 16 },
+  size: { min: 0.55, range: 0.25 },
+  duration: 0.55,
+};
 
 function randomInterval() {
   return MIN_INTERVAL_MS + Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS);
@@ -28,7 +33,6 @@ export default function TinyFairyPeek() {
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const counter = useRef(0);
   const fairyElRef = useRef<HTMLDivElement | null>(null);
-  const sparkleFrame = useRef<number>();
 
   useEffect(() => {
     if (theme !== 'rose') return;
@@ -60,32 +64,7 @@ export default function TinyFairyPeek() {
     };
   }, [theme]);
 
-  useEffect(() => {
-    if (!peek) return;
-
-    let lastSparkTime = 0;
-
-    function tick() {
-      const el = fairyElRef.current;
-      const now = performance.now();
-      if (el && now - lastSparkTime > SPARK_INTERVAL_MS) {
-        lastSparkTime = now;
-        const rect = el.getBoundingClientRect();
-        spawnSpark(rect.left + rect.width / 2, rect.top + rect.height / 2, {
-          dx: (Math.random() - 0.5) * 26,
-          dy: 12 + Math.random() * 16,
-          fontSize: 0.55 + Math.random() * 0.25,
-          duration: 0.55,
-        });
-      }
-      sparkleFrame.current = requestAnimationFrame(tick);
-    }
-
-    sparkleFrame.current = requestAnimationFrame(tick);
-    return () => {
-      if (sparkleFrame.current != null) cancelAnimationFrame(sparkleFrame.current);
-    };
-  }, [peek]);
+  useSparkTrail(fairyElRef, peek != null, SPARK_TRAIL);
 
   if (!peek) return null;
 
