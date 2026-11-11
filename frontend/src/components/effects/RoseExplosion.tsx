@@ -15,11 +15,12 @@ interface Petal {
 
 const EMOJIS = ['🌸', '🌹', '🥀', '❀'];
 const PETAL_COUNT = 55;
-const LIFETIME_MS = 2600;
+const LIFETIME_MARGIN_MS = 100;
 
 export default function RoseExplosion() {
   const [petals, setPetals] = useState<Petal[]>([]);
   const counter = useRef(0);
+  const clearTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     function handleExplosion() {
@@ -35,11 +36,17 @@ export default function RoseExplosion() {
         rot: 180 + Math.random() * 540,
       }));
       setPetals(newPetals);
-      setTimeout(() => setPetals([]), LIFETIME_MS);
+      // Petals must outlive their own delay + duration, otherwise they vanish mid-fall
+      const lifetimeMs = Math.max(...newPetals.map((p) => p.delay + p.duration)) * 1000 + LIFETIME_MARGIN_MS;
+      clearTimeout(clearTimer.current);
+      clearTimer.current = setTimeout(() => setPetals([]), lifetimeMs);
     }
 
     window.addEventListener(ROSE_EXPLOSION_EVENT, handleExplosion);
-    return () => window.removeEventListener(ROSE_EXPLOSION_EVENT, handleExplosion);
+    return () => {
+      window.removeEventListener(ROSE_EXPLOSION_EVENT, handleExplosion);
+      clearTimeout(clearTimer.current);
+    };
   }, []);
 
   if (petals.length === 0) return null;
