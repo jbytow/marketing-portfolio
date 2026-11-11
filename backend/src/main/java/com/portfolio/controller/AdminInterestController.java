@@ -52,18 +52,18 @@ public class AdminInterestController {
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         InterestDto interest = interestService.update(id, request, LocaleUtils.extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(interest, "Interest updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(interest));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         interestService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Interest deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/reorder")
     public ResponseEntity<ApiResponse<Void>> reorder(@Valid @RequestBody ReorderRequest request) {
         interestService.reorder(request);
-        return ResponseEntity.ok(ApiResponse.success(null, "Interests reordered successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

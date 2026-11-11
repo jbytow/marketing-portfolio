@@ -31,6 +31,6 @@ public class AdminSettingsController {
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         SiteSettingsDto settings = siteSettingsService.updateSettings(request, LocaleUtils.extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(settings, "Settings updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(settings));
     }
 }
