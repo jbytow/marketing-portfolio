@@ -96,6 +96,18 @@ class MediaControllerTest {
         }
 
         @Test
+        @DisplayName("legacy .jfif file is served as image/jpeg")
+        void servesLegacyJfifAsJpeg() throws Exception {
+            String legacyName = "3f2b6c1e-8a4d-4f7e-9b1a-2c3d4e5f6a7b.jfif";
+            given(storageService.loadAsResource("images/" + legacyName))
+                    .willReturn(new ByteArrayResource(new byte[]{1}));
+
+            mockMvc.perform(get("/api/media/images/" + legacyName))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Content-Type", "image/jpeg"));
+        }
+
+        @Test
         @DisplayName("UUID-named file is cacheable for a year after the security headers are applied")
         void servesFileAsImmutable() throws Exception {
             given(storageService.loadAsResource("images/" + IMAGE_NAME))

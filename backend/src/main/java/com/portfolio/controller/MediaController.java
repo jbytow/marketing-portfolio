@@ -45,7 +45,7 @@ public class MediaController {
         String fullPath = subDir + "/" + filename;
         Resource resource = storageService.loadAsResource(fullPath);
 
-        String contentType = determineContentType(filename);
+        String contentType = StorageService.contentTypeFor(filename);
 
         // Stored names are random UUIDs and a replaced file always gets a new name, so a
         // response can be cached forever; without this Spring Security sends no-store.
@@ -54,19 +54,5 @@ public class MediaController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(resource);
-    }
-
-    private String determineContentType(String filename) {
-        String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
-        return switch (extension) {
-            case "jpg", "jpeg" -> "image/jpeg";
-            case "png" -> "image/png";
-            case "gif" -> "image/gif";
-            case "webp" -> "image/webp";
-            case "mp4" -> "video/mp4";
-            case "webm" -> "video/webm";
-            case "pdf" -> "application/pdf";
-            default -> "application/octet-stream";
-        };
     }
 }

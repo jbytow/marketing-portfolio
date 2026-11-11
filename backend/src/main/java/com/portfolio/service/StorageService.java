@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,8 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class StorageService {
@@ -28,7 +32,36 @@ public class StorageService {
     @Value("${app.upload.allowed-types}")
     private String allowedTypes;
 
-    private static final Set<String> MEDIA_SUBDIRECTORIES = Set.of("images", "videos", "documents");
+    private record StoredType(String extension, MediaType mediaType, String subDirectory) {
+    }
+
+    // Single source of MIME knowledge: what may be stored, under which extension and subdirectory,
+    // and which MediaType it becomes. app.upload.allowed-types can only narrow this list.
+    private static final Map<String, StoredType> STORED_TYPES = Map.of(
+            "image/jpeg", new StoredType("jpg", MediaType.IMAGE, "images"),
+            "image/png", new StoredType("png", MediaType.IMAGE, "images"),
+            "image/gif", new StoredType("gif", MediaType.IMAGE, "images"),
+            "image/webp", new StoredType("webp", MediaType.IMAGE, "images"),
+            "video/mp4", new StoredType("mp4", MediaType.VIDEO, "videos"),
+            "video/webm", new StoredType("webm", MediaType.VIDEO, "videos"),
+            "application/pdf", new StoredType("pdf", MediaType.PDF, "documents")
+    );
+
+    // Older uploads kept the client's extension, so files named .jpeg or .jfif are still on disk
+    private static final Map<String, String> LEGACY_EXTENSIONS = Map.of(
+            "jpeg", "image/jpeg",
+            "jfif", "image/jpeg"
+    );
+
+    private static final Map<String, String> CONTENT_TYPES_BY_EXTENSION = Stream.concat(
+                    STORED_TYPES.entrySet().stream()
+                            .map(entry -> Map.entry(entry.getValue().extension(), entry.getKey())),
+                    LEGACY_EXTENSIONS.entrySet().stream())
+            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    private static final Set<String> MEDIA_SUBDIRECTORIES = STORED_TYPES.values().stream()
+            .map(StoredType::subDirectory)
+            .collect(Collectors.toUnmodifiableSet());
 
     private Path rootLocation;
     private Set<String> allowedMimeTypes;
@@ -42,7 +75,18 @@ public class StorageService {
             throw new RuntimeException("Could not initialize storage location", e);
         }
 
-        allowedMimeTypes = Set.of(allowedTypes.split(","));
+        allowedMimeTypes = Arrays.stream(allowedTypes.split(","))
+                .map(String::trim)
+                .filter(type -> !type.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+
+        Set<String> unmapped = allowedMimeTypes.stream()
+                .filter(type -> !STORED_TYPES.containsKey(type))
+                .collect(Collectors.toSet());
+        if (!unmapped.isEmpty()) {
+            throw new IllegalStateException("app.upload.allowed-types contains types without a storage mapping: "
+                    + unmapped + "; supported: " + STORED_TYPES.keySet());
+        }
     }
 
     public String store(MultipartFile file) throws IOException {
@@ -55,12 +99,11 @@ public class StorageService {
             throw new IllegalArgumentException("File type not allowed: " + contentType);
         }
 
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String extension = getExtension(originalFilename);
-        String filename = UUID.randomUUID().toString() + extension;
+        // The extension follows the validated MIME type; the client's name is not trusted
+        StoredType storedType = STORED_TYPES.get(contentType);
+        String filename = UUID.randomUUID() + "." + storedType.extension();
 
-        // Create subdirectory based on media type
-        String subDir = getSubDirectory(contentType);
+        String subDir = storedType.subDirectory();
         Path destinationDir = rootLocation.resolve(subDir);
         Files.createDirectories(destinationDir);
 
@@ -85,6 +128,19 @@ public class StorageService {
         Files.deleteIfExists(resolveInsideRoot(filename));
     }
 
+    public MediaType getMediaType(String mimeType) {
+        StoredType storedType = STORED_TYPES.get(mimeType);
+        if (storedType == null) {
+            throw new IllegalArgumentException("File type not allowed: " + mimeType);
+        }
+        return storedType.mediaType();
+    }
+
+    public static String contentTypeFor(String filename) {
+        String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        return CONTENT_TYPES_BY_EXTENSION.getOrDefault(extension, "application/octet-stream");
+    }
+
     public static boolean isMediaSubdirectory(String subDir) {
         return MEDIA_SUBDIRECTORIES.contains(subDir);
     }
@@ -97,32 +153,5 @@ public class StorageService {
             throw new EntityNotFoundException("Media file not found: " + filename);
         }
         return file;
-    }
-
-    public MediaType getMediaType(String mimeType) {
-        if (mimeType.startsWith("image/")) {
-            return MediaType.IMAGE;
-        } else if (mimeType.startsWith("video/")) {
-            return MediaType.VIDEO;
-        } else if (mimeType.equals("application/pdf")) {
-            return MediaType.PDF;
-        }
-        return MediaType.IMAGE;
-    }
-
-    private String getExtension(String filename) {
-        int dotIndex = filename.lastIndexOf('.');
-        return dotIndex > 0 ? filename.substring(dotIndex) : "";
-    }
-
-    private String getSubDirectory(String mimeType) {
-        if (mimeType.startsWith("image/")) {
-            return "images";
-        } else if (mimeType.startsWith("video/")) {
-            return "videos";
-        } else if (mimeType.equals("application/pdf")) {
-            return "documents";
-        }
-        return "other";
     }
 }

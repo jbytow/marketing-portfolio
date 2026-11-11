@@ -1,5 +1,6 @@
 package com.portfolio.service;
 
+import com.portfolio.entity.MediaType;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -50,6 +52,80 @@ class StorageServiceTest {
     }
 
     @Nested
+    @DisplayName("init")
+    class Init {
+
+        @Test
+        @DisplayName("allowlist entries are trimmed, blanks dropped and duplicates tolerated")
+        void toleratesSpacesBlanksAndDuplicates() throws Exception {
+            StorageService service = newStorageService(" image/png, image/png ,,");
+
+            assertThat(service.store(upload("x.png", "image/png"))).startsWith("images/");
+        }
+
+        @Test
+        @DisplayName("allowed type without a storage mapping stops startup")
+        void unmappedTypeFailsStartup() {
+            assertThatThrownBy(() -> newStorageService("image/png,image/avif"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("image/avif");
+        }
+    }
+
+    @Nested
+    @DisplayName("getMediaType")
+    class GetMediaType {
+
+        @ParameterizedTest
+        @CsvSource({
+                "image/jpeg, IMAGE", "image/png, IMAGE", "image/gif, IMAGE", "image/webp, IMAGE",
+                "video/mp4, VIDEO", "video/webm, VIDEO", "application/pdf, PDF"
+        })
+        @DisplayName("maps every stored MIME type")
+        void mapsStoredTypes(String mimeType, MediaType expected) {
+            assertThat(storageService.getMediaType(mimeType)).isEqualTo(expected);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"image/avif", "audio/mpeg", "text/html"})
+        @DisplayName("unknown MIME type is rejected instead of becoming IMAGE")
+        void rejectsUnknownType(String mimeType) {
+            assertThatThrownBy(() -> storageService.getMediaType(mimeType))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("contentTypeFor")
+    class ContentTypeFor {
+
+        @ParameterizedTest
+        @CsvSource({
+                "a.jpg, image/jpeg", "a.jpeg, image/jpeg", "a.jfif, image/jpeg", "a.JPG, image/jpeg",
+                "a.png, image/png", "a.gif, image/gif", "a.webp, image/webp",
+                "a.mp4, video/mp4", "a.webm, video/webm", "a.pdf, application/pdf",
+                "a.html, application/octet-stream", "a.svg, application/octet-stream",
+                "noext, application/octet-stream", "trailingdot., application/octet-stream"
+        })
+        @DisplayName("served Content-Type follows the stored extension, unknown -> octet-stream")
+        void mapsExtensions(String filename, String expected) {
+            assertThat(StorageService.contentTypeFor(filename)).isEqualTo(expected);
+        }
+    }
+
+    @Nested
+    @DisplayName("isMediaSubdirectory")
+    class IsMediaSubdirectory {
+
+        @ParameterizedTest
+        @CsvSource({"images, true", "videos, true", "documents, true", "other, false", "IMAGES, false", "wp-includes, false"})
+        @DisplayName("only the subdirectories that store() writes to")
+        void knowsStoredSubdirectories(String subDir, boolean expected) {
+            assertThat(StorageService.isMediaSubdirectory(subDir)).isEqualTo(expected);
+        }
+    }
+
+    @Nested
     @DisplayName("store")
     class Store {
 
@@ -62,17 +138,41 @@ class StorageServiceTest {
             assertThat(Files.readAllBytes(root.resolve(stored))).containsExactly(1, 2, 3);
         }
 
-        @Test
-        @DisplayName("video and pdf land in videos/ and documents/")
-        void storesVideoAndPdfInTheirSubdirectories() throws Exception {
-            assertThat(storageService.store(upload("clip.mp4", "video/mp4"))).startsWith("videos/");
-            assertThat(storageService.store(upload("offer.pdf", "application/pdf"))).startsWith("documents/");
+        @ParameterizedTest
+        @CsvSource({
+                "image/jpeg,      photo.jfif, images/,    .jpg",
+                "image/jpeg,      noext,      images/,    .jpg",
+                "image/jpeg,      photo.JPEG, images/,    .jpg",
+                "image/png,       page.html,  images/,    .png",
+                "image/gif,       anim.gif,   images/,    .gif",
+                "image/webp,      pic.webp,   images/,    .webp",
+                "video/mp4,       clip.mov,   videos/,    .mp4",
+                "video/webm,      clip,       videos/,    .webm",
+                "application/pdf, offer,      documents/, .pdf"
+        })
+        @DisplayName("subdirectory and extension come from the validated MIME type, not the client name")
+        void extensionComesFromMimeType(String mimeType, String clientName, String subDir, String extension)
+                throws Exception {
+            String stored = storageService.store(upload(clientName, mimeType));
+
+            assertThat(stored).matches(subDir + UUID_REGEX + "\\" + extension);
+            assertThat(root.resolve(stored)).exists();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"text/html", "image/svg+xml", "application/octet-stream", "IMAGE/PNG", " image/png"})
+        @DisplayName("content type outside the allowlist is rejected")
+        void rejectsDisallowedType(String contentType) {
+            assertThatThrownBy(() -> storageService.store(upload("x.png", contentType)))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
-        @DisplayName("disallowed content type is rejected")
-        void rejectsDisallowedType() {
-            assertThatThrownBy(() -> storageService.store(upload("x.html", "text/html")))
+        @DisplayName("mapped type left out of the configured allowlist is rejected")
+        void rejectsMappedTypeOutsideConfiguredAllowlist() {
+            StorageService pngOnly = newStorageService("image/png");
+
+            assertThatThrownBy(() -> pngOnly.store(upload("photo.jpg", "image/jpeg")))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
