@@ -19,6 +19,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -200,19 +201,29 @@ public class MediaService {
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
         mediaRepository.delete(media);
+        deleteStoredFileAfterCommit(media.getFilename());
+    }
 
+    @Transactional
+    public void deleteAllForPost(UUID postId) {
+        List<Media> media = mediaRepository.findByPostId(postId);
+        mediaRepository.deleteAll(media);
+        media.forEach(item -> deleteStoredFileAfterCommit(item.getFilename()));
+    }
+
+    private void deleteStoredFileAfterCommit(String filename) {
         // YouTube rows have no stored file
-        String filename = media.getFilename();
-        if (filename != null) {
-            // The file goes only once the row is gone for good; a rollback must not leave a row
-            // that points to a deleted file.
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    deleteStoredFile(filename);
-                }
-            });
+        if (filename == null) {
+            return;
         }
+        // The file goes only once the row is gone for good; a rollback must not leave a row
+        // that points to a deleted file.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                deleteStoredFile(filename);
+            }
+        });
     }
 
     private void deleteStoredFile(String filename) {

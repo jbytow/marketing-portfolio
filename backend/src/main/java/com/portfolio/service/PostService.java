@@ -21,6 +21,7 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final MediaService mediaService;
 
     public List<PostDto> getAllPublishedPosts(String locale) {
         return postRepository.findAllPublished().stream()
@@ -192,6 +193,8 @@ public class PostService {
         if (!postRepository.existsById(id)) {
             throw new EntityNotFoundException("Post not found: " + id);
         }
+        // Without this the files stay on the volume and keep being served under their old URLs.
+        mediaService.deleteAllForPost(id);
         postRepository.deleteById(id);
     }
 
