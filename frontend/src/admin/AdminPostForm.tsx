@@ -12,6 +12,25 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import MediaManager from '@/admin/components/MediaManager';
 import RichTextEditor from '@/components/RichTextEditor';
 
+// Mirrors the backend rule: the public page counts only the requested language's challenge,
+// solution, results and testimonial. The form edits both languages, so any of them counts.
+type CaseStudyField = 'caseStudyChallenge' | 'caseStudySolution' | 'caseStudyResults' | 'caseStudyTestimonial';
+
+function hasAnyCaseStudyText(
+  post: Partial<Record<`${CaseStudyField}${'En' | 'Pl'}`, string | null>>
+): boolean {
+  return [
+    post.caseStudyChallengeEn,
+    post.caseStudySolutionEn,
+    post.caseStudyResultsEn,
+    post.caseStudyTestimonialEn,
+    post.caseStudyChallengePl,
+    post.caseStudySolutionPl,
+    post.caseStudyResultsPl,
+    post.caseStudyTestimonialPl,
+  ].some((text) => Boolean(text?.trim()));
+}
+
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
@@ -90,8 +109,8 @@ export default function AdminPostForm() {
       });
       setMedia(post.media || []);
       setSeededId(id ?? null);
-      // Auto-expand if there's existing case study content
-      if (post.hasCaseStudy) {
+      // Auto-expand if there's existing case study content in either language
+      if (hasAnyCaseStudyText(post)) {
         setCaseStudyExpanded(true);
       }
     }
@@ -171,11 +190,7 @@ export default function AdminPostForm() {
     }
   };
 
-  const hasCaseStudyContent = Boolean(
-    formData.caseStudyChallengeEn ||
-    formData.caseStudySolutionEn ||
-    formData.caseStudyResultsEn
-  );
+  const hasCaseStudyContent = hasAnyCaseStudyText(formData);
 
   if (postLoading || (isEditing && postData?.data && seededId !== id)) {
     return <LoadingSpinner />;
