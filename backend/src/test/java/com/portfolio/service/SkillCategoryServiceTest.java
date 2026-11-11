@@ -1,5 +1,6 @@
 package com.portfolio.service;
 
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.dto.SkillCategoryCreateRequest;
 import com.portfolio.dto.SkillCategoryDto;
 import com.portfolio.dto.SkillCategoryUpdateRequest;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SkillCategoryService")
@@ -329,6 +331,38 @@ class SkillCategoryServiceTest {
 
             assertThatThrownBy(() -> skillCategoryService.deleteCategory(nonExistentId))
                     .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("reorderCategories")
+    class ReorderCategories {
+
+        @Test
+        @DisplayName("should update displayOrder of every item")
+        void shouldUpdateDisplayOrderOfEveryItem() {
+            UUID secondId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(categoryId, 2),
+                    new ReorderRequest.OrderItem(secondId, 1)));
+
+            skillCategoryService.reorderCategories(request);
+
+            verify(skillCategoryRepository).updateDisplayOrder(categoryId, 2);
+            verify(skillCategoryRepository).updateDisplayOrder(secondId, 1);
+            verifyNoMoreInteractions(skillCategoryRepository);
+        }
+
+        @Test
+        @DisplayName("should silently ignore an unknown id (the UPDATE matches no row)")
+        void shouldIgnoreUnknownId() {
+            UUID unknownId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(new ReorderRequest.OrderItem(unknownId, 1)));
+
+            skillCategoryService.reorderCategories(request);
+
+            verify(skillCategoryRepository).updateDisplayOrder(unknownId, 1);
+            verifyNoMoreInteractions(skillCategoryRepository);
         }
     }
 }
