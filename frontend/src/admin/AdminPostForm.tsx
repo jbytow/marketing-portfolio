@@ -127,10 +127,12 @@ export default function AdminPostForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // A blank slug is omitted so update keeps the stored one and create lets the backend generate it
+    const submitData = { ...formData, slug: formData.slug?.trim() || undefined };
     if (isEditing) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
