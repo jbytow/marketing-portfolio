@@ -118,6 +118,29 @@ class PostControllerTest {
                     .andExpect(jsonPath("$.data[0].category").value("CAMPAIGNS"));
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = {"foo", "campaigns ", "1"})
+        @DisplayName("should answer 400 for an unknown category")
+        void shouldRejectUnknownCategory(String category) throws Exception {
+            mockMvc.perform(get("/api/posts").param("category", category))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false));
+
+            org.mockito.Mockito.verifyNoInteractions(postService);
+        }
+
+        @Test
+        @DisplayName("should look up posts by hashtag when the hashtag parameter is set")
+        void shouldFilterByHashtag() throws Exception {
+            given(postService.getPostsByHashtag("seo", "en")).willReturn(List.of(createSamplePostDto()));
+
+            mockMvc.perform(get("/api/posts").param("hashtag", "seo"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", hasSize(1)));
+
+            org.mockito.Mockito.verify(postService).getPostsByHashtag("seo", "en");
+        }
+
         @Test
         @DisplayName("should use Polish locale when Accept-Language is pl")
         void shouldUsePolishLocale() throws Exception {

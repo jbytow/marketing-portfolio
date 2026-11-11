@@ -3,6 +3,7 @@ package com.portfolio.service;
 import com.portfolio.dto.PostCreateRequest;
 import com.portfolio.dto.PostDto;
 import com.portfolio.dto.PostUpdateRequest;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Category;
 import com.portfolio.entity.Post;
 import com.portfolio.repository.PostRepository;
@@ -744,6 +745,49 @@ class PostServiceTest {
                             PostDto::getCaseStudyTestimonialAuthor)
                     .containsExactly("Test Title EN", "Test Title PL", "Excerpt EN", "Excerpt PL",
                             "Challenge EN", "Wyzwanie PL", "Jane Doe"));
+        }
+    }
+
+    @Nested
+    @DisplayName("reorderPosts")
+    class ReorderPosts {
+
+        @Test
+        @DisplayName("should update the display order of every item")
+        void shouldUpdateEveryItem() {
+            UUID secondId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(postId, 2),
+                    new ReorderRequest.OrderItem(secondId, 1)));
+
+            postService.reorderPosts(request);
+
+            verify(postRepository).updateDisplayOrder(postId, 2);
+            verify(postRepository).updateDisplayOrder(secondId, 1);
+            verifyNoMoreInteractions(postRepository);
+        }
+    }
+
+    @Nested
+    @DisplayName("getPostsByHashtag")
+    class GetPostsByHashtag {
+
+        @Test
+        @DisplayName("should return the published posts the repository finds for the tag")
+        void shouldDelegateToRepository() {
+            given(postRepository.findByHashtagAndPublishedTrue("seo")).willReturn(List.of(samplePost));
+
+            List<PostDto> result = postService.getPostsByHashtag("seo", "en");
+
+            assertThat(result).extracting(PostDto::getSlug).containsExactly("test-title-en");
+        }
+
+        @Test
+        @DisplayName("should return an empty list for an unknown tag")
+        void shouldReturnEmptyForUnknownTag() {
+            given(postRepository.findByHashtagAndPublishedTrue("missing")).willReturn(List.of());
+
+            assertThat(postService.getPostsByHashtag("missing", "en")).isEmpty();
         }
     }
 }
