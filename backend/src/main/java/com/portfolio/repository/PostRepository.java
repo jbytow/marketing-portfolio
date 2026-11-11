@@ -25,9 +25,6 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("SELECT p FROM Post p WHERE p.category = :category ORDER BY p.displayOrder ASC")
     List<Post> findAllByCategory(@Param("category") Category category);
 
-    @Query("SELECT COUNT(p) FROM Post p WHERE p.category = :category AND p.published = true")
-    long countByCategoryAndPublished(@Param("category") Category category);
-
     @Query("SELECT COALESCE(MAX(p.displayOrder), 0) FROM Post p WHERE p.category = :category")
     int getMaxDisplayOrder(@Param("category") Category category);
 

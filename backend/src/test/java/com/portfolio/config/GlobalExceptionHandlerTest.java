@@ -4,11 +4,9 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.portfolio.controller.CategoryController;
 import com.portfolio.controller.PostController;
 import com.portfolio.entity.Category;
 import com.portfolio.security.JwtService;
-import com.portfolio.service.CategoryService;
 import com.portfolio.service.PostService;
 import com.portfolio.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -54,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = {PostController.class, CategoryController.class},
+        controllers = PostController.class,
         excludeAutoConfiguration = {
                 org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
         }
@@ -69,9 +67,6 @@ class GlobalExceptionHandlerTest {
 
     @MockBean
     private PostService postService;
-
-    @MockBean
-    private CategoryService categoryService;
 
     @MockBean
     private JwtService jwtService;
@@ -227,16 +222,6 @@ class GlobalExceptionHandlerTest {
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isNotAcceptable());
-
-        assertThat(logEvents.list).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN);
-    }
-
-    @Test
-    @DisplayName("GET /api/categories/foo returns 400 and one WARN")
-    void unknownCategoryPathValueReturns400() throws Exception {
-        mockMvc.perform(get("/api/categories/foo"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false));
 
         assertThat(logEvents.list).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN);
     }
