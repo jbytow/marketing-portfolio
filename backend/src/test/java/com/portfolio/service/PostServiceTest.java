@@ -508,6 +508,24 @@ class PostServiceTest {
             assertThat(postCaptor.getValue().getSlug()).isEqualTo("test-title-en");
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = {"Kampania-Łódź", "My Post", "My-Post"})
+        @DisplayName("should keep a legacy non-canonical slug when it is sent back unchanged")
+        void shouldKeepLegacySlugWhenUnchanged(String legacySlug) {
+            samplePost.setSlug(legacySlug);
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(legacySlug);
+            request.setExcerptEn("Changed excerpt");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo(legacySlug);
+            verify(postRepository, never()).existsBySlug(anyString());
+        }
+
         @Test
         @DisplayName("should throw EntityNotFoundException when post not found")
         void shouldThrowExceptionWhenNotFound() {

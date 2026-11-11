@@ -116,8 +116,10 @@ public class PostService {
         if (request.getTitlePl() != null) {
             post.setTitlePl(request.getTitlePl());
         }
-        // A cleared slug field keeps the current slug, so a published URL never silently changes or empties.
-        if (request.getSlug() != null && !request.getSlug().isBlank()) {
+        // A cleared or resent slug keeps the current one, so a published URL never silently changes or empties.
+        // The raw comparison comes first: legacy slugs stored before normalization must survive unrelated edits.
+        if (request.getSlug() != null && !request.getSlug().isBlank()
+                && !request.getSlug().equals(post.getSlug())) {
             String slug = SlugUtils.toSlug(request.getSlug());
             if (!slug.equals(post.getSlug())) {
                 if (postRepository.existsBySlug(slug)) {

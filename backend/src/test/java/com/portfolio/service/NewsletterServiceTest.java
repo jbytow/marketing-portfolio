@@ -276,5 +276,23 @@ class NewsletterServiceTest {
             verify(newsletterRepository).save(newsletterCaptor.capture());
             assertThat(newsletterCaptor.getValue().getSlug()).isEqualTo("spring-recap");
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"Kampania-Łódź", "My Post", "My-Post"})
+        @DisplayName("should keep a legacy non-canonical slug when it is sent back unchanged")
+        void shouldKeepLegacySlugWhenUnchanged(String legacySlug) {
+            sampleNewsletter.setSlug(legacySlug);
+            given(newsletterRepository.findById(newsletterId)).willReturn(Optional.of(sampleNewsletter));
+            given(newsletterRepository.save(any(Newsletter.class))).willAnswer(invocation -> invocation.getArgument(0));
+            NewsletterUpdateRequest request = new NewsletterUpdateRequest();
+            request.setSlug(legacySlug);
+            request.setContentEn("Changed content");
+
+            newsletterService.update(newsletterId, request, "en");
+
+            verify(newsletterRepository).save(newsletterCaptor.capture());
+            assertThat(newsletterCaptor.getValue().getSlug()).isEqualTo(legacySlug);
+            verify(newsletterRepository, never()).existsBySlug(anyString());
+        }
     }
 }

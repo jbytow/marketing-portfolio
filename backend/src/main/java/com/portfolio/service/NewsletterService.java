@@ -80,8 +80,10 @@ public class NewsletterService {
         if (request.getTitlePl() != null) {
             newsletter.setTitlePl(request.getTitlePl());
         }
-        // A cleared slug field keeps the current slug, so a published URL never silently changes or empties.
-        if (request.getSlug() != null && !request.getSlug().isBlank()) {
+        // A cleared or resent slug keeps the current one, so a published URL never silently changes or empties.
+        // The raw comparison comes first: legacy slugs stored before normalization must survive unrelated edits.
+        if (request.getSlug() != null && !request.getSlug().isBlank()
+                && !request.getSlug().equals(newsletter.getSlug())) {
             String slug = SlugUtils.toSlug(request.getSlug());
             if (!slug.equals(newsletter.getSlug())) {
                 if (newsletterRepository.existsBySlug(slug)) {
