@@ -1,10 +1,13 @@
 package com.portfolio.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -22,12 +25,15 @@ class StorageServiceTest {
     private static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
     @TempDir
-    Path root;
+    Path tempDir;
+
+    private Path root;
 
     private StorageService storageService;
 
     @BeforeEach
     void setUp() {
+        root = tempDir.resolve("uploads");
         storageService = newStorageService(ALLOWED_TYPES);
     }
 
@@ -75,6 +81,83 @@ class StorageServiceTest {
         void rejectsNullType() {
             assertThatThrownBy(() -> storageService.store(upload("x.jpg", null)))
                     .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("loadAsResource")
+    class LoadAsResource {
+
+        @Test
+        @DisplayName("stored file is returned")
+        void loadsStoredFile() throws Exception {
+            String stored = storageService.store(upload("photo.jpg", "image/jpeg"));
+
+            assertThat(storageService.loadAsResource(stored).getContentAsByteArray()).containsExactly(1, 2, 3);
+        }
+
+        @Test
+        @DisplayName("missing file -> EntityNotFoundException")
+        void missingFileIsNotFound() {
+            assertThatThrownBy(() -> storageService.loadAsResource("images/missing.jpg"))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("a directory is not served")
+        void directoryIsNotFound() throws Exception {
+            Files.createDirectories(root.resolve("images"));
+
+            assertThatThrownBy(() -> storageService.loadAsResource("images"))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"../outside.txt", "images/../../outside.txt", "../uploads-sibling/outside.txt"})
+        @DisplayName("names escaping the upload root -> EntityNotFoundException even when the target exists")
+        void pathOutsideRootIsNotFound(String name) throws Exception {
+            Path outsideFile = root.resolve(name).normalize();
+            Files.createDirectories(outsideFile.getParent());
+            Files.write(outsideFile, new byte[]{9});
+
+            assertThatThrownBy(() -> storageService.loadAsResource(name))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("absolute path -> EntityNotFoundException")
+        void absolutePathIsNotFound() throws Exception {
+            Path outsideFile = Files.write(tempDir.resolve("outside.txt"), new byte[]{9});
+
+            assertThatThrownBy(() -> storageService.loadAsResource(outsideFile.toAbsolutePath().toString()))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("delete")
+    class Delete {
+
+        @Test
+        @DisplayName("stored file is removed")
+        void deletesStoredFile() throws Exception {
+            String stored = storageService.store(upload("photo.jpg", "image/jpeg"));
+
+            storageService.delete(stored);
+
+            assertThat(root.resolve(stored)).doesNotExist();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"../outside.txt", "images/../../outside.txt"})
+        @DisplayName("names escaping the upload root are rejected and the target survives")
+        void pathOutsideRootIsRejected(String name) throws Exception {
+            Path outsideFile = root.resolve(name).normalize();
+            Files.write(outsideFile, new byte[]{9});
+
+            assertThatThrownBy(() -> storageService.delete(name))
+                    .isInstanceOf(EntityNotFoundException.class);
+            assertThat(outsideFile).exists();
         }
     }
 }

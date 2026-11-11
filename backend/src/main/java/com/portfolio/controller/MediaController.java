@@ -5,6 +5,7 @@ import com.portfolio.dto.MediaDto;
 import com.portfolio.service.MediaService;
 import com.portfolio.service.StorageService;
 import com.portfolio.util.LocaleUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +37,9 @@ public class MediaController {
             @PathVariable String subDir,
             @PathVariable String filename) {
 
+        if (!StorageService.isMediaSubdirectory(subDir)) {
+            throw new EntityNotFoundException("Media file not found: " + subDir + "/" + filename);
+        }
         String fullPath = subDir + "/" + filename;
         Resource resource = storageService.loadAsResource(fullPath);
 
