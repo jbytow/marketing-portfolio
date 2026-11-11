@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
-import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './i18n';
@@ -55,10 +54,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <ThemeProvider>
             <LanguageProvider>
-              <AuthProvider>
-                <App />
-                <ThemedToaster />
-              </AuthProvider>
+              <App />
+              <ThemedToaster />
             </LanguageProvider>
           </ThemeProvider>
         </BrowserRouter>

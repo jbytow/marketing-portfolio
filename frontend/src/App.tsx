@@ -1,10 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { lazy, Suspense, ComponentType } from 'react';
 import Layout from './components/Layout';
-import AdminLayout from './admin/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
 
 // main.tsx swallows vite:preloadError and reloads; the swallowed import then resolves to
 // undefined. Suspending forever until the reload lands avoids flashing the error screen.
@@ -24,6 +24,7 @@ const Skills = page(() => import('./pages/Skills'));
 const Contact = page(() => import('./pages/Contact'));
 
 // Admin pages
+const AdminLayout = page(() => import('./admin/AdminLayout'));
 const AdminLogin = page(() => import('./admin/AdminLogin'));
 const AdminDashboard = page(() => import('./admin/AdminDashboard'));
 const AdminPosts = page(() => import('./admin/AdminPosts'));
@@ -61,37 +62,45 @@ function App() {
           <Route path="contact" element={<Contact />} />
         </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Admin Routes: AuthProvider only here, so public visitors never call /admin/auth/me */}
         <Route
-          path="/admin"
           element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
+            <AuthProvider>
+              <Outlet />
+            </AuthProvider>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="posts" element={<AdminPosts />} />
-          <Route path="posts/new" element={<AdminPostForm />} />
-          <Route path="posts/:id/edit" element={<AdminPostForm />} />
-          <Route path="newsletters" element={<AdminNewsletters />} />
-          <Route path="newsletters/new" element={<AdminNewsletterForm />} />
-          <Route path="newsletters/:id/edit" element={<AdminNewsletterForm />} />
-          <Route path="experiences" element={<AdminExperiences />} />
-          <Route path="experiences/new" element={<AdminExperienceForm />} />
-          <Route path="experiences/:id/edit" element={<AdminExperienceForm />} />
-          <Route path="soft-skills" element={<AdminSoftSkills />} />
-          <Route path="soft-skills/new" element={<AdminSoftSkillForm />} />
-          <Route path="soft-skills/:id/edit" element={<AdminSoftSkillForm />} />
-          <Route path="skill-categories" element={<AdminSkillCategories />} />
-          <Route path="skill-categories/new" element={<AdminSkillCategoryForm />} />
-          <Route path="skill-categories/:id/edit" element={<AdminSkillCategoryForm />} />
-          <Route path="interests" element={<AdminInterests />} />
-          <Route path="interests/new" element={<AdminInterestForm />} />
-          <Route path="interests/:id/edit" element={<AdminInterestForm />} />
-          <Route path="media" element={<AdminMedia />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="posts" element={<AdminPosts />} />
+            <Route path="posts/new" element={<AdminPostForm />} />
+            <Route path="posts/:id/edit" element={<AdminPostForm />} />
+            <Route path="newsletters" element={<AdminNewsletters />} />
+            <Route path="newsletters/new" element={<AdminNewsletterForm />} />
+            <Route path="newsletters/:id/edit" element={<AdminNewsletterForm />} />
+            <Route path="experiences" element={<AdminExperiences />} />
+            <Route path="experiences/new" element={<AdminExperienceForm />} />
+            <Route path="experiences/:id/edit" element={<AdminExperienceForm />} />
+            <Route path="soft-skills" element={<AdminSoftSkills />} />
+            <Route path="soft-skills/new" element={<AdminSoftSkillForm />} />
+            <Route path="soft-skills/:id/edit" element={<AdminSoftSkillForm />} />
+            <Route path="skill-categories" element={<AdminSkillCategories />} />
+            <Route path="skill-categories/new" element={<AdminSkillCategoryForm />} />
+            <Route path="skill-categories/:id/edit" element={<AdminSkillCategoryForm />} />
+            <Route path="interests" element={<AdminInterests />} />
+            <Route path="interests/new" element={<AdminInterestForm />} />
+            <Route path="interests/:id/edit" element={<AdminInterestForm />} />
+            <Route path="media" element={<AdminMedia />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
         </Route>
         </Routes>
       </Suspense>
