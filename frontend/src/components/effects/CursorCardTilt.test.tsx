@@ -38,7 +38,7 @@ describe('CursorCardTilt', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     document.documentElement.classList.remove('rose-force-motion');
-    document.body.innerHTML = '';
+    document.querySelectorAll('.card, .cursor-spark').forEach((n) => n.remove());
   });
   afterEach(() => {
     cleanup();
@@ -80,5 +80,61 @@ describe('CursorCardTilt', () => {
     vi.advanceTimersByTime(50);
     move(card, 120, 50);
     expect(card.style.transform).toBe('');
+  });
+
+  it('spawns bounce sparks at most once per 60 ms while still tilting on every event', () => {
+    mockMedia({ reduce: false });
+    render(<CursorCardTilt />);
+    const card = addCard();
+    flick(card, 10, 110);
+    expect(sparkCount()).toBe(2);
+    const firstTransform = card.style.transform;
+    vi.advanceTimersByTime(10);
+    move(card, 190, 50);
+    vi.advanceTimersByTime(10);
+    move(card, 20, 50);
+    expect(sparkCount()).toBe(2);
+    expect(card.style.transform).not.toBe(firstTransform);
+    vi.advanceTimersByTime(60);
+    move(card, 190, 50);
+    expect(sparkCount()).toBe(4);
+  });
+
+  it('removes the inline transition after a tilted card settles so hover transitions work again', () => {
+    mockMedia({ reduce: false });
+    render(<CursorCardTilt />);
+    const card = addCard();
+    flick(card);
+    expect(card.style.transition).toContain('transform');
+    vi.advanceTimersByTime(400); // reset delay
+    expect(card.style.transform).toBe('');
+    expect(card.style.transition).toContain('0.4s');
+    vi.advanceTimersByTime(400);
+    expect(card.style.transition).toBe('');
+  });
+
+  it('never writes inline styles on a card that was only hovered slowly', () => {
+    mockMedia({ reduce: false });
+    render(<CursorCardTilt />);
+    const card = addCard();
+    move(card, 10, 50);
+    vi.advanceTimersByTime(1000);
+    move(card, 20, 50);
+    move(document.body, 400, 400);
+    vi.advanceTimersByTime(1000);
+    expect(card.getAttribute('style')).toBeNull();
+  });
+
+  it('releases the previous card, transition included, when the pointer moves to another card', () => {
+    mockMedia({ reduce: false });
+    render(<CursorCardTilt />);
+    const first = addCard();
+    const second = addCard();
+    flick(first);
+    vi.advanceTimersByTime(20);
+    move(second, 50, 50);
+    expect(first.style.transform).toBe('');
+    vi.advanceTimersByTime(400);
+    expect(first.style.transition).toBe('');
   });
 });
