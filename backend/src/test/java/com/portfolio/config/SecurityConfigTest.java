@@ -14,11 +14,18 @@ import com.portfolio.service.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -30,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -165,6 +173,54 @@ class SecurityConfigTest {
 
             mockMvc.perform(get("/api/admin/posts").cookie(authCookie(token)))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("OAuth login failure")
+    class OAuthFailure {
+
+        private final Logger configLogger = (Logger) LoggerFactory.getLogger(SecurityConfig.class);
+        private final ListAppender<ILoggingEvent> logEvents = new ListAppender<>();
+
+        @BeforeEach
+        void attachAppender() {
+            logEvents.start();
+            configLogger.addAppender(logEvents);
+        }
+
+        @AfterEach
+        void detachAppender() {
+            configLogger.detachAppender(logEvents);
+        }
+
+        @Test
+        @DisplayName("callback with an unknown state redirects to the SPA login page with oauth_failed")
+        void unknownStateRedirectsToSpaLogin() throws Exception {
+            mockMvc.perform(get("/login/oauth2/code/google")
+                            .param("code", "secret-auth-code")
+                            .param("state", "unknown"))
+                    .andExpect(status().isFound())
+                    .andExpect(header().string(HttpHeaders.LOCATION,
+                            "http://localhost:3000/admin/login?error=oauth_failed"));
+
+            assertThat(logEvents.list)
+                    .filteredOn(event -> event.getLevel() == Level.WARN)
+                    .singleElement()
+                    .satisfies(event -> assertThat(event.getFormattedMessage())
+                            .contains("OAuth2AuthenticationException")
+                            .doesNotContain("secret-auth-code"));
+        }
+
+        @Test
+        @DisplayName("callback after the user cancelled consent redirects to the SPA login page")
+        void cancelledConsentRedirectsToSpaLogin() throws Exception {
+            mockMvc.perform(get("/login/oauth2/code/google")
+                            .param("error", "access_denied")
+                            .param("state", "x"))
+                    .andExpect(status().isFound())
+                    .andExpect(header().string(HttpHeaders.LOCATION,
+                            "http://localhost:3000/admin/login?error=oauth_failed"));
         }
     }
 
