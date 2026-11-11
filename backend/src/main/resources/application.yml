@@ -45,10 +45,6 @@ spring:
             user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
             user-name-attribute: email
 
-  messages:
-    basename: messages
-    encoding: UTF-8
-
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
