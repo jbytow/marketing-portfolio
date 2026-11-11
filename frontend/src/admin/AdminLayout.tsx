@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -18,6 +19,8 @@ import {
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { AUTH_EXPIRED_EVENT } from '@/services/api';
+import SessionExpiredModal from './components/SessionExpiredModal';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.dashboard.title', exact: true },
@@ -36,6 +39,13 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    const onExpired = () => setSessionExpired(true);
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
+  }, []);
 
   return (
     <div className="min-h-screen bg-dark-900 flex">
@@ -115,6 +125,7 @@ export default function AdminLayout() {
           </ErrorBoundary>
         </motion.div>
       </main>
+      <SessionExpiredModal open={sessionExpired} onClose={() => setSessionExpired(false)} />
     </div>
   );
 }

@@ -41,6 +41,9 @@ export const setApiLanguage = (language: string): void => {
   apiLanguage = language;
 };
 
+export const AUTH_EXPIRED_EVENT = 'auth:expired';
+const AUTH_CHECK_URL = '/admin/auth/me';
+
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_URL,
@@ -62,10 +65,12 @@ const createApiClient = (): AxiosInstance => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        // Only redirect if on admin page
+        // Navigating away would wipe the form being edited; AdminLayout shows a modal instead.
+        // The initial /admin/auth/me check is excluded: ProtectedRoute already redirects to login.
         if (window.location.pathname.startsWith('/admin') &&
-            window.location.pathname !== '/admin/login') {
-          window.location.href = '/admin/login';
+            window.location.pathname !== '/admin/login' &&
+            error.config?.url !== AUTH_CHECK_URL) {
+          window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
         }
       }
       return Promise.reject(error);
@@ -414,7 +419,7 @@ export const adminNewslettersApi = {
 
 export const authApi = {
   getCurrentUser: async (): Promise<ApiResponse<User>> => {
-    const { data } = await api.get<ApiResponse<User>>('/admin/auth/me');
+    const { data } = await api.get<ApiResponse<User>>(AUTH_CHECK_URL);
     return data;
   },
 
