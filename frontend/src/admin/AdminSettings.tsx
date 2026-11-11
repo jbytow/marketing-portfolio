@@ -6,6 +6,7 @@ import { Save, Plus, Trash2 } from 'lucide-react';
 import { adminSettingsApi } from '@/services/api';
 import { SiteSettingsUpdateRequest, StatItemInput } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function AdminSettings() {
@@ -92,7 +93,11 @@ export default function AdminSettings() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(formData);
+    // A cleared input leaves an empty string behind, which would render an icon linking nowhere
+    const socialLinks = Object.fromEntries(
+      Object.entries(formData.socialLinks ?? {}).filter(([, url]) => url?.trim())
+    );
+    updateMutation.mutate({ ...formData, socialLinks });
   };
 
   const handleChange = (
@@ -394,7 +399,7 @@ export default function AdminSettings() {
             />
             {formData.profileImage && (
               <img
-                src={formData.profileImage}
+                src={getMediaUrl(formData.profileImage)}
                 alt="Profile preview"
                 className="mt-4 w-32 h-32 rounded-full object-cover"
               />
