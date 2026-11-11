@@ -57,8 +57,8 @@ export default function About() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-pink rounded-2xl transform rotate-3" />
                   <img
-                    src={settings.profileImage}
-                    alt="Profile"
+                    src={getMediaUrl(settings.profileImage)}
+                    alt={t('about.profileImageAlt')}
                     className="relative rounded-2xl w-full object-cover shadow-xl"
                   />
                 </div>
@@ -78,7 +78,7 @@ export default function About() {
               <div
                 className="prose prose-invert prose-lg max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: settings?.aboutText || '<p>About content coming soon...</p>',
+                  __html: settings?.aboutText || `<p>${t('about.placeholder')}</p>`,
                 }}
               />
 
