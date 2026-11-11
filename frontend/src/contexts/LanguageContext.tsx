@@ -12,18 +12,35 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Storage access throws when the browser blocks it (privacy modes, sandboxed iframes); it must not unmount the app.
+function readStored(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Persistence is best-effort
+  }
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation();
   // The API header must be set synchronously (not in an effect): child queries fire before this provider's effects.
   const [language, setLanguageState] = useState<Language>(() => {
-    const initial = (localStorage.getItem('language') as Language) || 'en';
+    const initial = readStored('language') === 'pl' ? 'pl' : 'en';
     setApiLanguage(initial);
     return initial;
   });
 
   useEffect(() => {
     i18n.changeLanguage(language);
-    localStorage.setItem('language', language);
+    writeStored('language', language);
     document.documentElement.lang = language;
   }, [language, i18n]);
 
