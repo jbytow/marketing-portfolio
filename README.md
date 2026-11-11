@@ -149,14 +149,18 @@ npm run build
 - `JWT_SECRET` must be at least 32 bytes; the `prod` profile refuses to start with a missing or development secret
 - CORS allows the single origin from `FRONTEND_URL`
 - Uploads are checked against a server-side MIME allowlist and cannot leave the upload directory
-- Rate limiting runs at the edge (nginx), per visitor keyed on `CF-Connecting-IP`, and answers 429
+- Rate limiting runs at the edge (nginx), per visitor keyed on `CF-Connecting-IP`, and answers 429; the contact form has its own 5-per-minute bucket and a honeypot field
+- State-changing admin requests with a foreign `Origin` or `Referer` are rejected with 403 (CSRF defence for the cookie session); Google accounts outside the allowlist are never stored
+- A `Content-Security-Policy-Report-Only` header is sent from the edge; the policy switches to enforcing after a violation-free period
+- Fonts are self-hosted and YouTube players load only after a click (from `youtube-nocookie.com`), so visitors contact Google only when they choose to
+- The About text is rendered through an allowlist sanitiser (paragraphs preserved, scripts and event handlers dropped)
 
 ### Media Handling
 - Uploads are stored on disk in the directory mounted from a Docker volume
 - Accepted types are `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `video/mp4`, `video/webm` and `application/pdf`
 - Each file is saved under a UUID name with the extension taken from its MIME type
 - Files are served with `Cache-Control: public, immutable` for one year
-- YouTube links are accepted in watch, shorts, live, embed, `youtu.be` and `nocookie` form
+- YouTube links are accepted in watch, shorts, live, embed, `youtu.be` and `nocookie` form; the public site shows a thumbnail with a play button and loads the player on click
 - Media URL resolution for both dev and production environments
 
 ### Internationalization

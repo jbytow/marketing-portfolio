@@ -7,7 +7,7 @@ REST API of the backend. All endpoints are JSON over HTTPS, except media downloa
 
 **Base path.** Every endpoint lives under `/api`. The frontend talks to the API through the site origin; a separate gateway is not required.
 
-**Authentication.** Admin endpoints under `/api/admin/**` require a logged-in administrator. Login uses Google OAuth2 at `/oauth2/authorization/google`; on success the backend sets an HttpOnly cookie containing a JWT. On every request the application checks that the token is valid, that the e-mail is verified (`email_verified`) and that the e-mail is present in the `ADMIN_EMAILS` configuration. Anonymous calls to `/api/**` return 401 (empty body), without a redirect to the login page. A valid cookie whose account has no admin role returns 403. `POST /api/admin/auth/logout` clears the cookie and requires no authentication.
+**Authentication.** Admin endpoints under `/api/admin/**` require a logged-in administrator. Login uses Google OAuth2 at `/oauth2/authorization/google`; on success the backend sets an HttpOnly cookie containing a JWT. On every request the application checks that the token is valid, that the e-mail is verified (`email_verified`) and that the e-mail is present in the `ADMIN_EMAILS` configuration. Anonymous calls to `/api/**` return 401 (empty body), without a redirect to the login page. A valid cookie whose account has no admin role returns 403. State-changing requests (anything but GET, HEAD, OPTIONS) to `/api/admin/**`, including the logout, are also rejected with 403 when they carry an `Origin` (or `Referer`) that does not match `FRONTEND_URL`; requests without either header pass, so non-browser clients keep working. Google accounts that are not on the allowlist are rejected at login and never stored. `POST /api/admin/auth/logout` clears the cookie and requires no authentication.
 
 **Localization.** Public list and detail responses for posts and newsletters contain only the fields of the requested language. The language comes from the `Accept-Language` header: `pl` selects Polish, anything else falls back to English. The unused `*En` or `*Pl` fields are then `null`. Admin endpoints receive both languages.
 
@@ -44,7 +44,7 @@ Error:
 |---|---|
 | 400 | Invalid request: validation failed, malformed JSON, unknown enum value, missing part or parameter, invalid reorder payload |
 | 401 | Missing or invalid admin session cookie |
-| 403 | Authenticated account without the admin role |
+| 403 | Authenticated account without the admin role, or an admin write with a foreign `Origin`/`Referer` |
 | 404 | Entity, slug or media file not found |
 | 405 | Method not supported for the path |
 | 406 | `Accept` header cannot accept a JSON answer; returned without a body |
@@ -63,15 +63,15 @@ Error:
 |---|---|---|---|
 | GET | `/api/categories` | List post categories | Categories are a fixed enum |
 | GET | `/api/categories/{category}` | Get one category | `category` is the enum name |
-| POST | `/api/contact` | Submit the contact form | Validated fields: `name`, `email`, `message` up to 5000 characters; mail failure returns 503 |
+| POST | `/api/contact` | Submit the contact form | Validated fields: `name`, `email`, `subject`, `message` up to 5000 characters; optional `website` is a honeypot (when filled the request answers 200 and nothing is sent); mail failure returns 503; the edge allows 5 submissions per minute per visitor |
 | GET | `/api/experiences` | List experiences | Ordered by their display order |
 | GET | `/api/health` | Liveness check | Used by the external monitor; `/actuator/health` is not exposed by the proxy |
 | GET | `/api/interests` | List interests | Ordered by their display order |
 | GET | `/api/media/{subDir}/{filename}` | Serve an uploaded file | Responds with `Cache-Control: max-age=31536000, public, immutable`; a missing file returns 404 |
 | GET | `/api/newsletters` | List published newsletters | Only published items; one language per request |
-| GET | `/api/newsletters/{slug}` | Get a published newsletter by slug | One language per request; unknown slug returns 404 |
+| GET | `/api/newsletters/{slug}` | Get a published newsletter by slug | One language per request; an unknown or unpublished slug returns the same 404 |
 | GET | `/api/posts` | List published posts | Optional `category` and `hashtag` query parameters; `hashtag` takes precedence; one language per request |
-| GET | `/api/posts/{slug}` | Get a published post by slug | One language per request; unknown slug returns 404 |
+| GET | `/api/posts/{slug}` | Get a published post by slug | One language per request; an unknown or unpublished slug returns the same 404 |
 | GET | `/api/settings` | Get public site settings | |
 | GET | `/api/skill-categories/with-skills` | List skill categories together with their soft skills | Single call for the skills section |
 
@@ -83,7 +83,7 @@ All endpoints in this section require the admin session described in Conventions
 
 | Method | Path | Purpose | Notes |
 |---|---|---|---|
-| POST | `/api/admin/auth/logout` | Log out | Clears the session cookie; no authentication required |
+| POST | `/api/admin/auth/logout` | Log out | Clears the session cookie; no authentication required, but a foreign `Origin` is rejected with 403 |
 | GET | `/api/admin/auth/me` | Get the current admin | Returns the account identified by the cookie |
 
 ### Posts
@@ -93,7 +93,7 @@ All endpoints in this section require the admin session described in Conventions
 | GET | `/api/admin/posts` | List all posts | Optional `category` filter; returns both languages |
 | POST | `/api/admin/posts` | Create a post | Request body validated with `@Valid`; returns 201; slug generated from the title when empty |
 | PATCH | `/api/admin/posts/reorder` | Reorder posts | Body `{"items":[{"id":"<uuid>","displayOrder":<int>}]}`; empty or null elements return 400 |
-| DELETE | `/api/admin/posts/{id}` | Delete a post | Returns a success envelope with no data |
+| DELETE | `/api/admin/posts/{id}` | Delete a post | Also deletes the post's media rows and stored files; returns a success envelope with no data |
 | GET | `/api/admin/posts/{id}` | Get a post by id | Returns both languages |
 | PUT | `/api/admin/posts/{id}` | Update a post | Request body validated with `@Valid`; an empty slug keeps the previous one; duplicate slug returns 400 (409 only when two concurrent saves race on the database constraint) |
 | PATCH | `/api/admin/posts/{id}/publish` | Toggle the published flag | Returns the updated post |
@@ -181,3 +181,5 @@ Endpoints and behaviours that existed earlier and are no longer available:
 - `GET /api/media/{id}` removed; files are read at `/api/media/{subDir}/{filename}`.
 - `GET /api/posts/paged` and `GET /api/posts/hashtags` removed; paging and hashtag filtering went away with them, hashtag filtering stays as a query parameter on `GET /api/posts`.
 - GitHub login removed; Google OAuth2 is the only login provider.
+- Public slug lookups no longer return drafts (404 like an unknown slug); drafts are reachable only through the admin endpoints.
+- Admin writes with a foreign `Origin`/`Referer` answer 403; `POST /api/contact` gained the optional `website` honeypot field.

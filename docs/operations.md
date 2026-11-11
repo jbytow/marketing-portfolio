@@ -85,7 +85,7 @@ git pull
 ls backend/src/main/resources/db/migration/V*.sql | tail -n 5
 ```
 
-If there is a new migration, dump the database before deploying. The commands below read `$POSTGRES_USER` and `$POSTGRES_DB` from the shell, so export them from `.env` first (`set -a; . ./.env; set +a`). V16 (drops redundant indexes, sets `posts.published` and `newsletters.published` NOT NULL) is the first migration that drops objects. The dump directory lives outside the repository and has to be created once:
+If there is a new migration, dump the database before deploying. The commands below read `$POSTGRES_USER` and `$POSTGRES_DB` from the shell, so export them from `.env` first (`set -a; . ./.env; set +a`). V16 (drops redundant indexes, sets `posts.published` and `newsletters.published` NOT NULL) and V17 (deletes `users` rows that are not admins) change or remove data, so a dump before them is mandatory. V16 is the first migration that drops objects. The dump directory lives outside the repository and has to be created once:
 
 ```bash
 mkdir -p /opt/backups
@@ -169,8 +169,10 @@ docker compose -f docker-compose.prod.yml up -d --force-recreate nginx
 | `api` | 10 r/s | burst 20 |
 | `media` | 30 r/s | |
 | `oauth` | 10 r/min | |
+| `contact` | 5 r/min | burst 3, `POST /api/contact` only |
 | `general` | 30 r/s | |
 
+- `Content-Security-Policy-Report-Only` is sent from the edge (same block as the other security headers). Violations show up in the browser console only (no report endpoint yet). The policy allows the inline theme script in `frontend/index.html` through its sha256 hash in `script-src`; `frontend/src/test/csp-hash.test.ts` fails when the script and the hash drift apart, so after editing the script recompute the hash (`node -e "const c=require('crypto');const h=require('fs').readFileSync('frontend/index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];console.log('sha256-'+c.createHash('sha256').update(h).digest('base64'))"`) and update `nginx/nginx.conf`. Switch to the enforcing `Content-Security-Policy` header after a week without violations.
 - Forwarded headers are overwritten at the edge: single-value `X-Forwarded-For` with the visitor IP, plus `X-Forwarded-Host`, `X-Forwarded-Port` 443 and `X-Forwarded-Proto` https.
 - Residual risk: port 80 is published on all interfaces, so a LAN client reaching the edge directly could forge `CF-Connecting-IP` and dodge the rate limits. The owner decision is to restrict port 80 to the cloudflared source and add `set_real_ip_from`.
 - The development compose publishes 5432, 8080 and 5173 on 127.0.0.1 only.
