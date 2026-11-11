@@ -1,12 +1,13 @@
 # STATE - marketingPortfolioApp
-Aktualizacja: 2026-11-11 (po decyzjach właściciela; trwa ostatnia paczka: podgląd szkicu)
+Aktualizacja: 2026-11-11 (audyt i decyzje właściciela wdrożone; czeka na merge do main przez właściciela)
 
 ## Cel bieżący
 Gałąź `audit-2026-11` (z `main` @ 99390e6): audyt + 21 paczek poprawek, poprawki po audycie regresji, docs,
-oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). W toku fala C (podgląd szkicu w panelu,
-`frontend-S4` w `.worktrees/draft-preview`). Właściciel sam scala do `main` i wdraża (runbook `docs/operations.md`).
+oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). Fala C (podgląd szkiców w panelu) scalona.
+Właściciel sam scala do `main` i wdraża (runbook `docs/operations.md`); otwarte D1 (upgrade Boot/CI) i D6 (porty, rola bazy).
 
 ## Ostatnio zrobione
+- 4d86841 fala C: podgląd szkiców (/admin/posts/:id/preview, /admin/newsletters/:id/preview); frontend vitest 260/260
 - bb6a458 i18n panelu admina (DeepSeek 10 plików + agent Claude 7 plików, 201 kluczy EN/PL)
 - f04ed51 fala B (health z Actuatora, bez /api/categories; Home/About błędy, menu mobilne, spinner, linki powrotu); 7fb0f78 fala A (Origin check, V17, honeypot, szkice 404, pliki wpisu, strefa contact, CSP RO, sanitizer About, 404, scroll, fonty lokalne, fasada YouTube, modal sesji, unsaved changes)
 - f177674 docs/audit-2026-11-porting-guide.md (przewodnik dla forka), Wyzwania 8-10 w README, PBS w runbooku; 66bf541 decyzje właściciela zapisane w docs/decyzje
@@ -20,7 +21,6 @@ oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). W tok
 - LESSONS.md: 21 lekcji (L12-L21 nowe), sekcja "Audyt 2026-11-11"; zsynchronizowane do D:\Dev\_lekcje.
 
 ## W toku
-- Fala C: workflow fix-wave dla frontend-S4 (podgląd szkicu wpisu/newslettera w panelu, test formularza bez fałszywego dirty). Po scaleniu: pełne testy, push, raport dla właściciela (z wyjaśnieniem D1 i D6).
 - Sprzątanie po audycie (po akceptacji raportu): `bash C:/Users/localnode/AppData/Local/Temp/mpa-audit/cleanup.sh`
   (21 worktree w `.worktrees/`, gałęzie `audit/*`, kontener `mpa-tc-socat`). Artefakty audytu w `%TEMP%\mpa-audit`.
 

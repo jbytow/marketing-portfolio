@@ -32,6 +32,8 @@ that updates itself.
   - Rich text editor (TipTap) for content creation
   - Media library with image/video/PDF uploads
   - Customizable site settings (hero, stats, footer, SEO)
+  - Draft preview for posts and newsletters, unsaved-changes warnings, session-expiry dialog that keeps the form
+  - Panel available in English and Polish
 - **Content Sections**:
   - About Me with editable tags and interests gallery
   - Professional Experience timeline with achievements

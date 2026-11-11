@@ -92,7 +92,7 @@ All endpoints in this section require the admin session described in Conventions
 | POST | `/api/admin/posts` | Create a post | Request body validated with `@Valid`; returns 201; slug generated from the title when empty |
 | PATCH | `/api/admin/posts/reorder` | Reorder posts | Body `{"items":[{"id":"<uuid>","displayOrder":<int>}]}`; empty or null elements return 400 |
 | DELETE | `/api/admin/posts/{id}` | Delete a post | Also deletes the post's media rows and stored files; returns a success envelope with no data |
-| GET | `/api/admin/posts/{id}` | Get a post by id | Returns both languages |
+| GET | `/api/admin/posts/{id}` | Get a post by id | Returns both languages; also feeds the admin draft preview at `/admin/posts/{id}/preview` |
 | PUT | `/api/admin/posts/{id}` | Update a post | Request body validated with `@Valid`; an empty slug keeps the previous one; duplicate slug returns 400 (409 only when two concurrent saves race on the database constraint) |
 | PATCH | `/api/admin/posts/{id}/publish` | Toggle the published flag | Returns the updated post |
 
