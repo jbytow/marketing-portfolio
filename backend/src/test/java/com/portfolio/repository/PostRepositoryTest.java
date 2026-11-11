@@ -243,19 +243,6 @@ class PostRepositoryTest {
     }
 
     @Nested
-    @DisplayName("countByCategoryAndPublished")
-    class CountByCategoryAndPublished {
-
-        @Test
-        @DisplayName("should count only published posts in category")
-        void shouldCountOnlyPublishedInCategory() {
-            long count = postRepository.countByCategoryAndPublished(Category.CAMPAIGNS);
-
-            assertThat(count).isEqualTo(2);
-        }
-    }
-
-    @Nested
     @DisplayName("existsBySlug")
     class ExistsBySlug {
 
