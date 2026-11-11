@@ -122,13 +122,10 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
 
-  // refetchType none: the post form is mounted and re-seeds its fields from this query,
-  // so an immediate refetch would wipe unsaved edits. The detail is refetched on next open.
+  // The mounted post form seeds its fields only once per post, so refetching the detail
+  // here keeps the cache fresh without touching unsaved edits.
   const invalidatePostQueries = () => {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.admin.post(postId),
-      refetchType: 'none',
-    });
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(postId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
     queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
   };
@@ -159,6 +156,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     onSuccess: (response) => {
       if (response.data) {
         onMediaChange([...media, response.data]);
+        invalidatePostQueries();
         setYoutubeUrl('');
         toast.success('YouTube video added');
       }

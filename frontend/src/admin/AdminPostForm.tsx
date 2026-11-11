@@ -45,14 +45,25 @@ export default function AdminPostForm() {
   const [newHashtag, setNewHashtag] = useState('');
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  const { data: postData, isLoading: postLoading, isError: loadFailed, refetch } = useQuery({
+  // Post id the form was seeded for. Later refetches (window focus, reconnect, invalidation
+  // after a media operation) must not overwrite unsaved edits.
+  const [seededId, setSeededId] = useState<string | null>(null);
+
+  const {
+    data: postData,
+    isLoading: postLoading,
+    isFetching: postFetching,
+    isError: loadFailed,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.admin.post(id!),
     queryFn: () => adminPostsApi.getById(id!),
     enabled: isEditing,
   });
 
+  // Wait for the fetch to finish: cached data may be stale and about to be replaced.
   useEffect(() => {
-    if (postData?.data) {
+    if (postData?.data && !postFetching && seededId !== id) {
       const post = postData.data;
       setFormData({
         category: post.category,
@@ -77,12 +88,13 @@ export default function AdminPostForm() {
         caseStudyTestimonialAuthor: post.caseStudyTestimonialAuthor || '',
       });
       setMedia(post.media || []);
+      setSeededId(id ?? null);
       // Auto-expand if there's existing case study content
       if (post.hasCaseStudy) {
         setCaseStudyExpanded(true);
       }
     }
-  }, [postData]);
+  }, [postData, postFetching, seededId, id]);
 
   const createMutation = useMutation({
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
@@ -162,7 +174,7 @@ export default function AdminPostForm() {
     formData.caseStudyResultsEn
   );
 
-  if (postLoading) {
+  if (postLoading || (isEditing && postData?.data && seededId !== id)) {
     return <LoadingSpinner />;
   }
 
