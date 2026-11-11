@@ -273,23 +273,7 @@ npm run dev
 
 ## API Endpoints
 
-### Public
-- `GET /api/posts` - List published posts
-- `GET /api/posts/{slug}` - Get post by slug
-- `GET /api/categories` - List categories
-- `GET /api/settings` - Get site settings
-- `GET /api/experiences` - List experiences
-- `GET /api/interests` - List interests
-- `GET /api/skill-categories/with-skills` - Skills grouped by category
-
-### Admin (requires authentication)
-- `GET/POST/PUT/DELETE /api/admin/posts` - Manage posts
-- `GET/POST/PUT/DELETE /api/admin/experiences` - Manage experiences
-- `GET/POST/PUT/DELETE /api/admin/interests` - Manage interests
-- `GET/POST/PUT/DELETE /api/admin/skill-categories` - Manage skill categories
-- `GET/POST/PUT/DELETE /api/admin/soft-skills` - Manage skills
-- `GET/POST /api/admin/media` - Manage media
-- `GET/PUT /api/admin/settings` - Manage settings
+The full REST reference (public and admin endpoints, authentication, response envelope, error codes) lives in [docs/api.md](docs/api.md).
 
 ## License
 
