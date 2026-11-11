@@ -20,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -606,11 +607,23 @@ class PostServiceTest {
                     .published(true)
                     .build();
 
-            given(postRepository.findAll()).willReturn(List.of(unpublished, published));
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of(unpublished, published));
 
             List<PostDto> result = postService.getAllPosts("en");
 
             assertThat(result).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("should request a stable order: category, then display order")
+        void shouldRequestStableOrder() {
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of());
+
+            postService.getAllPosts("en");
+
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            verify(postRepository).findAll(sortCaptor.capture());
+            assertThat(sortCaptor.getValue()).isEqualTo(Sort.by("category", "displayOrder"));
         }
     }
 }

@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +70,8 @@ public class PostService {
 
     // Admin methods
     public List<PostDto> getAllPosts(String locale) {
-        return postRepository.findAll().stream()
+        // displayOrder is per category (see getMaxDisplayOrder), so it only gives a stable order within one.
+        return postRepository.findAll(Sort.by("category", "displayOrder")).stream()
                 .map(post -> mapToDto(post, locale, false))
                 .toList();
     }
