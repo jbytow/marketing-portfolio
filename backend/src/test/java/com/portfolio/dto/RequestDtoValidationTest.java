@@ -257,6 +257,18 @@ class RequestDtoValidationTest {
     }
 
     @Test
+    @DisplayName("ContactRequest honeypot field is optional and capped at 200 characters")
+    void contactHoneypot() {
+        assertSizeLimit(ContactRequest::new, ContactRequest::setWebsite, "website", 200);
+
+        ContactRequest withoutHoneypot = new ContactRequest();
+        withoutHoneypot.setWebsite(null);
+        assertThat(violatedFields(withoutHoneypot)).doesNotContain("website");
+        withoutHoneypot.setWebsite("");
+        assertThat(violatedFields(withoutHoneypot)).doesNotContain("website");
+    }
+
+    @Test
     @DisplayName("Every admin @RequestBody parameter is annotated with @Valid")
     void adminControllersValidateRequestBodies() {
         List<Class<?>> controllers = List.of(
