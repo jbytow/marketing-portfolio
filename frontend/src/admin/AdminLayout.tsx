@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.dashboard.title', exact: true },
@@ -34,6 +35,7 @@ export default function AdminLayout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen bg-dark-900 flex">
@@ -108,7 +110,9 @@ export default function AdminLayout() {
           animate={{ opacity: 1, y: 0 }}
           className="p-8"
         >
-          <Outlet />
+          <ErrorBoundary key={location.pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </motion.div>
       </main>
     </div>

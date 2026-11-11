@@ -21,7 +21,9 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        // Context hooks live next to their providers; editing a context file then
+        // triggers a full HMR invalidation, which is accepted.
+        { allowConstantExport: true, allowExportNames: ['useAuth', 'useLanguage', 'useTheme'] },
       ],
       '@typescript-eslint/no-unused-vars': [
         'warn',
