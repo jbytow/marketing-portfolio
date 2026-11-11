@@ -59,11 +59,11 @@ export default function AdminInterestForm() {
       setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
-      toast.success('Interest created');
+      toast.success(t('admin.interests.createSuccess'));
       navigate('/admin/interests');
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to create interest'));
+      toast.error(getApiErrorMessage(error, t('admin.interests.createFailed')));
     },
   });
 
@@ -74,11 +74,11 @@ export default function AdminInterestForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interest(id!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
-      toast.success('Interest updated');
+      toast.success(t('admin.interests.updateSuccess'));
       navigate('/admin/interests');
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to update interest'));
+      toast.error(getApiErrorMessage(error, t('admin.interests.updateFailed')));
     },
   });
 
@@ -104,7 +104,7 @@ export default function AdminInterestForm() {
         setFormData((prev) => ({ ...prev, [field]: response.data.url }));
       }
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Failed to upload image'));
+      toast.error(getApiErrorMessage(error, t('admin.common.uploadImageFailed')));
     } finally {
       setUploading((prev) => ({ ...prev, [field]: false }));
     }
@@ -150,7 +150,7 @@ export default function AdminInterestForm() {
         <div className="card space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Title (English)</label>
+              <label className="label">{t('admin.common.titleEn')}</label>
               <input
                 type="text"
                 name="titleEn"
@@ -161,7 +161,7 @@ export default function AdminInterestForm() {
               />
             </div>
             <div>
-              <label className="label">Title (Polish)</label>
+              <label className="label">{t('admin.common.titlePl')}</label>
               <input
                 type="text"
                 name="titlePl"
@@ -174,7 +174,7 @@ export default function AdminInterestForm() {
           </div>
 
           <div>
-            <label className="label">Images (up to 3)</label>
+            <label className="label">{t('admin.interests.imagesUpTo3')}</label>
             <div className="grid grid-cols-3 gap-4">
               {(['image1', 'image2', 'image3'] as const).map((field, idx) => (
                 <div key={field} className="relative">
@@ -182,7 +182,7 @@ export default function AdminInterestForm() {
                     <div className="relative aspect-square rounded-lg overflow-hidden bg-dark-700">
                       <img
                         src={getMediaUrl(formData[field]!)}
-                        alt={`Image ${idx + 1}`}
+                        alt={t('admin.common.image', { number: idx + 1 })}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -200,7 +200,7 @@ export default function AdminInterestForm() {
                       ) : (
                         <>
                           <Upload className="w-6 h-6 text-dark-500 mb-2" />
-                          <span className="text-xs text-dark-500">Image {idx + 1}</span>
+                          <span className="text-xs text-dark-500">{t('admin.common.image', { number: idx + 1 })}</span>
                         </>
                       )}
                       <input

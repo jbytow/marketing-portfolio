@@ -41,10 +41,10 @@ export default function AdminMedia() {
     mutationFn: (file: File) => adminMediaApi.upload(file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
-      toast.success(t('admin.media.upload') + ' successful');
+      toast.success(t('admin.media.uploadSuccess'));
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to upload file'));
+      toast.error(getApiErrorMessage(error, t('admin.media.uploadFailed')));
     },
   });
 
@@ -56,10 +56,10 @@ export default function AdminMedia() {
       // Deleting the only item of the last page would otherwise leave an empty page
       if (page > 0 && media.length === 1) setPage(page - 1);
       setSelectedMedia(null);
-      toast.success('Media deleted successfully');
+      toast.success(t('admin.media.deleteSuccess'));
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to delete media'));
+      toast.error(getApiErrorMessage(error, t('admin.media.deleteFailed')));
     },
   });
 
@@ -88,10 +88,10 @@ export default function AdminMedia() {
     for (const { file, errors } of rejections) {
       const tooLarge = errors.some((e) => e.code === 'file-too-large');
       toast.error(
-        tooLarge ? `${file.name}: ${FILE_TOO_LARGE_MESSAGE}` : `${file.name}: File type not supported`
+        tooLarge ? `${file.name}: ${FILE_TOO_LARGE_MESSAGE}` : `${file.name}: ${t('admin.media.fileTypeNotSupported')}`
       );
     }
-  }, []);
+  }, [t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -105,7 +105,7 @@ export default function AdminMedia() {
   });
 
   const handleDelete = (item: Media) => {
-    if (window.confirm(`Are you sure you want to delete "${item.originalName}"?`)) {
+    if (window.confirm(t('admin.media.confirmDelete', { name: item.originalName }))) {
       deleteMutation.mutate(item.id);
     }
   };
@@ -144,7 +144,7 @@ export default function AdminMedia() {
         <p className="text-dark-300 mb-2">{t('admin.media.dragDrop')}</p>
         <p className="text-dark-500 text-sm">{t('admin.media.or')}</p>
         <button className="btn-secondary mt-4">
-          {isUploading ? 'Uploading...' : t('admin.media.browse')}
+          {isUploading ? t('admin.media.uploading') : t('admin.media.browse')}
         </button>
       </div>
 
@@ -225,7 +225,7 @@ export default function AdminMedia() {
         <div className="fixed inset-0 bg-dark-900/80 flex items-center justify-center z-50 p-4">
           <div className="card max-w-2xl w-full max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-dark-100">Media Details</h2>
+              <h2 className="text-xl font-semibold text-dark-100">{t('admin.media.details')}</h2>
               <button
                 onClick={() => setSelectedMedia(null)}
                 className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
@@ -254,19 +254,19 @@ export default function AdminMedia() {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-dark-500">Filename:</span>
+                <span className="text-dark-500">{t('admin.media.filename')}</span>
                 <span className="text-dark-200">{selectedMedia.originalName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-dark-500">Type:</span>
+                <span className="text-dark-500">{t('admin.media.type')}</span>
                 <span className="text-dark-200">{selectedMedia.mimeType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-dark-500">Size:</span>
-                <span className="text-dark-200">{selectedMedia.size ? formatFileSize(selectedMedia.size) : 'N/A'}</span>
+                <span className="text-dark-500">{t('admin.media.size')}</span>
+                <span className="text-dark-200">{selectedMedia.size ? formatFileSize(selectedMedia.size) : t('admin.common.notAvailable')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-dark-500">URL:</span>
+                <span className="text-dark-500">{t('admin.media.url')}</span>
                 <input
                   type="text"
                   value={selectedMedia.url}
@@ -283,7 +283,7 @@ export default function AdminMedia() {
                 className="btn-secondary text-red-400 hover:bg-red-500/20"
               >
                 <Trash2 className="w-5 h-5 mr-2" />
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

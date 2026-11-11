@@ -67,11 +67,11 @@ export default function AdminNewsletterForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
-      toast.success('Newsletter created successfully');
+      toast.success(t('admin.newsletters.createSuccess'));
       navigate('/admin/newsletters');
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to create newsletter'));
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.createFailed')));
     },
   });
 
@@ -83,11 +83,11 @@ export default function AdminNewsletterForm() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
-      toast.success('Newsletter updated successfully');
+      toast.success(t('admin.newsletters.updateSuccess'));
       navigate('/admin/newsletters');
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to update newsletter'));
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.updateFailed')));
     },
   });
 
@@ -113,7 +113,7 @@ export default function AdminNewsletterForm() {
         [`image${slot}`]: imageUrl,
       }));
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Failed to upload image'));
+      toast.error(getApiErrorMessage(error, t('admin.common.uploadImageFailed')));
     } finally {
       setUploading(null);
     }
@@ -161,11 +161,11 @@ export default function AdminNewsletterForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title Fields */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-dark-100 mb-4">Title</h2>
+          <h2 className="text-lg font-semibold text-dark-100 mb-4">{t('admin.common.title')}</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Title (English) *
+                {t('admin.common.titleEn')} *
               </label>
               <input
                 type="text"
@@ -177,7 +177,7 @@ export default function AdminNewsletterForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Title (Polish) *
+                {t('admin.common.titlePl')} *
               </label>
               <input
                 type="text"
@@ -192,7 +192,7 @@ export default function AdminNewsletterForm() {
 
         {/* Images */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-dark-100 mb-4">Images</h2>
+          <h2 className="text-lg font-semibold text-dark-100 mb-4">{t('admin.common.images')}</h2>
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((slot) => {
               const imageKey = `image${slot}` as 'image1' | 'image2' | 'image3';
@@ -201,13 +201,13 @@ export default function AdminNewsletterForm() {
               return (
                 <div key={slot} className="relative">
                   <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Image {slot}
+                    {t('admin.common.image', { number: slot })}
                   </label>
                   {imageUrl ? (
                     <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-dark-700">
                       <img
                         src={getMediaUrl(imageUrl)}
-                        alt={`Image ${slot}`}
+                        alt={t('admin.common.image', { number: slot })}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -225,7 +225,7 @@ export default function AdminNewsletterForm() {
                       ) : (
                         <>
                           <Upload className="w-8 h-8 text-dark-500 mb-2" />
-                          <span className="text-sm text-dark-500">Upload</span>
+                          <span className="text-sm text-dark-500">{t('admin.common.upload')}</span>
                         </>
                       )}
                       <input
@@ -245,11 +245,11 @@ export default function AdminNewsletterForm() {
 
         {/* Content Fields */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-dark-100 mb-4">Content</h2>
+          <h2 className="text-lg font-semibold text-dark-100 mb-4">{t('admin.common.content')}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Content (English)
+                {t('admin.common.contentEn')}
               </label>
               <textarea
                 value={formData.contentEn}
@@ -260,7 +260,7 @@ export default function AdminNewsletterForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">
-                Content (Polish)
+                {t('admin.common.contentPl')}
               </label>
               <textarea
                 value={formData.contentPl}
@@ -281,7 +281,7 @@ export default function AdminNewsletterForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, published: e.target.checked }))}
               className="w-5 h-5 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500"
             />
-            <span className="text-dark-200">Publish newsletter</span>
+            <span className="text-dark-200">{t('admin.newsletters.publishLabel')}</span>
           </label>
         </div>
 

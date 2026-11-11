@@ -93,10 +93,10 @@ export default function AdminSettings() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings() });
       // Invalidate all public settings queries (matches all languages)
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.settings() });
-      toast.success(t('admin.settings.title') + ' updated successfully');
+      toast.success(t('admin.settings.saveSuccess'));
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to update settings'));
+      toast.error(getApiErrorMessage(error, t('admin.settings.updateFailed')));
     },
   });
 
@@ -212,7 +212,7 @@ export default function AdminSettings() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Site Name (navbar brand)</label>
+              <label className="label">{t('admin.settings.siteName')}</label>
               <input
                 type="text"
                 name="siteName"
@@ -223,7 +223,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Owner Name (for copyright)</label>
+              <label className="label">{t('admin.settings.ownerName')}</label>
               <input
                 type="text"
                 name="ownerName"
@@ -245,13 +245,11 @@ export default function AdminSettings() {
                 className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500"
               />
               <span className="text-sm text-dark-200">
-                Rose theme: always show animations (ignore visitor's "reduce motion" setting)
+                {t('admin.settings.roseForceMotionLabel')}
               </span>
             </label>
             <p className="text-xs text-dark-500 mt-1 ml-6">
-              On by default — the decorative Rose effects (fairy, sparkles, cursor spell, etc.)
-              show for everyone regardless of a reduced-motion setting. Turn this off to let
-              visitors whose browser/OS requests reduced motion keep them hidden.
+              {t('admin.settings.roseForceMotionHint')}
             </p>
           </div>
         </div>
@@ -263,7 +261,7 @@ export default function AdminSettings() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Hero Title (English)</label>
+              <label className="label">{t('admin.settings.heroTitleEn')}</label>
               <input
                 type="text"
                 name="heroTitleEn"
@@ -273,7 +271,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Hero Title (Polish)</label>
+              <label className="label">{t('admin.settings.heroTitlePl')}</label>
               <input
                 type="text"
                 name="heroTitlePl"
@@ -285,7 +283,7 @@ export default function AdminSettings() {
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Hero Subtitle (English)</label>
+              <label className="label">{t('admin.settings.heroSubtitleEn')}</label>
               <textarea
                 name="heroSubtitleEn"
                 value={formData.heroSubtitleEn}
@@ -295,7 +293,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Hero Subtitle (Polish)</label>
+              <label className="label">{t('admin.settings.heroSubtitlePl')}</label>
               <textarea
                 name="heroSubtitlePl"
                 value={formData.heroSubtitlePl}
@@ -319,14 +317,14 @@ export default function AdminSettings() {
               className="btn-secondary text-sm"
             >
               <Plus className="w-4 h-4 mr-1" />
-              Add Stat
+              {t('admin.settings.addStat')}
             </button>
           </div>
           <div className="space-y-4">
             {formData.statsItems?.map((stat, index) => (
               <div key={index} className="p-4 bg-dark-700 rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-dark-300">Stat #{index + 1}</span>
+                  <span className="text-sm font-medium text-dark-300">{t('admin.settings.statNumber', { number: index + 1 })}</span>
                   <button
                     type="button"
                     onClick={() => removeStat(index)}
@@ -337,7 +335,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs">Icon</label>
+                    <label className="label text-xs">{t('admin.settings.statIcon')}</label>
                     <select
                       value={stat.icon}
                       onChange={(e) => handleStatChange(index, 'icon', e.target.value)}
@@ -351,7 +349,7 @@ export default function AdminSettings() {
                     </select>
                   </div>
                   <div>
-                    <label className="label text-xs">Value (e.g., "50+", "10M+")</label>
+                    <label className="label text-xs">{t('admin.settings.statValue')}</label>
                     <input
                       type="text"
                       value={stat.value}
@@ -363,7 +361,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs">Label (English)</label>
+                    <label className="label text-xs">{t('admin.settings.statLabelEn')}</label>
                     <input
                       type="text"
                       value={stat.labelEn}
@@ -373,7 +371,7 @@ export default function AdminSettings() {
                     />
                   </div>
                   <div>
-                    <label className="label text-xs">Label (Polish)</label>
+                    <label className="label text-xs">{t('admin.settings.statLabelPl')}</label>
                     <input
                       type="text"
                       value={stat.labelPl}
@@ -386,7 +384,7 @@ export default function AdminSettings() {
               </div>
             ))}
             {(!formData.statsItems || formData.statsItems.length === 0) && (
-              <p className="text-dark-500 text-center py-4">No stats added yet. Click "Add Stat" to create one.</p>
+              <p className="text-dark-500 text-center py-4">{t('admin.settings.noStats')}</p>
             )}
           </div>
         </div>
@@ -397,7 +395,7 @@ export default function AdminSettings() {
             {t('admin.settings.about')}
           </h2>
           <div>
-            <label className="label">Profile Image URL</label>
+            <label className="label">{t('admin.settings.profileImage')}</label>
             <input
               type="text"
               name="profileImage"
@@ -409,14 +407,14 @@ export default function AdminSettings() {
             {formData.profileImage && (
               <img
                 src={getMediaUrl(formData.profileImage)}
-                alt="Profile preview"
+                alt={t('admin.settings.profilePreviewAlt')}
                 className="mt-4 w-32 h-32 rounded-full object-cover"
               />
             )}
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">About Text (English)</label>
+              <label className="label">{t('admin.settings.aboutTextEn')}</label>
               <textarea
                 name="aboutTextEn"
                 value={formData.aboutTextEn}
@@ -426,7 +424,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">About Text (Polish)</label>
+              <label className="label">{t('admin.settings.aboutTextPl')}</label>
               <textarea
                 name="aboutTextPl"
                 value={formData.aboutTextPl}
@@ -439,7 +437,7 @@ export default function AdminSettings() {
 
           {/* About Tags */}
           <div className="pt-4 border-t border-dark-700">
-            <label className="label">Skill Tags</label>
+            <label className="label">{t('admin.settings.skillTags')}</label>
             <div className="flex flex-wrap gap-2 mb-4">
               {formData.aboutTagsEn?.map((tag, index) => (
                 <span
@@ -462,14 +460,14 @@ export default function AdminSettings() {
                 type="text"
                 value={newTagEn}
                 onChange={(e) => setNewTagEn(e.target.value)}
-                placeholder="Tag (English)"
+                placeholder={t('admin.settings.tagEn')}
                 className="input"
               />
               <input
                 type="text"
                 value={newTagPl}
                 onChange={(e) => setNewTagPl(e.target.value)}
-                placeholder="Tag (Polish)"
+                placeholder={t('admin.settings.tagPl')}
                 className="input"
               />
               <button
@@ -477,7 +475,7 @@ export default function AdminSettings() {
                 onClick={addTag}
                 className="btn-secondary"
               >
-                Add Tag
+                {t('admin.settings.addTag')}
               </button>
             </div>
           </div>
@@ -490,7 +488,7 @@ export default function AdminSettings() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Email</label>
+              <label className="label">{t('admin.settings.email')}</label>
               <input
                 type="email"
                 name="email"
@@ -500,7 +498,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Phone</label>
+              <label className="label">{t('admin.settings.phone')}</label>
               <input
                 type="tel"
                 name="phone"
@@ -540,7 +538,7 @@ export default function AdminSettings() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Footer Title (English)</label>
+              <label className="label">{t('admin.settings.footerTitleEn')}</label>
               <input
                 type="text"
                 name="footerTitleEn"
@@ -550,7 +548,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Footer Title (Polish)</label>
+              <label className="label">{t('admin.settings.footerTitlePl')}</label>
               <input
                 type="text"
                 name="footerTitlePl"
@@ -562,7 +560,7 @@ export default function AdminSettings() {
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Footer Tagline (English)</label>
+              <label className="label">{t('admin.settings.footerTaglineEn')}</label>
               <textarea
                 name="footerTaglineEn"
                 value={formData.footerTaglineEn}
@@ -572,7 +570,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Footer Tagline (Polish)</label>
+              <label className="label">{t('admin.settings.footerTaglinePl')}</label>
               <textarea
                 name="footerTaglinePl"
                 value={formData.footerTaglinePl}
@@ -591,7 +589,7 @@ export default function AdminSettings() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Meta Description (English)</label>
+              <label className="label">{t('admin.settings.metaDescriptionEn')}</label>
               <textarea
                 name="metaDescriptionEn"
                 value={formData.metaDescriptionEn}
@@ -601,7 +599,7 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="label">Meta Description (Polish)</label>
+              <label className="label">{t('admin.settings.metaDescriptionPl')}</label>
               <textarea
                 name="metaDescriptionPl"
                 value={formData.metaDescriptionPl}

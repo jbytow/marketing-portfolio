@@ -29,10 +29,10 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
-      toast.success('Newsletter deleted successfully');
+      toast.success(t('admin.newsletters.deleteSuccess'));
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to delete newsletter'));
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.deleteFailed')));
     },
     // Close the modal on failure too, otherwise it stays open with no feedback
     onSettled: () => {
@@ -49,10 +49,10 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
-      toast.success('Newsletter status updated');
+      toast.success(t('admin.newsletters.statusUpdated'));
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Failed to update newsletter status'));
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.statusUpdateFailed')));
     },
   });
 
@@ -104,7 +104,7 @@ export default function AdminNewsletters() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-500">
-                    No img
+                    {t('admin.common.noImage')}
                   </div>
                 )}
               </div>
@@ -135,7 +135,7 @@ export default function AdminNewsletters() {
                 <button
                   onClick={() => togglePublishMutation.mutate({ id: newsletter.id, published: newsletter.published })}
                   className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
-                  title={newsletter.published ? 'Unpublish' : 'Publish'}
+                  title={newsletter.published ? t('admin.common.unpublish') : t('admin.common.publish')}
                 >
                   {newsletter.published ? (
                     <EyeOff className="w-5 h-5" />
@@ -164,8 +164,8 @@ export default function AdminNewsletters() {
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
         open={deleteId !== null}
-        title="Delete Newsletter?"
-        message="This action cannot be undone."
+        title={t('admin.newsletters.deleteTitle')}
+        message={t('admin.newsletters.deleteMessage')}
         isPending={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
