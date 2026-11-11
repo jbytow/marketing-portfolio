@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { Heart, Linkedin, Instagram, Facebook, Mail } from 'lucide-react';
-import { settingsApi } from '@/services/api';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 
 const socialIcons: Record<string, typeof Linkedin> = {
   linkedin: Linkedin,
@@ -23,13 +20,9 @@ const footerLinks = [
 
 export default function Footer() {
   const { t } = useTranslation();
-  const { language } = useLanguage();
   const currentYear = new Date().getFullYear();
 
-  const { data: settingsData } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const { data: settingsData } = useSiteSettings();
 
   const settings = settingsData?.data;
   const socialLinks = Object.entries(settings?.socialLinks ?? {}).filter(([, url]) => url?.trim());

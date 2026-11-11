@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import type { AxiosError } from 'axios';
@@ -14,9 +13,8 @@ import {
   Instagram,
   Facebook,
 } from 'lucide-react';
-import { settingsApi, contactApi } from '@/services/api';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { queryKeys } from '@/lib/queryKeys';
+import { contactApi } from '@/services/api';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const socialIcons: Record<string, typeof Linkedin> = {
@@ -27,7 +25,6 @@ const socialIcons: Record<string, typeof Linkedin> = {
 
 export default function Contact() {
   const { t } = useTranslation();
-  const { language } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -36,10 +33,7 @@ export default function Contact() {
     message: '',
   });
 
-  const { data: settingsData, isLoading } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const { data: settingsData, isLoading } = useSiteSettings();
 
   const settings = settingsData?.data;
   const socialLinks = Object.entries(settings?.socialLinks ?? {}).filter(([, url]) => url?.trim());

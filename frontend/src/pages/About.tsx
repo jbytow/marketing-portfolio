@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { settingsApi, interestsApi } from '@/services/api';
+import { interestsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -12,10 +13,7 @@ export default function About() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const { data: settingsData, isLoading: settingsLoading } = useSiteSettings();
 
   const { data: interestsData } = useQuery({
     queryKey: queryKeys.interests(language),

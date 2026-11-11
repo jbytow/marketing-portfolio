@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,8 +8,7 @@ import type { Theme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { settingsApi } from '@/services/api';
-import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import { ROSE_EXPLOSION_EVENT } from '@/components/effects/RoseExplosion';
 
 const LOGO_CLICK_WINDOW_MS = 1500;
@@ -68,10 +66,7 @@ export default function Header() {
     }
   }
 
-  const { data: settingsData } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const { data: settingsData } = useSiteSettings();
 
   const settings = settingsData?.data;
 
