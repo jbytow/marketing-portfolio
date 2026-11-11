@@ -56,7 +56,7 @@ public class Post {
     @Column(name = "featured_image")
     private String featuredImage;
 
-    @Column(name = "published")
+    @Column(name = "published", nullable = false)
     @Builder.Default
     private Boolean published = false;
 
