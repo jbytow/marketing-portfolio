@@ -145,7 +145,7 @@ npm run build
 - Google OAuth2 is the only login provider
 - Admin access is the `ADMIN_EMAILS` allowlist combined with a verified Google e-mail; the list is re-checked on every request, and `/api/admin/**` requires `ROLE_ADMIN`
 - The JWT travels in an HttpOnly cookie (`Secure`, `SameSite=Lax` over HTTPS), so the frontend never handles the token
-- Anonymous calls to `/api/**` answer 401 as JSON, without a redirect to the login page
+- Anonymous calls to `/api/**` answer 401 without a body and without a redirect to the login page
 - `JWT_SECRET` must be at least 32 bytes; the `prod` profile refuses to start with a missing or development secret
 - CORS allows the single origin from `FRONTEND_URL`
 - Uploads are checked against a server-side MIME allowlist and cannot leave the upload directory

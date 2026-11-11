@@ -183,7 +183,7 @@ curl -sI https://zakulecka.pl/some-spa-route | head -n 1                    # 20
 ENTRY=$(curl -s https://zakulecka.pl/ | grep -oE '/assets/index-[^"]+\.js')
 curl -sI "https://zakulecka.pl$ENTRY" | grep -iE 'cache-control|expires'    # immutable, 1y
 curl -sI "https://zakulecka.pl$ENTRY.map" | head -n 1                       # 403
-curl -s -o /dev/null -w '%{http_code}\n' https://zakulecka.pl/api/admin/auth/me   # 401 (JSON, no redirect)
+curl -s -o /dev/null -w '%{http_code}\n' https://zakulecka.pl/api/admin/auth/me   # 401 (empty body, no redirect)
 curl -sI https://zakulecka.pl/oauth2/authorization/google | grep -i set-cookie    # JSESSIONID ... Secure; SameSite=Lax
 curl -s -o /dev/null -w '%{http_code}\n' https://zakulecka.pl/api/.env            # 404
 for i in $(seq 1 40); do curl -s -o /dev/null -w '%{http_code} ' https://zakulecka.pl/api/settings; done; echo   # some 429 after the burst

@@ -171,7 +171,7 @@ Deployment steps:
 A multi-agent audit (22 auditors, 311 verified findings) followed by 21 fix packages in four waves. Changes that
 supersede earlier notes in this file:
 
-- Security: unauthenticated `/api/**` calls answer 401 JSON (no redirect to Google); `/api/admin/**` requires
+- Security: unauthenticated `/api/**` calls answer 401 with an empty body (no redirect to Google); `/api/admin/**` requires
   `ROLE_ADMIN`; the `ADMIN_EMAILS` allowlist is re-checked on every request; `JWT_SECRET` must be at least 32 bytes
   and the `prod` profile refuses the development default; Google e-mails must be verified; GitHub login code removed.
 - Errors: client errors map to 4xx with `ApiResponse` bodies (400/404/405/409/413/415/503) and one WARN line, no
