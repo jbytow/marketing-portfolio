@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
+import type { AxiosError } from 'axios';
 import {
   Mail,
   Phone,
@@ -51,8 +52,10 @@ export default function Contact() {
       await contactApi.submit(formData);
       toast.success(t('contact.form.success'));
       setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch {
-      toast.error(t('contact.form.error'));
+    } catch (err) {
+      // 400 means the backend rejected the input itself, so retrying unchanged cannot work.
+      const isRejected = (err as AxiosError)?.response?.status === 400;
+      toast.error(t(isRejected ? 'contact.form.invalid' : 'contact.form.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +101,7 @@ export default function Contact() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="input"
+                      maxLength={100}
                       required
                     />
                   </div>
@@ -126,6 +130,7 @@ export default function Contact() {
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="input"
+                    maxLength={200}
                     required
                   />
                 </div>
@@ -140,6 +145,7 @@ export default function Contact() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="input resize-none"
+                    maxLength={5000}
                     required
                   />
                 </div>
@@ -170,7 +176,7 @@ export default function Contact() {
             >
               <div className="card">
                 <h3 className="text-xl font-semibold text-dark-100 mb-6">
-                  Contact Information
+                  {t('contact.info.title')}
                 </h3>
 
                 <div className="space-y-4">
