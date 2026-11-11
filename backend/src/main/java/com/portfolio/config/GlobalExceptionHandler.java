@@ -2,6 +2,7 @@ package com.portfolio.config;
 
 import com.portfolio.dto.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +60,26 @@ public class GlobalExceptionHandler {
         log.warn("File too large: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("File size exceeds the maximum allowed limit"));
+    }
+
+    /**
+     * Unknown paths (typically scanners probing /api/.env and similar) are routine noise,
+     * so they get a one-line WARN instead of the generic ERROR with a stack trace.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNoResourceFound(NoResourceFoundException ex,
+                                                                     HttpServletRequest request) {
+        log.warn("No resource: {} {} from {}", request.getMethod(), request.getRequestURI(), clientAddress(request));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "not found"));
+    }
+
+    private static String clientAddress(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @ExceptionHandler(Exception.class)
