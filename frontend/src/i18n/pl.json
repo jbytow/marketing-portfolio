@@ -20,6 +20,11 @@
     "showLess": "Mniej",
     "loadError": "Nie udało się wczytać treści."
   },
+  "notFound": {
+    "title": "Nie znaleziono strony",
+    "message": "Strona, której szukasz, nie istnieje lub została przeniesiona.",
+    "backHome": "Wróć na stronę główną"
+  },
   "nav": {
     "home": "Strona główna",
     "about": "O mnie",
@@ -98,6 +103,7 @@
   "contact": {
     "title": "Skontaktuj się",
     "subtitle": "Porozmawiajmy o Twoim następnym projekcie",
+    "honeypot": "Zostaw to pole puste",
     "form": {
       "name": "Twoje imię",
       "email": "Twój email",
@@ -248,7 +254,8 @@
   "media": {
     "videoUnsupported": "Twoja przeglądarka nie obsługuje odtwarzania wideo.",
     "youtubeVideo": "Film w serwisie YouTube",
-    "goToSlide": "Przejdź do slajdu {{n}}"
+    "goToSlide": "Przejdź do slajdu {{n}}",
+    "playVideo": "Odtwórz film"
   },
   "post": {
     "notFound": "Nie znaleziono wpisu"
