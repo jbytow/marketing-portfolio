@@ -1,7 +1,8 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import Footer from './Footer';
+import ErrorBoundary from './ErrorBoundary';
 import FairyDust from './effects/FairyDust';
 import RoseBloom from './effects/RoseBloom';
 import RoseExplosion from './effects/RoseExplosion';
@@ -16,6 +17,8 @@ import MakePrettierButton from './effects/MakePrettierButton';
 import RoseForceMotion from './effects/RoseForceMotion';
 
 export default function Layout() {
+  const location = useLocation();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -25,7 +28,10 @@ export default function Layout() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <Outlet />
+        {/* Keyed by path so a page crash keeps the header and footer and clears on navigation */}
+        <ErrorBoundary key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </motion.main>
       <Footer />
       <FairyDust />

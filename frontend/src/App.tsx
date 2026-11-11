@@ -1,40 +1,45 @@
 import { Routes, Route } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, ComponentType } from 'react';
 import Layout from './components/Layout';
 import AdminLayout from './admin/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 
+// main.tsx swallows vite:preloadError and reloads; the swallowed import then resolves to
+// undefined. Suspending forever until the reload lands avoids flashing the error screen.
+const page = (load: () => Promise<{ default: ComponentType }>) =>
+  lazy(() => load().then((m) => m ?? new Promise<never>(() => {})));
+
 // Public pages
-const Home = lazy(() => import('./pages/Home'));
-const About = lazy(() => import('./pages/About'));
-const Experience = lazy(() => import('./pages/Experience'));
-const Projects = lazy(() => import('./pages/Projects'));
-const Newsletter = lazy(() => import('./pages/Newsletter'));
-const NewsletterDetail = lazy(() => import('./pages/NewsletterDetail'));
-const PostDetail = lazy(() => import('./pages/PostDetail'));
-const Content = lazy(() => import('./pages/Content'));
-const Skills = lazy(() => import('./pages/Skills'));
-const Contact = lazy(() => import('./pages/Contact'));
+const Home = page(() => import('./pages/Home'));
+const About = page(() => import('./pages/About'));
+const Experience = page(() => import('./pages/Experience'));
+const Projects = page(() => import('./pages/Projects'));
+const Newsletter = page(() => import('./pages/Newsletter'));
+const NewsletterDetail = page(() => import('./pages/NewsletterDetail'));
+const PostDetail = page(() => import('./pages/PostDetail'));
+const Content = page(() => import('./pages/Content'));
+const Skills = page(() => import('./pages/Skills'));
+const Contact = page(() => import('./pages/Contact'));
 
 // Admin pages
-const AdminLogin = lazy(() => import('./admin/AdminLogin'));
-const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
-const AdminPosts = lazy(() => import('./admin/AdminPosts'));
-const AdminPostForm = lazy(() => import('./admin/AdminPostForm'));
-const AdminSoftSkills = lazy(() => import('./admin/AdminSoftSkills'));
-const AdminSoftSkillForm = lazy(() => import('./admin/AdminSoftSkillForm'));
-const AdminSkillCategories = lazy(() => import('./admin/AdminSkillCategories'));
-const AdminSkillCategoryForm = lazy(() => import('./admin/AdminSkillCategoryForm'));
-const AdminExperiences = lazy(() => import('./admin/AdminExperiences'));
-const AdminExperienceForm = lazy(() => import('./admin/AdminExperienceForm'));
-const AdminNewsletters = lazy(() => import('./admin/AdminNewsletters'));
-const AdminNewsletterForm = lazy(() => import('./admin/AdminNewsletterForm'));
-const AdminInterests = lazy(() => import('./admin/AdminInterests'));
-const AdminInterestForm = lazy(() => import('./admin/AdminInterestForm'));
-const AdminMedia = lazy(() => import('./admin/AdminMedia'));
-const AdminSettings = lazy(() => import('./admin/AdminSettings'));
+const AdminLogin = page(() => import('./admin/AdminLogin'));
+const AdminDashboard = page(() => import('./admin/AdminDashboard'));
+const AdminPosts = page(() => import('./admin/AdminPosts'));
+const AdminPostForm = page(() => import('./admin/AdminPostForm'));
+const AdminSoftSkills = page(() => import('./admin/AdminSoftSkills'));
+const AdminSoftSkillForm = page(() => import('./admin/AdminSoftSkillForm'));
+const AdminSkillCategories = page(() => import('./admin/AdminSkillCategories'));
+const AdminSkillCategoryForm = page(() => import('./admin/AdminSkillCategoryForm'));
+const AdminExperiences = page(() => import('./admin/AdminExperiences'));
+const AdminExperienceForm = page(() => import('./admin/AdminExperienceForm'));
+const AdminNewsletters = page(() => import('./admin/AdminNewsletters'));
+const AdminNewsletterForm = page(() => import('./admin/AdminNewsletterForm'));
+const AdminInterests = page(() => import('./admin/AdminInterests'));
+const AdminInterestForm = page(() => import('./admin/AdminInterestForm'));
+const AdminMedia = page(() => import('./admin/AdminMedia'));
+const AdminSettings = page(() => import('./admin/AdminSettings'));
 
 function App() {
   return (
