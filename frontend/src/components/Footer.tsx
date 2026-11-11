@@ -32,6 +32,7 @@ export default function Footer() {
   });
 
   const settings = settingsData?.data;
+  const socialLinks = Object.entries(settings?.socialLinks ?? {}).filter(([, url]) => url?.trim());
 
   const getSocialHref = (platform: string, url: string) => {
     if (platform.toLowerCase() === 'email') {
@@ -75,7 +76,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-dark-100">{t('contact.info.social')}</h3>
             <div className="flex space-x-3">
-              {settings?.socialLinks && Object.entries(settings.socialLinks).map(([platform, url]) => {
+              {socialLinks.map(([platform, url]) => {
                 const Icon = socialIcons[platform.toLowerCase()] || Linkedin;
                 return (
                   <a
@@ -94,7 +95,7 @@ export default function Footer() {
                 <a
                   href={`mailto:${settings.email}`}
                   className="p-2 text-dark-400 hover:text-primary-400 bg-dark-800 hover:bg-dark-700 rounded-lg transition-colors"
-                  aria-label="Email"
+                  aria-label={t('contact.info.email')}
                 >
                   <Mail className="w-5 h-5" />
                 </a>

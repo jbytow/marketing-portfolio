@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
 import { newslettersApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
@@ -18,7 +19,7 @@ export default function NewsletterDetail() {
   const { t } = useTranslation();
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.newsletter(language, slug!),
     queryFn: () => newslettersApi.getBySlug(slug!),
     enabled: !!slug,
@@ -26,14 +27,28 @@ export default function NewsletterDetail() {
 
   const newsletter = data?.data;
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
-  if (error || !newsletter) {
+  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
+  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !newsletter);
+
+  if (isError && !isNotFound) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-dark-100 mb-4">Newsletter not found</h1>
+        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-secondary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (isNotFound || !newsletter) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('newsletter.notFound')}</h1>
         <Link to="/newsletter" className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
           {t('common.backTo')} {t('newsletter.title')}
@@ -44,10 +59,6 @@ export default function NewsletterDetail() {
 
   // Get the 3 images
   const images = [newsletter.image1, newsletter.image2, newsletter.image3].filter(Boolean) as string[];
-
-  const handleImageClick = (src: string, alt: string) => {
-    setLightboxImage({ src, alt });
-  };
 
   return (
     <>
@@ -93,17 +104,19 @@ export default function NewsletterDetail() {
               className="mb-8 flex gap-4 justify-center"
             >
               {images.map((img, index) => (
-                <div
+                <button
                   key={index}
+                  type="button"
+                  aria-label={t('newsletter.enlargeImage')}
                   className="flex-1 max-w-xs aspect-[4/5] rounded-xl overflow-hidden bg-dark-700 cursor-zoom-in"
-                  onClick={() => handleImageClick(getMediaUrl(img), `${newsletter.title} - ${index + 1}`)}
+                  onClick={() => setLightboxImage({ src: getMediaUrl(img), alt: `${newsletter.title} - ${index + 1}` })}
                 >
                   <img
                     src={getMediaUrl(img)}
                     alt={`${newsletter.title} - ${index + 1}`}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
-                </div>
+                </button>
               ))}
             </motion.div>
           )}

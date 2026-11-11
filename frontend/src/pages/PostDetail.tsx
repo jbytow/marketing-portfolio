@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { ArrowLeft, ChevronDown, ChevronUp, Target, Lightbulb, TrendingUp, Quote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
 import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
@@ -27,7 +28,7 @@ export default function PostDetail() {
   const backPath = isNewsletter ? '/newsletter' : isContent ? '/content' : '/projects';
   const backLabelKey = isNewsletter ? 'newsletter.title' : isContent ? 'content.title' : 'projects.title';
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.post(language, slug!),
     queryFn: () => postsApi.getBySlug(slug!),
     enabled: !!slug,
@@ -35,14 +36,28 @@ export default function PostDetail() {
 
   const post = data?.data;
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
-  if (error || !post) {
+  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
+  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !post);
+
+  if (isError && !isNotFound) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-dark-100 mb-4">Post not found</h1>
+        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-secondary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (isNotFound || !post) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('post.notFound')}</h1>
         <Link to={backPath} className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
           {t('common.backTo')} {t(backLabelKey)}
