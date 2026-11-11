@@ -22,11 +22,10 @@ export default function PostDetail() {
   const { t } = useTranslation();
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  // Determine section based on URL path
-  const isNewsletter = location.pathname.startsWith('/newsletter');
+  // PostDetail is routed under /projects/:slug and /content/:slug only; newsletters have their own page
   const isContent = location.pathname.startsWith('/content');
-  const backPath = isNewsletter ? '/newsletter' : isContent ? '/content' : '/projects';
-  const backLabelKey = isNewsletter ? 'newsletter.title' : isContent ? 'content.title' : 'projects.title';
+  const backPath = isContent ? '/content' : '/projects';
+  const backLabelKey = isContent ? 'content.title' : 'projects.title';
 
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.post(language, slug!),
@@ -70,7 +69,7 @@ export default function PostDetail() {
     <>
       <Helmet>
         <title>{post.title} | Portfolio</title>
-        <meta name="description" content={post.excerpt} />
+        <meta name="description" content={post.excerpt ?? undefined} />
       </Helmet>
 
       <article className="py-20">

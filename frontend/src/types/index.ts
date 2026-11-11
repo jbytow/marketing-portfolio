@@ -15,22 +15,24 @@ export interface Post {
   category: Category;
   categoryLabel: string;
   title: string;
-  titleEn: string;
-  titlePl: string;
+  // Raw *En/*Pl fields are filled only in admin responses; public ones carry the locale-resolved field
+  titleEn: string | null;
+  titlePl: string | null;
   slug: string;
-  excerpt: string;
-  excerptEn: string;
-  excerptPl: string;
-  content: Record<string, unknown>;
-  contentEn: Record<string, unknown>;
-  contentPl: Record<string, unknown>;
+  excerpt: string | null;
+  excerptEn: string | null;
+  excerptPl: string | null;
+  // Lists omit content; only detail responses fill it
+  content: Record<string, unknown> | null;
+  contentEn: Record<string, unknown> | null;
+  contentPl: Record<string, unknown> | null;
   featuredImage: string | null;
   published: boolean;
   displayOrder: number;
   hashtags: string[];
   createdAt: string;
   updatedAt: string;
-  media?: Media[];
+  media?: Media[] | null;
   // Case Study fields
   hasCaseStudy: boolean;
   caseStudyChallenge: string | null;
@@ -53,12 +55,12 @@ export interface SoftSkill {
   name: string;
   nameEn: string;
   namePl: string;
-  description: string;
-  descriptionEn: string;
-  descriptionPl: string;
-  professionalUsage: string;
-  professionalUsageEn: string;
-  professionalUsagePl: string;
+  description: string | null;
+  descriptionEn: string | null;
+  descriptionPl: string | null;
+  professionalUsage: string | null;
+  professionalUsageEn: string | null;
+  professionalUsagePl: string | null;
   icon: string | null;
   displayOrder: number;
   categoryId: string | null;
@@ -90,12 +92,12 @@ export interface Experience {
   company: string;
   startDate: string;
   endDate: string | null;
-  description: string;
-  descriptionEn: string;
-  descriptionPl: string;
-  achievements: string[];
-  achievementsEn: string[];
-  achievementsPl: string[];
+  description: string | null;
+  descriptionEn: string | null;
+  descriptionPl: string | null;
+  achievements: string[] | null;
+  achievementsEn: string[] | null;
+  achievementsPl: string[] | null;
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -144,9 +146,9 @@ export interface Media {
   mimeType: string | null;
   size: number | null;
   url: string;
-  altText: string;
-  altTextEn: string;
-  altTextPl: string;
+  altText: string | null;
+  altTextEn: string | null;
+  altTextPl: string | null;
   displayOrder: number;
   videoUrl: string | null;
   createdAt: string;
@@ -177,9 +179,9 @@ export interface SiteSettings {
   footerTaglinePl: string;
   ownerName: string;
   siteName: string;
-  aboutTags: string[];
-  aboutTagsEn: string[];
-  aboutTagsPl: string[];
+  aboutTags: string[] | null;
+  aboutTagsEn: string[] | null;
+  aboutTagsPl: string[] | null;
   statsItems: StatItem[];
   roseForceMotion: boolean;
 }

@@ -24,9 +24,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { settingsApi, postsApi } from '@/services/api';
+import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import KpiBlessing from '@/components/effects/KpiBlessing';
@@ -55,10 +56,7 @@ export default function Home() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const { data: settingsData, isLoading: settingsLoading } = useSiteSettings();
 
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: queryKeys.posts(language, 'featured'),

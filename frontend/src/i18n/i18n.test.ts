@@ -42,9 +42,6 @@ function isQuotedIn(code: string, key: string): boolean {
   return ['"', "'", '`'].some((quote) => code.includes(`${quote}${key}${quote}`));
 }
 
-// Keys whose consumers land in later audit packages (frontend-P5 AdminLogin, frontend-P7 Rose effects); drop each entry once its t() call exists
-const PENDING_CONSUMERS = new Set(['admin.auth.oauthFailed', 'rose.kpiBlessing', 'rose.midnightBanner']);
-
 describe('i18n resources', () => {
   it('en.json and pl.json have identical keys', () => {
     expect(Object.keys(plFlat).sort()).toEqual(Object.keys(enFlat).sort());
@@ -72,7 +69,6 @@ describe('i18n resources', () => {
       .map((key) => key.slice(0, key.indexOf('${')));
     const unused = Object.keys(enFlat).filter(
       (key) =>
-        !PENDING_CONSUMERS.has(key) &&
         !dynamicPrefixes.some((prefix) => key.startsWith(prefix)) &&
         !isQuotedIn(code, key)
     );
