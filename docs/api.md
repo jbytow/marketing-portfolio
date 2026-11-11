@@ -95,7 +95,7 @@ All endpoints in this section require the admin session described in Conventions
 | PATCH | `/api/admin/posts/reorder` | Reorder posts | Body `{"items":[{"id":"<uuid>","displayOrder":<int>}]}`; empty or null elements return 400 |
 | DELETE | `/api/admin/posts/{id}` | Delete a post | Returns a success envelope with no data |
 | GET | `/api/admin/posts/{id}` | Get a post by id | Returns both languages |
-| PUT | `/api/admin/posts/{id}` | Update a post | Request body validated with `@Valid`; an empty slug keeps the previous one; duplicate slug returns 409 |
+| PUT | `/api/admin/posts/{id}` | Update a post | Request body validated with `@Valid`; an empty slug keeps the previous one; duplicate slug returns 400 (409 only when two concurrent saves race on the database constraint) |
 | PATCH | `/api/admin/posts/{id}/publish` | Toggle the published flag | Returns the updated post |
 
 ### Media
@@ -140,7 +140,7 @@ All endpoints in this section require the admin session described in Conventions
 | POST | `/api/admin/newsletters` | Create a newsletter | Returned with 201; slug generated from the title when empty |
 | DELETE | `/api/admin/newsletters/{id}` | Delete a newsletter | |
 | GET | `/api/admin/newsletters/{id}` | Get a newsletter by id | |
-| PUT | `/api/admin/newsletters/{id}` | Update a newsletter | An empty slug keeps the previous one; duplicate slug returns 409 |
+| PUT | `/api/admin/newsletters/{id}` | Update a newsletter | An empty slug keeps the previous one; duplicate slug returns 400 (409 only when two concurrent saves race on the database constraint) |
 
 ### Skill categories
 
