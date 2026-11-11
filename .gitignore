@@ -43,3 +43,6 @@ uploads/
 # Frontend deploy output (accumulated asset generations, see DEPLOY.md)
 frontend/www/
 frontend/.deploy/
+
+# TypeScript incremental build info
+frontend/*.tsbuildinfo

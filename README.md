@@ -294,6 +294,17 @@ The full list with defaults lives in [`.env.example`](.env.example). Startup che
 
 The full REST reference (public and admin endpoints, authentication, response envelope, error codes) lives in [docs/api.md](docs/api.md).
 
+## Documentation
+
+- [docs/api.md](docs/api.md): REST reference (public and admin endpoints, authentication, response envelope, error codes).
+- [docs/operations.md](docs/operations.md): production runbook (deploying backend, frontend and edge changes, verification, periodic tasks, backups, restore).
+- [docs/decyzje/](docs/decyzje/): owner decisions deferred by the 2026-11 audit (in Polish).
+- `STATE.md`: current working state of the project; `context.md`: append-only project journal.
+
+## Project Status
+
+The public site and the admin panel work end to end in production (Google login, bilingual content, media library, additive frontend deploys). The November 2026 audit hardened authentication, error handling, uploads, the edge proxy and the dependency set, and added database and frontend test suites. Open items are tracked as owner decisions in `docs/decyzje/` (backups, Spring Boot upgrade, admin panel i18n, a 404 page) and in `STATE.md`.
+
 ## License
 
 MIT
