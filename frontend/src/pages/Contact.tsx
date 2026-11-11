@@ -41,6 +41,7 @@ export default function Contact() {
   });
 
   const settings = settingsData?.data;
+  const socialLinks = Object.entries(settings?.socialLinks ?? {}).filter(([, url]) => url?.trim());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,14 +217,14 @@ export default function Contact() {
               </div>
 
               {/* Social Links */}
-              {settings?.socialLinks && Object.keys(settings.socialLinks).length > 0 && (
+              {socialLinks.length > 0 && (
                 <div className="card">
                   <h3 className="text-xl font-semibold text-dark-100 mb-6">
                     {t('contact.info.social')}
                   </h3>
 
                   <div className="flex flex-wrap gap-3">
-                    {Object.entries(settings.socialLinks).map(([platform, url]) => {
+                    {socialLinks.map(([platform, url]) => {
                       const Icon = socialIcons[platform.toLowerCase()] || Linkedin;
                       return (
                         <a
