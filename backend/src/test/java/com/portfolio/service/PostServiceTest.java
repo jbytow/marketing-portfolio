@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -624,6 +625,125 @@ class PostServiceTest {
             ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
             verify(postRepository).findAll(sortCaptor.capture());
             assertThat(sortCaptor.getValue()).isEqualTo(Sort.by("category", "displayOrder"));
+        }
+    }
+
+    @Nested
+    @DisplayName("response shape")
+    class ResponseShape {
+
+        @BeforeEach
+        void fillBothLanguages() {
+            samplePost.setContentEn(Map.of("type", "doc-en"));
+            samplePost.setContentPl(Map.of("type", "doc-pl"));
+            samplePost.setCaseStudyChallengeEn("Challenge EN");
+            samplePost.setCaseStudyChallengePl("Wyzwanie PL");
+            samplePost.setCaseStudySolutionEn("Solution EN");
+            samplePost.setCaseStudySolutionPl("Rozwiązanie PL");
+            samplePost.setCaseStudyResultsEn("Results EN");
+            samplePost.setCaseStudyResultsPl("Wyniki PL");
+            samplePost.setCaseStudyTestimonialEn("Testimonial EN");
+            samplePost.setCaseStudyTestimonialPl("Opinia PL");
+            samplePost.setCaseStudyTestimonialAuthor("Jane Doe");
+        }
+
+        @Test
+        @DisplayName("public lists should carry only the resolved title and excerpt, without case-study texts")
+        void publicListIsLean() {
+            given(postRepository.findAllPublished()).willReturn(List.of(samplePost));
+            given(postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS))
+                    .willReturn(List.of(samplePost));
+            given(postRepository.findByHashtagAndPublishedTrue("seo")).willReturn(List.of(samplePost));
+
+            List<PostDto> lists = List.of(
+                    postService.getAllPublishedPosts("pl").get(0),
+                    postService.getPostsByCategory(Category.CAMPAIGNS, "pl").get(0),
+                    postService.getPostsByHashtag("seo", "pl").get(0));
+
+            assertThat(lists).allSatisfy(dto -> {
+                assertThat(dto.getTitle()).isEqualTo("Test Title PL");
+                assertThat(dto.getExcerpt()).isEqualTo("Excerpt PL");
+                assertThat(dto.getHasCaseStudy()).isTrue();
+                assertThat(dto).extracting(
+                                PostDto::getTitleEn, PostDto::getTitlePl,
+                                PostDto::getExcerptEn, PostDto::getExcerptPl,
+                                PostDto::getContent, PostDto::getContentEn, PostDto::getContentPl,
+                                PostDto::getCaseStudyChallenge, PostDto::getCaseStudyChallengeEn,
+                                PostDto::getCaseStudyChallengePl,
+                                PostDto::getCaseStudySolution, PostDto::getCaseStudySolutionEn,
+                                PostDto::getCaseStudySolutionPl,
+                                PostDto::getCaseStudyResults, PostDto::getCaseStudyResultsEn,
+                                PostDto::getCaseStudyResultsPl,
+                                PostDto::getCaseStudyTestimonial, PostDto::getCaseStudyTestimonialEn,
+                                PostDto::getCaseStudyTestimonialPl, PostDto::getCaseStudyTestimonialAuthor)
+                        .containsOnlyNulls();
+            });
+        }
+
+        @Test
+        @DisplayName("public detail should carry the resolved content and case study but no raw language fields")
+        void publicDetailHasOnlyResolvedFields() {
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            PostDto dto = postService.getPostBySlug("test-title-en", "pl");
+
+            assertThat(dto.getContent()).isEqualTo(Map.of("type", "doc-pl"));
+            assertThat(dto).extracting(
+                            PostDto::getCaseStudyChallenge, PostDto::getCaseStudySolution,
+                            PostDto::getCaseStudyResults, PostDto::getCaseStudyTestimonial,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly("Wyzwanie PL", "Rozwiązanie PL", "Wyniki PL", "Opinia PL", "Jane Doe");
+            assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getContentEn, PostDto::getContentPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudySolutionEn, PostDto::getCaseStudySolutionPl,
+                            PostDto::getCaseStudyResultsEn, PostDto::getCaseStudyResultsPl,
+                            PostDto::getCaseStudyTestimonialEn, PostDto::getCaseStudyTestimonialPl)
+                    .containsOnlyNulls();
+        }
+
+        @Test
+        @DisplayName("admin detail should keep every raw language field")
+        void adminDetailKeepsRawFields() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+
+            PostDto dto = postService.getPostById(postId, "en");
+
+            assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudySolutionEn, PostDto::getCaseStudySolutionPl,
+                            PostDto::getCaseStudyResultsEn, PostDto::getCaseStudyResultsPl,
+                            PostDto::getCaseStudyTestimonialEn, PostDto::getCaseStudyTestimonialPl,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly(
+                            "Test Title EN", "Test Title PL", "Excerpt EN", "Excerpt PL",
+                            "Challenge EN", "Wyzwanie PL", "Solution EN", "Rozwiązanie PL",
+                            "Results EN", "Wyniki PL", "Testimonial EN", "Opinia PL", "Jane Doe");
+            assertThat(dto.getContentEn()).isEqualTo(Map.of("type", "doc-en"));
+            assertThat(dto.getContentPl()).isEqualTo(Map.of("type", "doc-pl"));
+        }
+
+        @Test
+        @DisplayName("admin list should keep every raw language field")
+        void adminListKeepsRawFields() {
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of(samplePost));
+            given(postRepository.findAllByCategory(Category.CAMPAIGNS)).willReturn(List.of(samplePost));
+
+            List<PostDto> lists = List.of(
+                    postService.getAllPosts("en").get(0),
+                    postService.getAllPostsByCategory(Category.CAMPAIGNS, "en").get(0));
+
+            assertThat(lists).allSatisfy(dto -> assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly("Test Title EN", "Test Title PL", "Excerpt EN", "Excerpt PL",
+                            "Challenge EN", "Wyzwanie PL", "Jane Doe"));
         }
     }
 }
