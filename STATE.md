@@ -35,4 +35,4 @@ Etapy 0-3 zrobione, trwa Etap 4-5 (poprawki w worktree + recenzje), fala 1 z 4.
 
 ## Gdzie szukać
 - `backend/src/main/java/com/portfolio/config/GlobalExceptionHandler.java`, `SecurityConfig.java`: granice błędów i auth.
-- `frontend/nginx.conf`, `nginx/nginx.conf`, `frontend/deploy.sh`, `DEPLOY.md`: wdrożenie.
+- `frontend/nginx.conf`, `nginx/nginx.conf`, `frontend/deploy.sh`, `docs/operations.md`: wdrożenie.

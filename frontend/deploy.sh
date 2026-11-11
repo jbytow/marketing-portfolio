@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Additive frontend deploy. New hashed chunks are added next to the old ones and index.html is
 # swapped last, so browsers still holding an older index.html keep loading their own chunks
-# instead of getting 404s. See DEPLOY.md.
+# instead of getting 404s. See docs/operations.md.
 #
 #   frontend/deploy.sh                    build, publish into frontend/www, (re)start the container
 #   frontend/deploy.sh prune              delete assets that are outside the last KEEP_GENERATIONS
