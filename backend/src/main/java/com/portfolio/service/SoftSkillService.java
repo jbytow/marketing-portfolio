@@ -26,23 +26,19 @@ public class SoftSkillService {
 
     public List<SoftSkillDto> getAllSoftSkills(String locale) {
         return softSkillRepository.findAllByOrderByDisplayOrderAsc().stream()
-                .map(skill -> mapToDto(skill, locale))
+                .map(skill -> SoftSkillDto.from(skill, locale))
                 .toList();
     }
 
     public SoftSkillDto getSoftSkillById(UUID id, String locale) {
         SoftSkill skill = softSkillRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Soft skill not found: " + id));
-        return mapToDto(skill, locale);
+        return SoftSkillDto.from(skill, locale);
     }
 
     @Transactional
     public SoftSkillDto createSoftSkill(SoftSkillCreateRequest request, String locale) {
-        SkillCategory category = null;
-        if (request.getCategoryId() != null) {
-            category = skillCategoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Skill category not found: " + request.getCategoryId()));
-        }
+        SkillCategory category = findCategory(request.getCategoryId());
 
         SoftSkill skill = SoftSkill.builder()
                 .nameEn(request.getNameEn())
@@ -58,7 +54,7 @@ public class SoftSkillService {
                 .build();
 
         skill = softSkillRepository.save(skill);
-        return mapToDto(skill, locale);
+        return SoftSkillDto.from(skill, locale);
     }
 
     @Transactional
@@ -90,14 +86,11 @@ public class SoftSkillService {
         if (request.getDisplayOrder() != null) {
             skill.setDisplayOrder(request.getDisplayOrder());
         }
-        if (request.getCategoryId() != null) {
-            SkillCategory category = skillCategoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Skill category not found: " + request.getCategoryId()));
-            skill.setCategory(category);
-        }
+        // The admin form always sends the whole skill, so a missing categoryId means "No category".
+        skill.setCategory(findCategory(request.getCategoryId()));
 
         skill = softSkillRepository.save(skill);
-        return mapToDto(skill, locale);
+        return SoftSkillDto.from(skill, locale);
     }
 
     @Transactional
@@ -115,24 +108,11 @@ public class SoftSkillService {
         }
     }
 
-    private SoftSkillDto mapToDto(SoftSkill skill, String locale) {
-        return SoftSkillDto.builder()
-                .id(skill.getId())
-                .name(skill.getName(locale))
-                .nameEn(skill.getNameEn())
-                .namePl(skill.getNamePl())
-                .description(skill.getDescription(locale))
-                .descriptionEn(skill.getDescriptionEn())
-                .descriptionPl(skill.getDescriptionPl())
-                .professionalUsage(skill.getProfessionalUsage(locale))
-                .professionalUsageEn(skill.getProfessionalUsageEn())
-                .professionalUsagePl(skill.getProfessionalUsagePl())
-                .icon(skill.getIcon())
-                .displayOrder(skill.getDisplayOrder())
-                .categoryId(skill.getCategory() != null ? skill.getCategory().getId() : null)
-                .categoryName(skill.getCategory() != null ? skill.getCategory().getName(locale) : null)
-                .createdAt(skill.getCreatedAt())
-                .updatedAt(skill.getUpdatedAt())
-                .build();
+    private SkillCategory findCategory(UUID categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return skillCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Skill category not found: " + categoryId));
     }
 }
