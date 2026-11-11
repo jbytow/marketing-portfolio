@@ -2,7 +2,6 @@ import axios, { AxiosInstance } from 'axios';
 import {
   ApiResponse,
   Post,
-  CategoryInfo,
   SiteSettings,
   User,
   Media,
@@ -92,48 +91,11 @@ export const postsApi = {
     const { data } = await api.get(`/posts/${slug}`);
     return data;
   },
-
-  getPaged: async (
-    page: number,
-    size: number,
-    category?: Category
-  ): Promise<ApiResponse<PaginatedResponse<Post>>> => {
-    const params = { page, size, ...(category && { category }) };
-    const { data } = await api.get('/posts/paged', { params });
-    return data;
-  },
-
-  getHashtags: async (): Promise<ApiResponse<string[]>> => {
-    const { data } = await api.get('/posts/hashtags');
-    return data;
-  },
-};
-
-export const softSkillsApi = {
-  getAll: async (): Promise<ApiResponse<SoftSkill[]>> => {
-    const { data } = await api.get('/soft-skills');
-    return data;
-  },
-
-  getById: async (id: string): Promise<ApiResponse<SoftSkill>> => {
-    const { data } = await api.get(`/soft-skills/${id}`);
-    return data;
-  },
 };
 
 export const skillCategoriesApi = {
-  getAll: async (): Promise<ApiResponse<SkillCategory[]>> => {
-    const { data } = await api.get('/skill-categories');
-    return data;
-  },
-
   getAllWithSkills: async (): Promise<ApiResponse<SkillCategoryWithSkills[]>> => {
     const { data } = await api.get('/skill-categories/with-skills');
-    return data;
-  },
-
-  getById: async (id: string): Promise<ApiResponse<SkillCategory>> => {
-    const { data } = await api.get(`/skill-categories/${id}`);
     return data;
   },
 };
@@ -141,23 +103,6 @@ export const skillCategoriesApi = {
 export const experiencesApi = {
   getAll: async (): Promise<ApiResponse<Experience[]>> => {
     const { data } = await api.get('/experiences');
-    return data;
-  },
-
-  getById: async (id: string): Promise<ApiResponse<Experience>> => {
-    const { data } = await api.get(`/experiences/${id}`);
-    return data;
-  },
-};
-
-export const categoriesApi = {
-  getAll: async (): Promise<ApiResponse<CategoryInfo[]>> => {
-    const { data } = await api.get('/categories');
-    return data;
-  },
-
-  getOne: async (category: Category): Promise<ApiResponse<CategoryInfo>> => {
-    const { data } = await api.get(`/categories/${category}`);
     return data;
   },
 };
@@ -179,11 +124,6 @@ export const contactApi = {
 export const interestsApi = {
   getAll: async (): Promise<ApiResponse<Interest[]>> => {
     const { data } = await api.get('/interests');
-    return data;
-  },
-
-  getById: async (id: string): Promise<ApiResponse<Interest>> => {
-    const { data } = await api.get(`/interests/${id}`);
     return data;
   },
 };
@@ -483,5 +423,3 @@ export const authApi = {
     return data;
   },
 };
-
-export default api;
