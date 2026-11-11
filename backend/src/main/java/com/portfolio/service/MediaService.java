@@ -31,8 +31,9 @@ import java.util.regex.Pattern;
 @Transactional(readOnly = true)
 public class MediaService {
 
-    // VARCHAR(255) columns of the media table (V1__initial_schema.sql)
+    // Column sizes of the media table (V1__initial_schema.sql, V4__enhance_posts_media.sql)
     private static final int MAX_TEXT_COLUMN_LENGTH = 255;
+    private static final int MAX_VIDEO_URL_LENGTH = 500;
 
     // Share links from the YouTube apps put v= after other parameters (watch?si=..&v=..) and use
     // /shorts/ and /live/; [^#]* keeps the match from reaching into the fragment.
@@ -82,8 +83,7 @@ public class MediaService {
     public MediaDto uploadMedia(MultipartFile file, UUID postId, String altTextEn, String altTextPl, String locale) throws IOException {
         // Everything that can reject the upload runs before the file is written, so a rejected
         // request does not leave an orphan file on the volume.
-        requireMaxLength("altTextEn", altTextEn);
-        requireMaxLength("altTextPl", altTextPl);
+        requireAltTextsFit(altTextEn, altTextPl);
 
         Post post = null;
         int displayOrder = 0;
@@ -123,9 +123,14 @@ public class MediaService {
         return mapToDto(media, locale);
     }
 
-    private static void requireMaxLength(String field, String value) {
-        if (value != null && value.length() > MAX_TEXT_COLUMN_LENGTH) {
-            throw new IllegalArgumentException(field + " must be at most " + MAX_TEXT_COLUMN_LENGTH + " characters");
+    private static void requireAltTextsFit(String altTextEn, String altTextPl) {
+        requireMaxLength("altTextEn", altTextEn, MAX_TEXT_COLUMN_LENGTH);
+        requireMaxLength("altTextPl", altTextPl, MAX_TEXT_COLUMN_LENGTH);
+    }
+
+    private static void requireMaxLength(String field, String value, int maxLength) {
+        if (value != null && value.length() > maxLength) {
+            throw new IllegalArgumentException(field + " must be at most " + maxLength + " characters");
         }
     }
 
@@ -137,6 +142,9 @@ public class MediaService {
 
     @Transactional
     public MediaDto createYouTubeMedia(UUID postId, String videoUrl, String altTextEn, String altTextPl, String locale) {
+        requireAltTextsFit(altTextEn, altTextPl);
+        requireMaxLength("videoUrl", videoUrl, MAX_VIDEO_URL_LENGTH);
+
         Post post = null;
         int displayOrder = 0;
         if (postId != null) {
@@ -185,6 +193,8 @@ public class MediaService {
 
     @Transactional
     public MediaDto updateMedia(UUID id, String altTextEn, String altTextPl, UUID postId, String locale) {
+        requireAltTextsFit(altTextEn, altTextPl);
+
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 

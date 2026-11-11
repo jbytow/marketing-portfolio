@@ -216,6 +216,62 @@ class MediaServiceTest {
 
             verify(mediaRepository, never()).save(any());
         }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        @DisplayName("alt text over 255 chars -> IllegalArgumentException instead of a failed insert")
+        void rejectsTooLongAltText(boolean english) {
+            String tooLong = "a".repeat(256);
+
+            assertThatThrownBy(() -> mediaService.createYouTubeMedia(null, "https://youtu.be/dQw4w9WgXcQ",
+                    english ? tooLong : null, english ? null : tooLong, "en"))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(mediaRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("video URL over 500 chars -> IllegalArgumentException instead of a failed insert")
+        void rejectsTooLongVideoUrl() {
+            String tooLong = "https://youtu.be/dQw4w9WgXcQ?x=" + "a".repeat(470);
+
+            assertThatThrownBy(() -> mediaService.createYouTubeMedia(null, tooLong, null, null, "en"))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(mediaRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("updateMedia")
+    class UpdateMedia {
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        @DisplayName("alt text over 255 chars -> IllegalArgumentException instead of a failed update")
+        void rejectsTooLongAltText(boolean english) {
+            UUID id = UUID.randomUUID();
+            String tooLong = "a".repeat(256);
+
+            assertThatThrownBy(() -> mediaService.updateMedia(id,
+                    english ? tooLong : null, english ? null : tooLong, null, "en"))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(mediaRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("alt texts within the limit are saved")
+        void updatesAltTexts() {
+            UUID id = UUID.randomUUID();
+            given(mediaRepository.findById(id)).willReturn(Optional.of(imageMedia(id)));
+            given(mediaRepository.save(any(Media.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+            MediaDto result = mediaService.updateMedia(id, "a".repeat(255), "b", null, "en");
+
+            assertThat(result.getAltTextEn()).hasSize(255);
+            assertThat(result.getAltTextPl()).isEqualTo("b");
+        }
     }
 
     @Nested
