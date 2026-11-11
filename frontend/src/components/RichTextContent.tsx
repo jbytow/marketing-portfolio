@@ -1,4 +1,6 @@
-import { generateHTML } from '@tiptap/html';
+// The core generateHTML serialises with the browser DOM; @tiptap/html's zeed-dom serializer
+// silently drops style attributes, which removed every text alignment from public posts.
+import { generateHTML } from '@tiptap/react';
 import { useMemo } from 'react';
 import { richTextExtensions } from '@/lib/richTextExtensions';
 

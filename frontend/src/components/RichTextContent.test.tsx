@@ -1,19 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
-import { generateHTML } from '@tiptap/html';
-import { useEditor, type AnyExtension } from '@tiptap/react';
+import { generateHTML, useEditor, type AnyExtension } from '@tiptap/react';
 import RichTextContent from './RichTextContent';
 import RichTextEditor from './RichTextEditor';
 import { richTextExtensions } from '@/lib/richTextExtensions';
 
 // Pass-through spies: real rendering, but the extension lists each component uses stay observable
-vi.mock('@tiptap/html', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tiptap/html')>();
-  return { ...actual, generateHTML: vi.fn(actual.generateHTML) };
-});
 vi.mock('@tiptap/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tiptap/react')>();
-  return { ...actual, useEditor: vi.fn(actual.useEditor) };
+  return { ...actual, generateHTML: vi.fn(actual.generateHTML), useEditor: vi.fn(actual.useEditor) };
 });
 
 afterEach(() => {
@@ -147,6 +142,15 @@ describe('RichTextContent', () => {
     const link = container.querySelector('a')!;
     expect(link.getAttribute('href')).toBe('https://example.com');
     expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('keeps the text alignment set in the editor', () => {
+    const { container } = render(<RichTextContent content={fullDocument} />);
+
+    const alignments = Array.from(container.querySelectorAll('h1, h2, h3, p[style]')).map(
+      (element) => (element as HTMLElement).style.textAlign
+    );
+    expect(alignments).toEqual(['left', 'center', 'right', 'justify']);
   });
 
   it.each([
