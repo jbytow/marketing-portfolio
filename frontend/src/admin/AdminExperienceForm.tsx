@@ -31,7 +31,7 @@ export default function AdminExperienceForm() {
   const [newAchievementEn, setNewAchievementEn] = useState('');
   const [newAchievementPl, setNewAchievementPl] = useState('');
 
-  const { data: expData, isLoading: expLoading } = useQuery({
+  const { data: expData, isLoading: expLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.experience(id!),
     queryFn: () => adminExperiencesApi.getById(id!),
     enabled: isEditing,
@@ -140,6 +140,18 @@ export default function AdminExperienceForm() {
 
   if (expLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !expData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (

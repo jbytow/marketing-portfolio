@@ -26,7 +26,7 @@ export default function AdminInterestForm() {
   });
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.interest(id!),
     queryFn: () => adminInterestsApi.getById(id!),
     enabled: isEditing,
@@ -106,6 +106,18 @@ export default function AdminInterestForm() {
 
   if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !data) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;

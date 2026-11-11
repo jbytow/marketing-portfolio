@@ -21,7 +21,7 @@ export default function AdminSkillCategoryForm() {
     namePl: '',
   });
 
-  const { data: categoryData, isLoading: categoryLoading } = useQuery({
+  const { data: categoryData, isLoading: categoryLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.skillCategory(id!),
     queryFn: () => adminSkillCategoriesApi.getById(id!),
     enabled: isEditing,
@@ -85,6 +85,18 @@ export default function AdminSkillCategoryForm() {
 
   if (categoryLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !categoryData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (

@@ -29,7 +29,7 @@ export default function AdminNewsletterForm() {
 
   const [uploading, setUploading] = useState<1 | 2 | 3 | null>(null);
 
-  const { data: newsletterData, isLoading } = useQuery({
+  const { data: newsletterData, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.newsletter(id!),
     queryFn: () => adminNewslettersApi.getById(id!),
     enabled: isEditing,
@@ -109,6 +109,18 @@ export default function AdminNewsletterForm() {
 
   if (isEditing && isLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !newsletterData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;

@@ -45,7 +45,7 @@ export default function AdminPostForm() {
   const [newHashtag, setNewHashtag] = useState('');
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  const { data: postData, isLoading: postLoading } = useQuery({
+  const { data: postData, isLoading: postLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.post(id!),
     queryFn: () => adminPostsApi.getById(id!),
     enabled: isEditing,
@@ -164,6 +164,18 @@ export default function AdminPostForm() {
 
   if (postLoading) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !postData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (
