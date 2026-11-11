@@ -10,7 +10,6 @@ import com.portfolio.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,24 +43,6 @@ public class MediaService {
     private final MediaRepository mediaRepository;
     private final PostRepository postRepository;
     private final StorageService storageService;
-
-    public MediaDto getMediaById(UUID id, String locale) {
-        Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
-        return mapToDto(media, locale);
-    }
-
-    public Resource getMediaResource(UUID id) {
-        Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
-        return storageService.loadAsResource(media.getFilename());
-    }
-
-    public List<MediaDto> getMediaByPost(UUID postId, String locale) {
-        return mediaRepository.findByPostIdOrderByDisplayOrderAsc(postId).stream()
-                .map(media -> mapToDto(media, locale))
-                .toList();
-    }
 
     public Page<MediaDto> getAllMedia(Pageable pageable, String locale) {
         return mediaRepository.findAll(pageable)

@@ -1,10 +1,6 @@
 package com.portfolio.controller;
 
-import com.portfolio.dto.ApiResponse;
-import com.portfolio.dto.MediaDto;
-import com.portfolio.service.MediaService;
 import com.portfolio.service.StorageService;
-import com.portfolio.util.LocaleUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -14,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -22,17 +17,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MediaController {
 
-    private final MediaService mediaService;
     private final StorageService storageService;
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<MediaDto>> getMediaInfo(
-            @PathVariable UUID id,
-            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
-
-        MediaDto media = mediaService.getMediaById(id, LocaleUtils.extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(media));
-    }
 
     @GetMapping("/{subDir}/{filename}")
     public ResponseEntity<Resource> serveMedia(

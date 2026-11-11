@@ -7,7 +7,6 @@ import ch.qos.logback.core.read.ListAppender;
 import com.portfolio.config.GlobalExceptionHandler;
 import com.portfolio.config.TestSecurityConfig;
 import com.portfolio.security.JwtService;
-import com.portfolio.service.MediaService;
 import com.portfolio.service.StorageService;
 import com.portfolio.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -52,9 +51,6 @@ class MediaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private MediaService mediaService;
 
     @MockBean
     private StorageService storageService;
@@ -137,6 +133,22 @@ class MediaControllerTest {
         @ValueSource(strings = {"/api/media/wp-includes/wlwmanifest.xml", "/api/media/other/x.jpg", "/api/media/IMAGES/x.jpg"})
         @DisplayName("unknown subdirectory -> 404 without touching storage")
         void unknownSubdirectoryIsNotFound(String path) throws Exception {
+            mockMvc.perform(get(path))
+                    .andExpect(status().isNotFound());
+
+            verifyNoInteractions(storageService);
+            assertNoErrorLogged();
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/media/{single segment}")
+    class SingleSegment {
+
+        @ParameterizedTest
+        @ValueSource(strings = {"/api/media/3f2b6c1e-8a4d-4f7e-9b1a-2c3d4e5f6a7b", "/api/media/.env", "/api/media/foo.php"})
+        @DisplayName("no public metadata endpoint: 404 without an ERROR log")
+        void singleSegmentIsNotFound(String path) throws Exception {
             mockMvc.perform(get(path))
                     .andExpect(status().isNotFound());
 
