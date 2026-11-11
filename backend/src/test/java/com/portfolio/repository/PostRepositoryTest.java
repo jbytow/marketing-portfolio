@@ -1,5 +1,6 @@
 package com.portfolio.repository;
 
+import com.portfolio.config.TestContainersConfig;
 import com.portfolio.entity.Category;
 import com.portfolio.entity.Post;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,47 +11,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Integration tests for PostRepository using TestContainers.
+ * Integration tests for PostRepository using TestContainers, against the schema built by Flyway.
  * Requires Docker to be running. Tests will be skipped if Docker is unavailable.
  */
 @DataJpaTest
 @Testcontainers(disabledWithoutDocker = true)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestContainersConfig.class)
 @ActiveProfiles("test")
 @DisplayName("PostRepository")
 class PostRepositoryTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
-        registry.add("spring.flyway.enabled", () -> false);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-    }
 
     @Autowired
     private TestEntityManager entityManager;
@@ -306,6 +290,83 @@ class PostRepositoryTest {
             Post updated = postRepository.findById(publishedPost1.getId()).orElseThrow();
 
             assertThat(updated.getDisplayOrder()).isEqualTo(99);
+        }
+    }
+
+    @Nested
+    @DisplayName("findByHashtagAndPublishedTrue")
+    class FindByHashtag {
+
+        @BeforeEach
+        void addTaggedPosts() {
+            entityManager.persist(taggedPost("tagged-published", true, 10, "seo", "ads"));
+            entityManager.persist(taggedPost("tagged-draft", false, 11, "seo"));
+            entityManager.persist(taggedPost("tagged-other", true, 12, "other"));
+            entityManager.flush();
+        }
+
+        @Test
+        @DisplayName("should return only published posts carrying the tag")
+        void shouldReturnOnlyPublishedPostsWithTag() {
+            List<Post> result = postRepository.findByHashtagAndPublishedTrue("seo");
+
+            assertThat(result).extracting(Post::getSlug).containsExactly("tagged-published");
+        }
+
+        @Test
+        @DisplayName("should match a tag that is not the first array element")
+        void shouldMatchAnyElement() {
+            List<Post> result = postRepository.findByHashtagAndPublishedTrue("ads");
+
+            assertThat(result).extracting(Post::getSlug).containsExactly("tagged-published");
+        }
+
+        @Test
+        @DisplayName("should return empty list for a tag no post carries")
+        void shouldReturnEmptyForUnknownTag() {
+            assertThat(postRepository.findByHashtagAndPublishedTrue("missing")).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should be answerable from the GIN index on hashtags")
+        void shouldUseGinIndex() throws NoSuchMethodException {
+            String sql = PostRepository.class
+                    .getMethod("findByHashtagAndPublishedTrue", String.class)
+                    .getAnnotation(Query.class).value()
+                    .replace(":hashtag", "'seo'");
+            // Give the planner realistic statistics (many published posts, few with the tag),
+            // otherwise it picks idx_posts_published for any predicate; seq scan is disabled
+            // because on a small table it always wins and would hide whether GIN is usable.
+            entityManager.getEntityManager().createNativeQuery(
+                    "INSERT INTO posts (category, title_en, title_pl, slug, published, display_order, hashtags) "
+                            + "SELECT 'CAMPAIGNS', 'filler', 'filler', 'filler-' || n, true, n, ARRAY['filler'] "
+                            + "FROM generate_series(1, 2000) AS n")
+                    .executeUpdate();
+            entityManager.getEntityManager().createNativeQuery("ANALYZE posts").executeUpdate();
+            entityManager.getEntityManager()
+                    .createNativeQuery("SELECT set_config('enable_seqscan', 'off', true)")
+                    .getSingleResult();
+
+            @SuppressWarnings("unchecked")
+            List<Object> plan = entityManager.getEntityManager()
+                    .createNativeQuery("EXPLAIN " + sql)
+                    .getResultList();
+
+            assertThat(plan.stream().map(String::valueOf).collect(Collectors.joining("\n")))
+                    .contains("idx_posts_hashtags");
+        }
+
+        private Post taggedPost(String slug, boolean published, int displayOrder, String... hashtags) {
+            Post post = Post.builder()
+                    .category(Category.CAMPAIGNS)
+                    .titleEn(slug)
+                    .titlePl(slug)
+                    .slug(slug)
+                    .published(published)
+                    .displayOrder(displayOrder)
+                    .build();
+            post.setHashtags(hashtags);
+            return post;
         }
     }
 }
