@@ -144,6 +144,31 @@ class SecurityConfigTest {
     }
 
     @Nested
+    @DisplayName("admin role")
+    class AdminRole {
+
+        @Test
+        @DisplayName("token issued to an e-mail later removed from the allowlist gets 403")
+        void delistedAdminTokenIs403() throws Exception {
+            String token = jwtService.generateToken("former@test.com", "Former", true);
+
+            mockMvc.perform(get("/api/admin/posts").cookie(authCookie(token)))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(get("/api/admin/auth/me").cookie(authCookie(token)))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("authenticated principal without ROLE_ADMIN (isAdmin=false) gets 403")
+        void nonAdminTokenIs403() throws Exception {
+            String token = jwtService.generateToken(ADMIN_EMAIL, "Admin", false);
+
+            mockMvc.perform(get("/api/admin/posts").cookie(authCookie(token)))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
     @DisplayName("JWT cookie and header")
     class Jwt {
 

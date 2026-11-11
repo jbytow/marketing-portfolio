@@ -35,7 +35,7 @@ public class TestSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/admin/auth/logout").permitAll()
-                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll());
         return http.build();
     }
@@ -45,8 +45,8 @@ public class TestSecurityConfig {
      */
     @Bean
     @Primary
-    public JwtAuthenticationFilter testJwtAuthenticationFilter(JwtService jwtService) {
-        return new JwtAuthenticationFilter(jwtService) {
+    public JwtAuthenticationFilter testJwtAuthenticationFilter(JwtService jwtService, UserService userService) {
+        return new JwtAuthenticationFilter(jwtService, userService) {
             @Override
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
                     throws ServletException, IOException {
