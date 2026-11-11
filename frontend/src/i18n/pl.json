@@ -98,7 +98,8 @@
   },
   "skills": {
     "title": "Umiejętności",
-    "subtitle": "Co wnoszę do zespołu"
+    "subtitle": "Co wnoszę do zespołu",
+    "empty": "Nie dodano jeszcze umiejętności."
   },
   "contact": {
     "title": "Skontaktuj się",

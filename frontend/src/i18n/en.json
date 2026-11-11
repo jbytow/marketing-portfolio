@@ -98,7 +98,8 @@
   },
   "skills": {
     "title": "Skills",
-    "subtitle": "What I bring to the table"
+    "subtitle": "What I bring to the table",
+    "empty": "No skills added yet."
   },
   "contact": {
     "title": "Get in Touch",

@@ -24,6 +24,8 @@ function renderSkills() {
   );
 }
 
+const PLACEHOLDER_SKILL = 'Creative Thinking';
+
 describe('Skills', () => {
   beforeAll(async () => {
     await i18n.changeLanguage('en');
@@ -40,10 +42,26 @@ describe('Skills', () => {
 
     const retry = await screen.findByRole('button', { name: i18n.t('common.retry') });
     expect(screen.getByText(i18n.t('common.loadError'))).toBeTruthy();
+    expect(screen.queryByText(PLACEHOLDER_SKILL)).toBeNull();
 
     fireEvent.click(retry);
     await waitFor(() => expect(getAllWithSkills).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.queryByText(i18n.t('common.loadError'))).toBeNull());
+  });
+
+  it('shows the empty text and no invented skills when there are no skills', async () => {
+    getAllWithSkills.mockResolvedValueOnce({
+      success: true,
+      data: [{ id: 'c1', name: 'Empty category', displayOrder: 1, skills: [] }],
+    });
+    renderSkills();
+
+    expect(await screen.findByText(i18n.t('skills.empty'))).toBeTruthy();
+    expect(i18n.t('skills.empty')).not.toBe('skills.empty');
+    expect(screen.queryByText(PLACEHOLDER_SKILL)).toBeNull();
+    for (const invented of ['Team Collaboration', 'Communication', 'Strategic Planning', 'Time Management', 'Passion']) {
+      expect(screen.queryByText(invented)).toBeNull();
+    }
   });
 
   it('renders the categories when the API answers', async () => {
