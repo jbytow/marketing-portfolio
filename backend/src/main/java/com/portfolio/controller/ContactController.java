@@ -18,6 +18,6 @@ public class ContactController {
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> submitContact(@Valid @RequestBody ContactRequest request) {
         contactService.sendContactEmail(request);
-        return ResponseEntity.ok(ApiResponse.success(null, "Message sent successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
