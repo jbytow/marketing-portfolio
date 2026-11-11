@@ -6,8 +6,6 @@ import com.portfolio.repository.PostRepository;
 import com.portfolio.util.SlugUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,30 +28,16 @@ public class PostService {
                 .toList();
     }
 
-    public Page<PostDto> getPublishedPosts(Pageable pageable, String locale) {
-        return postRepository.findByPublishedTrue(pageable)
-                .map(post -> mapToDto(post, locale, View.PUBLIC_LIST));
-    }
-
     public List<PostDto> getPostsByCategory(Category category, String locale) {
         return postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(category).stream()
                 .map(post -> mapToDto(post, locale, View.PUBLIC_LIST))
                 .toList();
     }
 
-    public Page<PostDto> getPostsByCategory(Category category, Pageable pageable, String locale) {
-        return postRepository.findByCategoryAndPublishedTrue(category, pageable)
-                .map(post -> mapToDto(post, locale, View.PUBLIC_LIST));
-    }
-
     public List<PostDto> getPostsByHashtag(String hashtag, String locale) {
         return postRepository.findByHashtagAndPublishedTrue(hashtag).stream()
                 .map(post -> mapToDto(post, locale, View.PUBLIC_LIST))
                 .toList();
-    }
-
-    public List<String> getAllHashtags() {
-        return postRepository.findAllUniqueHashtags();
     }
 
     public PostDto getPostBySlug(String slug, String locale) {

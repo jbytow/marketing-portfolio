@@ -12,8 +12,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -138,29 +136,6 @@ class PostRepositoryTest {
     }
 
     @Nested
-    @DisplayName("findByPublishedTrue")
-    class FindByPublishedTrue {
-
-        @Test
-        @DisplayName("should return paginated published posts")
-        void shouldReturnPaginatedPublishedPosts() {
-            Page<Post> result = postRepository.findByPublishedTrue(PageRequest.of(0, 10));
-
-            assertThat(result.getContent()).hasSize(2);
-            assertThat(result.getTotalElements()).isEqualTo(2);
-        }
-
-        @Test
-        @DisplayName("should respect page size")
-        void shouldRespectPageSize() {
-            Page<Post> result = postRepository.findByPublishedTrue(PageRequest.of(0, 1));
-
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getTotalPages()).isEqualTo(2);
-        }
-    }
-
-    @Nested
     @DisplayName("findByCategoryAndPublishedTrueOrderByDisplayOrderAsc")
     class FindByCategoryAndPublished {
 
@@ -217,19 +192,6 @@ class PostRepositoryTest {
         @DisplayName("should count only published posts in category")
         void shouldCountOnlyPublishedInCategory() {
             long count = postRepository.countByCategoryAndPublished(Category.CAMPAIGNS);
-
-            assertThat(count).isEqualTo(2);
-        }
-    }
-
-    @Nested
-    @DisplayName("countPublished")
-    class CountPublished {
-
-        @Test
-        @DisplayName("should count all published posts")
-        void shouldCountAllPublished() {
-            long count = postRepository.countPublished();
 
             assertThat(count).isEqualTo(2);
         }
