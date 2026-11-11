@@ -45,10 +45,6 @@ export default function NewsletterDetail() {
   // Get the 3 images
   const images = [newsletter.image1, newsletter.image2, newsletter.image3].filter(Boolean) as string[];
 
-  const handleImageClick = (src: string, alt: string) => {
-    setLightboxImage({ src, alt });
-  };
-
   return (
     <>
       <Helmet>
@@ -93,17 +89,19 @@ export default function NewsletterDetail() {
               className="mb-8 flex gap-4 justify-center"
             >
               {images.map((img, index) => (
-                <div
+                <button
                   key={index}
+                  type="button"
+                  aria-label={t('newsletter.enlargeImage')}
                   className="flex-1 max-w-xs aspect-[4/5] rounded-xl overflow-hidden bg-dark-700 cursor-zoom-in"
-                  onClick={() => handleImageClick(getMediaUrl(img), `${newsletter.title} - ${index + 1}`)}
+                  onClick={() => setLightboxImage({ src: getMediaUrl(img), alt: `${newsletter.title} - ${index + 1}` })}
                 >
                   <img
                     src={getMediaUrl(img)}
                     alt={`${newsletter.title} - ${index + 1}`}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
-                </div>
+                </button>
               ))}
             </motion.div>
           )}

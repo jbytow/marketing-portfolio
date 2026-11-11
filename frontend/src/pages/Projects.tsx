@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { postsApi } from '@/services/api';
 import { Category } from '@/types';
@@ -15,7 +15,6 @@ import HashtagList from '@/components/HashtagList';
 export default function Projects() {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeHashtag = searchParams.get('hashtag');
 
@@ -33,10 +32,6 @@ export default function Projects() {
 
   const clearHashtagFilter = () => {
     setSearchParams({});
-  };
-
-  const handleTileClick = (slug: string) => {
-    navigate(`/projects/${slug}`);
   };
 
   if (isLoading) {
@@ -87,8 +82,7 @@ export default function Projects() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="card-hover group cursor-pointer"
-                onClick={() => handleTileClick(project.slug)}
+                className="relative card-hover group has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-primary-500"
               >
                 {project.featuredImage && (
                   <div className="aspect-video rounded-xl overflow-hidden mb-4 bg-dark-700">
@@ -101,13 +95,15 @@ export default function Projects() {
                 )}
 
                 <h3 className="text-xl font-semibold text-dark-100 mb-2 group-hover:text-primary-400 transition-colors">
-                  {project.title}
+                  <Link to={`/projects/${project.slug}`} className="after:absolute after:inset-0 focus:outline-none">
+                    {project.title}
+                  </Link>
                 </h3>
 
                 <p className="text-dark-400 text-sm line-clamp-2 mb-4">{project.excerpt}</p>
 
                 {project.hashtags && project.hashtags.length > 0 && (
-                  <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="relative z-10 mb-4">
                     <HashtagList
                       hashtags={project.hashtags}
                       clickable={true}

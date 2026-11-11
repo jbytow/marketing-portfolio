@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { newslettersApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,7 +15,6 @@ import ImageLightbox from '@/components/ImageLightbox';
 export default function Newsletter() {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const navigate = useNavigate();
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -28,15 +27,6 @@ export default function Newsletter() {
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
   }
-
-  const handleImageClick = (e: React.MouseEvent, src: string, alt: string) => {
-    e.stopPropagation();
-    setLightboxImage({ src, alt });
-  };
-
-  const handleTileClick = (slug: string) => {
-    navigate(`/newsletter/${slug}`);
-  };
 
   return (
     <>
@@ -66,25 +56,26 @@ export default function Newsletter() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="card-hover group cursor-pointer"
-                  onClick={() => handleTileClick(newsletter.slug)}
+                  className="relative card-hover group has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-primary-500"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Left side - Images */}
                     <div className="md:w-2/5 flex gap-2">
                       {images.length > 0 ? (
                         images.map((img, imgIndex) => (
-                          <div
+                          <button
                             key={imgIndex}
-                            className="flex-1 aspect-[4/5] rounded-lg overflow-hidden bg-dark-700 cursor-zoom-in"
-                            onClick={(e) => handleImageClick(e, getMediaUrl(img), `${newsletter.title} - ${imgIndex + 1}`)}
+                            type="button"
+                            aria-label={t('newsletter.enlargeImage')}
+                            className="relative z-10 flex-1 aspect-[4/5] rounded-lg overflow-hidden bg-dark-700 cursor-zoom-in"
+                            onClick={() => setLightboxImage({ src: getMediaUrl(img), alt: `${newsletter.title} - ${imgIndex + 1}` })}
                           >
                             <img
                               src={getMediaUrl(img)}
                               alt={`${newsletter.title} - ${imgIndex + 1}`}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
-                          </div>
+                          </button>
                         ))
                       ) : (
                         <div className="flex-1 aspect-[4/5] rounded-lg bg-dark-700 flex items-center justify-center">
@@ -105,7 +96,9 @@ export default function Newsletter() {
                     {/* Right side - Text content */}
                     <div className="md:w-3/5 flex flex-col justify-center">
                       <h2 className="text-2xl md:text-3xl font-semibold text-dark-100 mb-4 group-hover:text-primary-400 transition-colors">
-                        {newsletter.title}
+                        <Link to={`/newsletter/${newsletter.slug}`} className="after:absolute after:inset-0 focus:outline-none">
+                          {newsletter.title}
+                        </Link>
                       </h2>
 
                       {newsletter.content && (
