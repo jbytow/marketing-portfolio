@@ -10,7 +10,6 @@
     "draft": "Szkic",
     "actions": "Akcje",
     "confirm": "Potwierdź",
-    "backTo": "Powrót do",
     "next": "Dalej",
     "previous": "Poprzedni",
     "viewMore": "Zobacz więcej",
@@ -84,6 +83,7 @@
   },
   "newsletter": {
     "title": "Newsletter",
+    "backToArchive": "Powrót do newsletterów",
     "subtitle": "Bądź na bieżąco z moimi najnowszymi treściami",
     "viewNewsletter": "Czytaj więcej",
     "notFound": "Nie znaleziono newslettera",
@@ -268,6 +268,8 @@
     "playVideo": "Odtwórz film"
   },
   "post": {
+    "backToProjects": "Powrót do projektów",
+    "backToContent": "Powrót do treści",
     "notFound": "Nie znaleziono wpisu"
   }
 }

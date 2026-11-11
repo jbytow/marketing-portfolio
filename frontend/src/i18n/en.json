@@ -10,7 +10,6 @@
     "draft": "Draft",
     "actions": "Actions",
     "confirm": "Confirm",
-    "backTo": "Back to",
     "next": "Next",
     "previous": "Previous",
     "viewMore": "View More",
@@ -84,6 +83,7 @@
   },
   "newsletter": {
     "title": "Newsletter",
+    "backToArchive": "Back to newsletters",
     "subtitle": "Stay updated with my latest insights",
     "viewNewsletter": "Read More",
     "notFound": "Newsletter not found",
@@ -268,6 +268,8 @@
     "playVideo": "Play video"
   },
   "post": {
+    "backToProjects": "Back to projects",
+    "backToContent": "Back to content",
     "notFound": "Post not found"
   }
 }
