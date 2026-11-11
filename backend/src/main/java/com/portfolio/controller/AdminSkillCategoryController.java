@@ -63,7 +63,7 @@ public class AdminSkillCategoryController {
     }
 
     @PatchMapping("/reorder")
-    public ResponseEntity<ApiResponse<Void>> reorderCategories(@RequestBody ReorderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> reorderCategories(@Valid @RequestBody ReorderRequest request) {
         skillCategoryService.reorderCategories(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Skill categories reordered successfully"));
     }

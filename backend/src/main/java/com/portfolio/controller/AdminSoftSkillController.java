@@ -63,7 +63,7 @@ public class AdminSoftSkillController {
     }
 
     @PatchMapping("/reorder")
-    public ResponseEntity<ApiResponse<Void>> reorderSoftSkills(@RequestBody ReorderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> reorderSoftSkills(@Valid @RequestBody ReorderRequest request) {
         softSkillService.reorderSoftSkills(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Soft skills reordered successfully"));
     }

@@ -81,7 +81,7 @@ public class AdminPostController {
     }
 
     @PatchMapping("/reorder")
-    public ResponseEntity<ApiResponse<Void>> reorderPosts(@RequestBody ReorderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> reorderPosts(@Valid @RequestBody ReorderRequest request) {
         postService.reorderPosts(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Posts reordered successfully"));
     }

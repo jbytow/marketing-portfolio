@@ -6,9 +6,11 @@ import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.MediaType;
 import com.portfolio.service.MediaService;
 import com.portfolio.util.LocaleUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +30,7 @@ public class AdminMediaController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<MediaDto>>> getAllMedia(
             @RequestParam(required = false) MediaType type,
-            @PageableDefault(size = 20) Pageable pageable,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         Page<MediaDto> media;
@@ -43,7 +45,7 @@ public class AdminMediaController {
 
     @GetMapping("/unassigned")
     public ResponseEntity<ApiResponse<Page<MediaDto>>> getUnassignedMedia(
-            @PageableDefault(size = 20) Pageable pageable,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         Page<MediaDto> media = mediaService.getUnassignedMedia(pageable, LocaleUtils.extractLocale(locale));
@@ -97,7 +99,7 @@ public class AdminMediaController {
     @PatchMapping("/reorder")
     public ResponseEntity<ApiResponse<Void>> reorderMedia(
             @RequestParam UUID postId,
-            @RequestBody ReorderRequest request) {
+            @Valid @RequestBody ReorderRequest request) {
 
         mediaService.reorderMedia(postId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Media reordered successfully"));

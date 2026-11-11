@@ -63,7 +63,7 @@ public class AdminExperienceController {
     }
 
     @PatchMapping("/reorder")
-    public ResponseEntity<ApiResponse<Void>> reorderExperiences(@RequestBody ReorderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> reorderExperiences(@Valid @RequestBody ReorderRequest request) {
         experienceService.reorderExperiences(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Experiences reordered successfully"));
     }

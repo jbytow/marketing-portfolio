@@ -5,6 +5,7 @@ import com.portfolio.service.InterestService;
 import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,13 +42,13 @@ public class AdminInterestController {
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         InterestDto interest = interestService.create(request, LocaleUtils.extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(interest, "Interest created successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(interest));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<InterestDto>> update(
             @PathVariable UUID id,
-            @RequestBody InterestUpdateRequest request,
+            @Valid @RequestBody InterestUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         InterestDto interest = interestService.update(id, request, LocaleUtils.extractLocale(locale));
@@ -61,7 +62,7 @@ public class AdminInterestController {
     }
 
     @PatchMapping("/reorder")
-    public ResponseEntity<ApiResponse<Void>> reorder(@RequestBody ReorderRequest request) {
+    public ResponseEntity<ApiResponse<Void>> reorder(@Valid @RequestBody ReorderRequest request) {
         interestService.reorder(request);
         return ResponseEntity.ok(ApiResponse.success(null, "Interests reordered successfully"));
     }

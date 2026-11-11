@@ -1,5 +1,6 @@
 package com.portfolio.dto;
 
+import jakarta.validation.constraints.Size;
 import com.portfolio.entity.Category;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,11 +22,14 @@ public class PostCreateRequest {
     private Category category;
 
     @NotBlank(message = "English title is required")
+    @Size(max = 255, message = "English title must not exceed 255 characters")
     private String titleEn;
 
     @NotBlank(message = "Polish title is required")
+    @Size(max = 255, message = "Polish title must not exceed 255 characters")
     private String titlePl;
 
+    @Size(max = 255, message = "Slug must not exceed 255 characters")
     private String slug;
 
     private String excerptEn;
@@ -34,6 +38,7 @@ public class PostCreateRequest {
     private Map<String, Object> contentEn;
     private Map<String, Object> contentPl;
 
+    @Size(max = 500, message = "Featured image must not exceed 500 characters")
     private String featuredImage;
     private Boolean published;
     private Integer displayOrder;
@@ -48,5 +53,6 @@ public class PostCreateRequest {
     private String caseStudyResultsPl;
     private String caseStudyTestimonialEn;
     private String caseStudyTestimonialPl;
+    @Size(max = 255, message = "Testimonial author must not exceed 255 characters")
     private String caseStudyTestimonialAuthor;
 }
