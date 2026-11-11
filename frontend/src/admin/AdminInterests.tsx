@@ -141,7 +141,6 @@ export default function AdminInterests() {
     },
     onError: () => {
       toast.error('Failed to reorder');
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
     },
   });
 
@@ -157,7 +156,10 @@ export default function AdminInterests() {
         id: item.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      // The refetch after a failure returns an identical payload, so the [data] effect would not
+      // restore the old order; roll back explicitly.
+      const previous = interests;
+      reorderMutation.mutate(reorderItems, { onError: () => setInterests(previous) });
     }
   };
 

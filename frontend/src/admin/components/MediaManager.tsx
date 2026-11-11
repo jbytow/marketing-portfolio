@@ -243,6 +243,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       const newIndex = media.findIndex((m) => m.id === over.id);
       const newMedia = arrayMove(media, oldIndex, newIndex);
 
+      const previous = media;
       // Update local state immediately
       onMediaChange(newMedia);
 
@@ -251,7 +252,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
         id: m.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      reorderMutation.mutate(reorderItems, { onError: () => onMediaChange(previous) });
     }
   };
 
