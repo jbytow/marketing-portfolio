@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save, Eye, EyeOff, X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
@@ -10,6 +11,25 @@ import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import MediaManager from '@/admin/components/MediaManager';
 import RichTextEditor from '@/components/RichTextEditor';
+
+// Mirrors the backend rule: the public page counts only the requested language's challenge,
+// solution, results and testimonial. The form edits both languages, so any of them counts.
+type CaseStudyField = 'caseStudyChallenge' | 'caseStudySolution' | 'caseStudyResults' | 'caseStudyTestimonial';
+
+function hasAnyCaseStudyText(
+  post: Partial<Record<`${CaseStudyField}${'En' | 'Pl'}`, string | null>>
+): boolean {
+  return [
+    post.caseStudyChallengeEn,
+    post.caseStudySolutionEn,
+    post.caseStudyResultsEn,
+    post.caseStudyTestimonialEn,
+    post.caseStudyChallengePl,
+    post.caseStudySolutionPl,
+    post.caseStudyResultsPl,
+    post.caseStudyTestimonialPl,
+  ].some((text) => Boolean(text?.trim()));
+}
 
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
@@ -89,8 +109,8 @@ export default function AdminPostForm() {
       });
       setMedia(post.media || []);
       setSeededId(id ?? null);
-      // Auto-expand if there's existing case study content
-      if (post.hasCaseStudy) {
+      // Auto-expand if there's existing case study content in either language
+      if (hasAnyCaseStudyText(post)) {
         setCaseStudyExpanded(true);
       }
     }
@@ -104,8 +124,8 @@ export default function AdminPostForm() {
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
-    onError: () => {
-      toast.error('Failed to create post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create post'));
     },
   });
 
@@ -119,17 +139,19 @@ export default function AdminPostForm() {
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },
-    onError: () => {
-      toast.error('Failed to update post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update post'));
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // A blank slug is omitted so update keeps the stored one and create lets the backend generate it
+    const submitData = { ...formData, slug: formData.slug?.trim() || undefined };
     if (isEditing) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -168,11 +190,7 @@ export default function AdminPostForm() {
     }
   };
 
-  const hasCaseStudyContent = Boolean(
-    formData.caseStudyChallengeEn ||
-    formData.caseStudySolutionEn ||
-    formData.caseStudyResultsEn
-  );
+  const hasCaseStudyContent = hasAnyCaseStudyText(formData);
 
   if (postLoading || (isEditing && postData?.data && seededId !== id)) {
     return <LoadingSpinner />;

@@ -18,25 +18,14 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Upload, Youtube, X, GripVertical, Image as ImageIcon } from 'lucide-react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { FILE_TOO_LARGE_MESSAGE, getApiErrorMessage } from '@/lib/apiError';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import { queryKeys } from '@/lib/queryKeys';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-const MAX_UPLOAD_MESSAGE = 'File too large (max 50 MB)';
-
-// Surface the server's reason instead of a generic failure; 413 comes from the proxy without a body
-function getUploadErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError(error)) {
-    if (error.response?.status === 413) return MAX_UPLOAD_MESSAGE;
-    const message = error.response?.data?.message;
-    if (typeof message === 'string' && message) return message;
-  }
-  return fallback;
-}
 
 interface MediaManagerProps {
   postId: string;
@@ -147,7 +136,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       }
     },
     onError: (error) => {
-      toast.error(getUploadErrorMessage(error, 'Failed to upload media'));
+      toast.error(getApiErrorMessage(error, 'Failed to upload media'));
     },
   });
 
@@ -161,8 +150,8 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
         toast.success('YouTube video added');
       }
     },
-    onError: () => {
-      toast.error('Failed to add YouTube video');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to add YouTube video'));
     },
   });
 
@@ -173,8 +162,8 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       invalidatePostQueries();
       toast.success('Media deleted');
     },
-    onError: () => {
-      toast.error('Failed to delete media');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete media'));
     },
   });
 
@@ -182,8 +171,8 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminMediaApi.reorder(postId, items),
     onSuccess: invalidatePostQueries,
-    onError: () => {
-      toast.error('Failed to save order');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to save order'));
     },
   });
 
@@ -194,7 +183,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       try {
         for (const file of Array.from(files)) {
           if (file.size > MAX_UPLOAD_BYTES) {
-            toast.error(`${file.name}: ${MAX_UPLOAD_MESSAGE}`);
+            toast.error(`${file.name}: ${FILE_TOO_LARGE_MESSAGE}`);
             continue;
           }
           try {

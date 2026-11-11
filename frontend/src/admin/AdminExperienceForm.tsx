@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save, Plus, X } from 'lucide-react';
 import { adminExperiencesApi } from '@/services/api';
 import { ExperienceCreateRequest } from '@/types';
@@ -62,8 +63,8 @@ export default function AdminExperienceForm() {
       toast.success('Experience created successfully');
       navigate('/admin/experiences');
     },
-    onError: () => {
-      toast.error('Failed to create experience');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create experience'));
     },
   });
 
@@ -76,8 +77,8 @@ export default function AdminExperienceForm() {
       toast.success('Experience updated successfully');
       navigate('/admin/experiences');
     },
-    onError: () => {
-      toast.error('Failed to update experience');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update experience'));
     },
   });
 

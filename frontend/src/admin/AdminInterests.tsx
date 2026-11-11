@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -127,8 +128,8 @@ export default function AdminInterests() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
       toast.success('Interest deleted');
     },
-    onError: () => {
-      toast.error('Failed to delete interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete interest'));
     },
   });
 
@@ -139,8 +140,8 @@ export default function AdminInterests() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
     },
-    onError: () => {
-      toast.error('Failed to reorder');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to reorder'));
     },
   });
 

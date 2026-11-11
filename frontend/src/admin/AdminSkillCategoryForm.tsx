@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save } from 'lucide-react';
 import { adminSkillCategoriesApi } from '@/services/api';
 import { SkillCategoryCreateRequest } from '@/types';
@@ -45,8 +46,8 @@ export default function AdminSkillCategoryForm() {
       toast.success('Category created successfully');
       navigate('/admin/skill-categories');
     },
-    onError: () => {
-      toast.error('Failed to create category');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create category'));
     },
   });
 
@@ -59,8 +60,8 @@ export default function AdminSkillCategoryForm() {
       toast.success('Category updated successfully');
       navigate('/admin/skill-categories');
     },
-    onError: () => {
-      toast.error('Failed to update category');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update category'));
     },
   });
 

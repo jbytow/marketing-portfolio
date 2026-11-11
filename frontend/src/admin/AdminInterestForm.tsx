@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save, Upload, X } from 'lucide-react';
 import { adminInterestsApi, adminMediaApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -53,8 +54,8 @@ export default function AdminInterestForm() {
       toast.success('Interest created');
       navigate('/admin/interests');
     },
-    onError: () => {
-      toast.error('Failed to create interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create interest'));
     },
   });
 
@@ -67,8 +68,8 @@ export default function AdminInterestForm() {
       toast.success('Interest updated');
       navigate('/admin/interests');
     },
-    onError: () => {
-      toast.error('Failed to update interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update interest'));
     },
   });
 
@@ -93,8 +94,8 @@ export default function AdminInterestForm() {
       if (response.data) {
         setFormData((prev) => ({ ...prev, [field]: response.data.url }));
       }
-    } catch {
-      toast.error('Failed to upload image');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to upload image'));
     } finally {
       setUploading((prev) => ({ ...prev, [field]: false }));
     }

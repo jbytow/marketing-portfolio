@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { adminNewslettersApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ConfirmDeleteModal from '@/admin/components/ConfirmDeleteModal';
 
 export default function AdminNewsletters() {
   const { t } = useTranslation();
@@ -29,8 +31,8 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       toast.success('Newsletter deleted successfully');
     },
-    onError: () => {
-      toast.error('Failed to delete newsletter');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete newsletter'));
     },
     // Close the modal on failure too, otherwise it stays open with no feedback
     onSettled: () => {
@@ -49,8 +51,8 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       toast.success('Newsletter status updated');
     },
-    onError: () => {
-      toast.error('Failed to update newsletter status');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update newsletter status'));
     },
   });
 
@@ -160,33 +162,14 @@ export default function AdminNewsletters() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-dark-900/80 flex items-center justify-center z-50">
-          <div className="card max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-dark-100 mb-4">
-              Delete Newsletter?
-            </h3>
-            <p className="text-dark-400 mb-6">
-              This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="btn-secondary"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => deleteMutation.mutate(deleteId)}
-                className="btn-primary bg-red-500 hover:bg-red-600"
-                disabled={deleteMutation.isPending}
-              >
-                {t('common.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteModal
+        open={deleteId !== null}
+        title="Delete Newsletter?"
+        message="This action cannot be undone."
+        isPending={deleteMutation.isPending}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

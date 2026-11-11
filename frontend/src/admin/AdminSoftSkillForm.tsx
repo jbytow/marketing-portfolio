@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save } from 'lucide-react';
 import { adminSoftSkillsApi, adminSkillCategoriesApi } from '@/services/api';
 import { SoftSkillCreateRequest } from '@/types';
@@ -64,8 +65,8 @@ export default function AdminSoftSkillForm() {
       toast.success('Soft skill created successfully');
       navigate('/admin/soft-skills');
     },
-    onError: () => {
-      toast.error('Failed to create soft skill');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create soft skill'));
     },
   });
 
@@ -78,8 +79,8 @@ export default function AdminSoftSkillForm() {
       toast.success('Soft skill updated successfully');
       navigate('/admin/soft-skills');
     },
-    onError: () => {
-      toast.error('Failed to update soft skill');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update soft skill'));
     },
   });
 
@@ -87,7 +88,7 @@ export default function AdminSoftSkillForm() {
     e.preventDefault();
     const submitData = {
       ...formData,
-      categoryId: formData.categoryId || undefined,
+      categoryId: formData.categoryId || null,
     };
     if (isEditing) {
       updateMutation.mutate(submitData);
@@ -232,7 +233,7 @@ export default function AdminSoftSkillForm() {
               <label className="label">Category</label>
               <select
                 name="categoryId"
-                value={formData.categoryId}
+                value={formData.categoryId ?? ''}
                 onChange={handleChange}
                 className="input"
               >
