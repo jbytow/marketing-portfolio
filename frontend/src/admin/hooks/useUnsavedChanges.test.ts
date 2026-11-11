@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { cleanup, renderHook } from '@testing-library/react';
 import i18n from '@/i18n/index';
-import { useUnsavedChanges } from './useUnsavedChanges';
+import { hasUnsavedChanges, useUnsavedChanges } from './useUnsavedChanges';
 
 const beforeUnloadCalls = (spy: { mock: { calls: unknown[][] } }) =>
   spy.mock.calls.filter(([type]) => type === 'beforeunload');
@@ -82,5 +82,19 @@ describe('useUnsavedChanges', () => {
     const { result } = renderHook(() => useUnsavedChanges(true));
     expect(result.current.confirmLeave()).toBe(expected);
     expect(confirm).toHaveBeenCalledWith(i18n.t('admin.unsaved.confirmLeave'));
+  });
+
+  it('publishes the dirty state for the layout and clears it when clean or unmounted', () => {
+    const { rerender, unmount } = renderHook(({ dirty }) => useUnsavedChanges(dirty), {
+      initialProps: { dirty: false },
+    });
+    expect(hasUnsavedChanges()).toBe(false);
+    rerender({ dirty: true });
+    expect(hasUnsavedChanges()).toBe(true);
+    rerender({ dirty: false });
+    expect(hasUnsavedChanges()).toBe(false);
+    rerender({ dirty: true });
+    unmount();
+    expect(hasUnsavedChanges()).toBe(false);
   });
 });

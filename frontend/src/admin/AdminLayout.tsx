@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AUTH_EXPIRED_EVENT } from '@/services/api';
 import SessionExpiredModal from './components/SessionExpiredModal';
+import { hasUnsavedChanges } from './hooks/useUnsavedChanges';
 
 const navItems = [
   { path: '/admin', icon: LayoutDashboard, labelKey: 'admin.dashboard.title', exact: true },
@@ -47,6 +48,10 @@ export default function AdminLayout() {
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
   }, []);
 
+  const closeSessionExpired = useCallback(() => setSessionExpired(false), []);
+
+  const confirmLeave = () => !hasUnsavedChanges() || window.confirm(t('admin.unsaved.confirmLeave'));
+
   return (
     <div className="min-h-screen bg-dark-900 flex">
       {/* Sidebar */}
@@ -54,7 +59,7 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="p-6 border-b border-dark-700">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => confirmLeave() && navigate('/')}
             className="flex items-center text-dark-400 hover:text-dark-100 transition-colors"
           >
             <ChevronLeft className="w-5 h-5 mr-2" />
@@ -69,6 +74,9 @@ export default function AdminLayout() {
               key={item.path}
               to={item.path}
               end={item.exact}
+              onClick={(event) => {
+                if (item.path !== location.pathname && !confirmLeave()) event.preventDefault();
+              }}
               className={({ isActive }) =>
                 clsx(
                   'flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors',
@@ -104,7 +112,7 @@ export default function AdminLayout() {
             </div>
           </div>
           <button
-            onClick={logout}
+            onClick={() => confirmLeave() && logout()}
             className="flex items-center w-full px-4 py-2 text-sm text-dark-400 hover:text-red-400 hover:bg-dark-700 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5 mr-3" />
@@ -125,7 +133,7 @@ export default function AdminLayout() {
           </ErrorBoundary>
         </motion.div>
       </main>
-      <SessionExpiredModal open={sessionExpired} onClose={() => setSessionExpired(false)} />
+      <SessionExpiredModal open={sessionExpired} onClose={closeSessionExpired} />
     </div>
   );
 }
