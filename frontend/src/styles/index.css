@@ -784,7 +784,7 @@ body.page-levitate {
   50% { box-shadow: 0 0 18px rgba(201, 168, 76, 0.6); }
 }
 
-/* Rose's decorative animations respect prefers-reduced-motion by default —
+/* Decorative animations (Rose effects, the hero pulse) respect prefers-reduced-motion by default —
    unless an admin has flipped "always show animations" on in Settings,
    which stamps <html class="rose-force-motion"> and short-circuits all of
    this back off. */
@@ -807,6 +807,7 @@ body.page-levitate {
     animation: none !important;
   }
 
+  html:not(.rose-force-motion) .animate-pulse-slow,
   html:not(.rose-force-motion) .kpi-blessed-glow,
   html:not(.rose-force-motion) body.page-levitate,
   html:not(.rose-force-motion) .rose-logo-link,
