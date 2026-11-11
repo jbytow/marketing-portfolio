@@ -42,7 +42,7 @@ that updates itself.
 - **Modern UI/UX**:
   - Responsive mobile-first design
   - Framer Motion animations
-  - Three switchable themes: Light, Dark, and Rose
+  - Two switchable themes, Dark and Rose, with Rose as the default; the Light theme is disabled in the code
 
 ## 🌸 Rose Theme — Magic Effects
 
@@ -74,6 +74,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 - PostgreSQL 16
 - Flyway migrations
 - JWT authentication
+- Testcontainers (database tests)
 
 ### Frontend
 - React 18
@@ -85,6 +86,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 - i18next (internationalization)
 - TipTap (rich text editor)
 - dnd-kit (drag and drop)
+- Vitest + Testing Library (tests)
 
 ### Deployment Infrastructure
 - **Proxmox VE** - Hypervisor for virtualization
@@ -93,29 +95,38 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 - **NGINX** - Reverse proxy and static file serving
 - **Cloudflare Tunnel** - Secure public access without exposed ports
 
-## Test Coverage
+## Tests and Quality Checks
 
-The project includes comprehensive unit tests for backend services:
+The backend has around 460 tests (as of 2026-11-11; the number changes as the code does):
 
+- Service tests on JUnit 5 and Mockito
+- Controller tests on `@WebMvcTest`
+- `SecurityConfigTest`, which drives the real Spring Security chain
+- Database tests on Testcontainers with PostgreSQL 16: `PostRepositoryTest` and `MigrationSchemaTest`, the latter running the Flyway migrations and validating the resulting schema against the entities
+
+Database tests need a working Docker daemon. On a machine where Docker runs inside WSL, point the tests at it:
+
+```bash
+export DOCKER_HOST=tcp://127.0.0.1:2375
+export TESTCONTAINERS_RYUK_DISABLED=true
 ```
-Tests run: 125, Failures: 0, Errors: 0
-```
 
-**Test Breakdown:**
-- `PostServiceTest` - 22 tests (CRUD, publishing, slug generation)
-- `ExperienceServiceTest` - 14 tests (CRUD, locale handling)
-- `InterestServiceTest` - 12 tests (CRUD, ordering)
-- `SkillCategoryServiceTest` - 14 tests (CRUD, nested skills)
-- `PostControllerTest` - 9 tests (REST endpoints, localization)
-- `AdminPostControllerTest` - 8 tests (authenticated endpoints)
-- `JwtServiceTest` - 16 tests (token generation, validation)
-- Converter tests - 30 tests (Category, MediaType converters)
-
-**Run tests:**
+**Run backend tests:**
 ```bash
 cd backend
 .\mvnw.cmd test                    # Windows
 ./mvnw test                        # Linux/Mac
+```
+
+The frontend tests run on Vitest with Testing Library on jsdom. They cover i18n key parity between EN and PL and keys that no component consumes, the API client (`Accept-Language`, timeout, 401), the rich text renderer and editor sharing one TipTap extension list, the media components, and accessibility. Lint allows no warnings.
+
+**Run frontend checks:**
+```bash
+cd frontend
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
 ## Configuration Highlights
@@ -131,14 +142,21 @@ cd backend
 - Automatic timestamps with `@PrePersist` and `@PreUpdate`
 
 ### Security
-- JWT-based stateless authentication
-- OAuth2 integration with Google and GitHub
-- Role-based access control (admin email whitelist)
-- CORS configuration for frontend-backend communication
+- Google OAuth2 is the only login provider
+- Admin access is the `ADMIN_EMAILS` allowlist combined with a verified Google e-mail; the list is re-checked on every request, and `/api/admin/**` requires `ROLE_ADMIN`
+- The JWT travels in an HttpOnly cookie (`Secure`, `SameSite=Lax` over HTTPS), so the frontend never handles the token
+- Anonymous calls to `/api/**` answer 401 as JSON, without a redirect to the login page
+- `JWT_SECRET` must be at least 32 bytes; the `prod` profile refuses to start with a missing or development secret
+- CORS allows the single origin from `FRONTEND_URL`
+- Uploads are checked against a server-side MIME allowlist and cannot leave the upload directory
+- Rate limiting runs at the edge (nginx), per visitor keyed on `CF-Connecting-IP`, and answers 429
 
 ### Media Handling
-- File uploads stored on disk with configurable path
-- Support for images, videos, PDFs, and YouTube embeds
+- Uploads are stored on disk in the directory mounted from a Docker volume
+- Accepted types are `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `video/mp4`, `video/webm` and `application/pdf`
+- Each file is saved under a UUID name with the extension taken from its MIME type
+- Files are served with `Cache-Control: public, immutable` for one year
+- YouTube links are accepted in watch, shorts, live, embed, `youtu.be` and `nocookie` form
 - Media URL resolution for both dev and production environments
 
 ### Internationalization
@@ -172,9 +190,9 @@ After deploys, returning visitors got 404s on lazy-loaded chunks and a black scr
 ## Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose
-- Node.js 20+ (for local frontend development)
-- Java 21+ (for local backend development)
+- Docker and Docker Compose (Compose v2)
+- Node.js 20+ for local frontend development (the Docker image builds on `node:24-alpine`)
+- Java 21 for local backend development: Lombok in Spring Boot 3.2.1 fails on JDK 22 and newer, so `JAVA_HOME` has to point at a JDK 21 installation
 
 ### Quick Start with Docker
 
@@ -198,8 +216,10 @@ ADMIN_EMAILS=your_email@example.com
 
 4. Start the application:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
+
+The development compose publishes ports 5432, 8080 and 5173 on `127.0.0.1` only.
 
 5. Access the application:
    - Frontend: http://localhost:5173
@@ -239,7 +259,7 @@ npm run dev
 │   │   ├── repository/      # Spring Data repositories
 │   │   ├── security/        # Security & JWT
 │   │   └── service/         # Business logic
-│   ├── src/test/java/       # Unit tests
+│   ├── src/test/java/       # Backend tests
 │   └── src/main/resources/
 │       ├── db/migration/    # Flyway migrations
 │       └── application.yml  # Configuration
@@ -253,7 +273,12 @@ npm run dev
 │   │   ├── pages/           # Public pages
 │   │   ├── services/        # API services
 │   │   └── types/           # TypeScript types
+│   ├── deploy.sh            # Additive frontend deploy
+│   ├── vitest.config.ts     # Test configuration
 │   └── nginx.conf           # Nginx configuration
+├── docs/
+│   ├── api.md               # REST API reference
+│   └── operations.md        # Production runbook
 ├── nginx/                   # Production nginx config
 ├── docker-compose.yml       # Development setup
 └── docker-compose.prod.yml  # Production setup
@@ -261,15 +286,9 @@ npm run dev
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_DB` | Database name | portfolio |
-| `POSTGRES_USER` | Database user | portfolio |
-| `POSTGRES_PASSWORD` | Database password | portfolio123 |
-| `JWT_SECRET` | JWT signing key | (dev key) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | - |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | - |
-| `ADMIN_EMAILS` | Comma-separated admin emails | admin@example.com |
+The production compose file refuses to start without `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS` and `FRONTEND_URL`. Optional entries are `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `CONTACT_EMAIL` and `VITE_API_URL`.
+
+The full list with defaults lives in [`.env.example`](.env.example). Startup checks, log lines and per-variable behaviour are in [docs/operations.md](docs/operations.md).
 
 ## API Endpoints
 
