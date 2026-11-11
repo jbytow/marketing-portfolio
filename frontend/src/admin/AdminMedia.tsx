@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -25,6 +25,8 @@ function getUploadErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+const PAGE_SIZE = 100;
+
 const mediaTypeIcons: Record<MediaType, typeof Image> = {
   [MediaType.IMAGE]: Image,
   [MediaType.VIDEO]: Film,
@@ -37,10 +39,12 @@ export default function AdminMedia() {
   const queryClient = useQueryClient();
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.admin.media(0, 100),
-    queryFn: () => adminMediaApi.getAll(0, 100),
+    queryKey: queryKeys.admin.media(page, PAGE_SIZE),
+    queryFn: () => adminMediaApi.getAll(page, PAGE_SIZE),
+    placeholderData: keepPreviousData,
   });
 
   const uploadMutation = useMutation({
@@ -58,6 +62,8 @@ export default function AdminMedia() {
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
+      // Deleting the only item of the last page would otherwise leave an empty page
+      if (page > 0 && media.length === 1) setPage(page - 1);
       setSelectedMedia(null);
       toast.success('Media deleted successfully');
     },
@@ -65,6 +71,9 @@ export default function AdminMedia() {
       toast.error('Failed to delete media');
     },
   });
+
+  const media = data?.data?.content || [];
+  const totalPages = data?.data?.totalPages ?? 0;
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -103,8 +112,6 @@ export default function AdminMedia() {
       'application/pdf': ['.pdf'],
     },
   });
-
-  const media = data?.data?.content || [];
 
   const handleDelete = (item: Media) => {
     if (window.confirm(`Are you sure you want to delete "${item.originalName}"?`)) {
@@ -195,6 +202,30 @@ export default function AdminMedia() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 0}
+            className="btn-secondary disabled:opacity-50"
+          >
+            {t('common.previous')}
+          </button>
+          <span className="text-dark-400 text-sm">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="btn-secondary disabled:opacity-50"
+          >
+            {t('common.next')}
+          </button>
         </div>
       )}
 
