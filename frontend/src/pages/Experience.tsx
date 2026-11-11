@@ -36,7 +36,7 @@ export default function Experience() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.experiences(language),
     queryFn: () => experiencesApi.getAll(),
   });
@@ -46,7 +46,7 @@ export default function Experience() {
     return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
   });
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -105,7 +105,7 @@ export default function Experience() {
                             </span>
                           </div>
                           <div className="text-dark-500 text-xs mt-1">
-                            {calculateMonthsDuration(exp.startDate, exp.endDate)} {language === 'pl' ? 'mies.' : 'mo.'}
+                            {calculateMonthsDuration(exp.startDate, exp.endDate)} {t('experience.monthsShort')}
                           </div>
                         </div>
                       </div>
@@ -142,9 +142,18 @@ export default function Experience() {
               </div>
             </div>
 
-            {experiences.length === 0 && (
+            {isError && !data && (
+              <div className="text-center py-12">
+                <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+                <button type="button" onClick={() => refetch()} className="btn-secondary">
+                  {t('common.retry')}
+                </button>
+              </div>
+            )}
+
+            {!isError && experiences.length === 0 && (
               <div className="text-center text-dark-400 py-12">
-                No experience entries yet.
+                {t('experience.empty')}
               </div>
             )}
           </div>

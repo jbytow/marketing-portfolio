@@ -15,14 +15,14 @@ export default function Content() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.posts(language, Category.CONTENT_COPY),
     queryFn: () => postsApi.getAll(Category.CONTENT_COPY),
   });
 
   const contents = data?.data || [];
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -82,9 +82,18 @@ export default function Content() {
             ))}
           </div>
 
-          {contents.length === 0 && (
+          {isError && !data && (
+            <div className="text-center py-12">
+              <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+              <button type="button" onClick={() => refetch()} className="btn-secondary">
+                {t('common.retry')}
+              </button>
+            </div>
+          )}
+
+          {!isError && contents.length === 0 && (
             <div className="text-center text-dark-400 py-12">
-              No content samples yet.
+              {t('content.empty')}
             </div>
           )}
         </div>

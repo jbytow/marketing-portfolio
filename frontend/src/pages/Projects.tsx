@@ -18,7 +18,7 @@ export default function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeHashtag = searchParams.get('hashtag');
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: activeHashtag
       ? queryKeys.postsByHashtag(language, activeHashtag)
       : queryKeys.posts(language, Category.CAMPAIGNS),
@@ -34,7 +34,7 @@ export default function Projects() {
     setSearchParams({});
   };
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -62,7 +62,7 @@ export default function Projects() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-8 flex items-center justify-center gap-2"
             >
-              <span className="text-dark-400">Filtered by:</span>
+              <span className="text-dark-400">{t('projects.filteredBy')}</span>
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 text-primary-400">
                 #{activeHashtag}
                 <button
@@ -121,11 +121,20 @@ export default function Projects() {
             ))}
           </div>
 
-          {projects.length === 0 && (
+          {isError && !data && (
+            <div className="text-center py-12">
+              <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+              <button type="button" onClick={() => refetch()} className="btn-secondary">
+                {t('common.retry')}
+              </button>
+            </div>
+          )}
+
+          {!isError && projects.length === 0 && (
             <div className="text-center text-dark-400 py-12">
               {activeHashtag
-                ? `No projects found with hashtag #${activeHashtag}`
-                : 'No projects yet.'}
+                ? t('projects.emptyHashtag', { hashtag: activeHashtag })
+                : t('projects.empty')}
             </div>
           )}
         </div>

@@ -17,14 +17,14 @@ export default function Newsletter() {
   const { language } = useLanguage();
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.newsletters(language),
     queryFn: () => newslettersApi.getAll(),
   });
 
   const newsletters = data?.data || [];
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -79,7 +79,7 @@ export default function Newsletter() {
                         ))
                       ) : (
                         <div className="flex-1 aspect-[4/5] rounded-lg bg-dark-700 flex items-center justify-center">
-                          <span className="text-dark-500">No image</span>
+                          <span className="text-dark-500">{t('newsletter.noImage')}</span>
                         </div>
                       )}
                       {/* Fill remaining slots with placeholders if less than 3 images */}
@@ -118,9 +118,18 @@ export default function Newsletter() {
             })}
           </div>
 
-          {newsletters.length === 0 && (
+          {isError && !data && (
+            <div className="text-center py-12">
+              <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+              <button type="button" onClick={() => refetch()} className="btn-secondary">
+                {t('common.retry')}
+              </button>
+            </div>
+          )}
+
+          {!isError && newsletters.length === 0 && (
             <div className="text-center text-dark-400 py-12">
-              No newsletters yet.
+              {t('newsletter.empty')}
             </div>
           )}
         </div>
