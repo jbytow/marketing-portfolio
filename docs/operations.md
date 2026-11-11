@@ -108,7 +108,7 @@ docker logs portfolio-backend-prod --since 5m
 
 - Shutdown is graceful (`server.shutdown=graceful`, 8 s phase, under Docker's 10 s stop timeout).
 - `/actuator/health` no longer includes the mail indicator, so an SMTP outage does not restart the container; Docker HEALTHCHECK uses it.
-- `/api/health` stays because an external Uptime Kuma monitor polls it.
+- `/api/health` stays because an external Uptime Kuma monitor polls it; it mirrors the Actuator state (503 with `{"status":"DOWN"}` when the database is unreachable), so the monitor now sees database outages.
 - SMTP has connect, read and write timeouts; a mail failure answers 503 on `/api/contact` and never pins request threads.
 - No edge restart is needed after a backend deploy: the edge re-resolves `backend` and `frontend` through Docker DNS (`resolver 127.0.0.11`).
 

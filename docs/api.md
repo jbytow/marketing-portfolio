@@ -61,11 +61,9 @@ Error:
 
 | Method | Path | Purpose | Notes |
 |---|---|---|---|
-| GET | `/api/categories` | List post categories | Categories are a fixed enum |
-| GET | `/api/categories/{category}` | Get one category | `category` is the enum name |
 | POST | `/api/contact` | Submit the contact form | Validated fields: `name`, `email`, `subject`, `message` up to 5000 characters; optional `website` is a honeypot (when filled the request answers 200 and nothing is sent); mail failure returns 503; the edge allows 5 submissions per minute per visitor |
 | GET | `/api/experiences` | List experiences | Ordered by their display order |
-| GET | `/api/health` | Liveness check | Used by the external monitor; `/actuator/health` is not exposed by the proxy |
+| GET | `/api/health` | Health check | Mirrors the Actuator health: 200 `{"status":"UP"}` or 503 `{"status":"DOWN"}` (database down), no component details; used by the external monitor because `/actuator/health` is not exposed by the proxy |
 | GET | `/api/interests` | List interests | Ordered by their display order |
 | GET | `/api/media/{subDir}/{filename}` | Serve an uploaded file | Responds with `Cache-Control: max-age=31536000, public, immutable`; a missing file returns 404 |
 | GET | `/api/newsletters` | List published newsletters | Only published items; one language per request |
@@ -183,3 +181,4 @@ Endpoints and behaviours that existed earlier and are no longer available:
 - GitHub login removed; Google OAuth2 is the only login provider.
 - Public slug lookups no longer return drafts (404 like an unknown slug); drafts are reachable only through the admin endpoints.
 - Admin writes with a foreign `Origin`/`Referer` answer 403; `POST /api/contact` gained the optional `website` honeypot field.
+- `GET /api/categories` and `GET /api/categories/{category}` removed (the frontend uses its local enum and i18n labels); `GET /api/health` now reports the Actuator state instead of a constant UP.
