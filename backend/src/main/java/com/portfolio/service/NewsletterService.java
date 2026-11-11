@@ -6,6 +6,7 @@ import com.portfolio.dto.NewsletterUpdateRequest;
 import com.portfolio.entity.Newsletter;
 import com.portfolio.repository.NewsletterRepository;
 import com.portfolio.util.SlugUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NewsletterService {
 
     private final NewsletterRepository newsletterRepository;
@@ -36,13 +38,13 @@ public class NewsletterService {
 
     public NewsletterDto getBySlug(String slug, String locale) {
         Newsletter newsletter = newsletterRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + slug));
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + slug));
         return mapToDto(newsletter, locale);
     }
 
     public NewsletterDto getById(UUID id, String locale) {
         Newsletter newsletter = newsletterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + id));
         return mapToDto(newsletter, locale);
     }
 
@@ -70,7 +72,7 @@ public class NewsletterService {
     @Transactional
     public NewsletterDto update(UUID id, NewsletterUpdateRequest request, String locale) {
         Newsletter newsletter = newsletterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + id));
 
         if (request.getTitleEn() != null) {
             newsletter.setTitleEn(request.getTitleEn());
@@ -117,7 +119,7 @@ public class NewsletterService {
     @Transactional
     public void delete(UUID id) {
         if (!newsletterRepository.existsById(id)) {
-            throw new RuntimeException("Newsletter not found: " + id);
+            throw new EntityNotFoundException("Newsletter not found: " + id);
         }
         newsletterRepository.deleteById(id);
     }

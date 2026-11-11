@@ -1,9 +1,11 @@
 package com.portfolio.service;
 
 import com.portfolio.dto.NewsletterCreateRequest;
+import com.portfolio.dto.NewsletterDto;
 import com.portfolio.dto.NewsletterUpdateRequest;
 import com.portfolio.entity.Newsletter;
 import com.portfolio.repository.NewsletterRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -58,6 +60,77 @@ class NewsletterServiceTest {
                 .displayOrder(1)
                 .published(true)
                 .build();
+    }
+
+    @Nested
+    @DisplayName("not found")
+    class NotFound {
+
+        @Test
+        @DisplayName("getBySlug should throw EntityNotFoundException for an unknown slug")
+        void getBySlugUnknown() {
+            given(newsletterRepository.findBySlug("missing")).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> newsletterService.getBySlug("missing", "en"))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessageContaining("missing");
+        }
+
+        @Test
+        @DisplayName("getById should throw EntityNotFoundException for an unknown id")
+        void getByIdUnknown() {
+            given(newsletterRepository.findById(newsletterId)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> newsletterService.getById(newsletterId, "en"))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("update should throw EntityNotFoundException for an unknown id")
+        void updateUnknown() {
+            given(newsletterRepository.findById(newsletterId)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> newsletterService.update(newsletterId, new NewsletterUpdateRequest(), "en"))
+                    .isInstanceOf(EntityNotFoundException.class);
+            verify(newsletterRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("delete should throw EntityNotFoundException for an unknown id")
+        void deleteUnknown() {
+            given(newsletterRepository.existsById(newsletterId)).willReturn(false);
+
+            assertThatThrownBy(() -> newsletterService.delete(newsletterId))
+                    .isInstanceOf(EntityNotFoundException.class);
+            verify(newsletterRepository, never()).deleteById(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getBySlug")
+    class GetBySlug {
+
+        @Test
+        @DisplayName("should pick Polish fields for the pl locale")
+        void shouldUsePolishFields() {
+            given(newsletterRepository.findBySlug("spring-recap")).willReturn(Optional.of(sampleNewsletter));
+
+            NewsletterDto result = newsletterService.getBySlug("spring-recap", "pl");
+
+            assertThat(result.getTitle()).isEqualTo("Wiosenne podsumowanie");
+            assertThat(result.getContent()).isEqualTo("Treść PL");
+        }
+
+        @Test
+        @DisplayName("should pick English fields for the en locale")
+        void shouldUseEnglishFields() {
+            given(newsletterRepository.findBySlug("spring-recap")).willReturn(Optional.of(sampleNewsletter));
+
+            NewsletterDto result = newsletterService.getBySlug("spring-recap", "en");
+
+            assertThat(result.getTitle()).isEqualTo("Spring recap");
+            assertThat(result.getContent()).isEqualTo("Content EN");
+        }
     }
 
     @Nested
