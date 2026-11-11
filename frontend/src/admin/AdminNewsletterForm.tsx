@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { Save, ArrowLeft, Upload, X } from 'lucide-react';
 import { adminNewslettersApi, adminMediaApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -62,8 +62,8 @@ export default function AdminNewsletterForm() {
       toast.success('Newsletter created successfully');
       navigate('/admin/newsletters');
     },
-    onError: () => {
-      toast.error('Failed to create newsletter');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to create newsletter'));
     },
   });
 
@@ -77,8 +77,8 @@ export default function AdminNewsletterForm() {
       toast.success('Newsletter updated successfully');
       navigate('/admin/newsletters');
     },
-    onError: () => {
-      toast.error('Failed to update newsletter');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update newsletter'));
     },
   });
 
@@ -104,8 +104,7 @@ export default function AdminNewsletterForm() {
         [`image${slot}`]: imageUrl,
       }));
     } catch (error) {
-      const serverMessage = axios.isAxiosError(error) ? error.response?.data?.message : undefined;
-      toast.error(serverMessage || 'Failed to upload image');
+      toast.error(getApiErrorMessage(error, 'Failed to upload image'));
     } finally {
       setUploading(null);
     }

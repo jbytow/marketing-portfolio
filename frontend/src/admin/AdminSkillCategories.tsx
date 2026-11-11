@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import { adminSkillCategoriesApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
@@ -27,8 +28,8 @@ export default function AdminSkillCategories() {
       toast.success('Category deleted successfully');
       setDeleteId(null);
     },
-    onError: () => {
-      toast.error('Failed to delete category');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete category'));
     },
   });
 

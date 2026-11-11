@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useDropzone, FileRejection } from 'react-dropzone';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { FILE_TOO_LARGE_MESSAGE, getApiErrorMessage } from '@/lib/apiError';
 import { Upload, Trash2, Image, Film, FileText, X, Youtube } from 'lucide-react';
 import { clsx } from 'clsx';
 import { adminMediaApi } from '@/services/api';
@@ -13,17 +13,6 @@ import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-const MAX_UPLOAD_MESSAGE = 'File too large (max 50 MB)';
-
-// Surface the server's reason instead of a generic failure; 413 comes from the proxy without a body
-function getUploadErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError(error)) {
-    if (error.response?.status === 413) return MAX_UPLOAD_MESSAGE;
-    const message = error.response?.data?.message;
-    if (typeof message === 'string' && message) return message;
-  }
-  return fallback;
-}
 
 const PAGE_SIZE = 100;
 
@@ -54,7 +43,7 @@ export default function AdminMedia() {
       toast.success(t('admin.media.upload') + ' successful');
     },
     onError: (error) => {
-      toast.error(getUploadErrorMessage(error, 'Failed to upload file'));
+      toast.error(getApiErrorMessage(error, 'Failed to upload file'));
     },
   });
 
@@ -67,8 +56,8 @@ export default function AdminMedia() {
       setSelectedMedia(null);
       toast.success('Media deleted successfully');
     },
-    onError: () => {
-      toast.error('Failed to delete media');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete media'));
     },
   });
 
@@ -97,7 +86,7 @@ export default function AdminMedia() {
     for (const { file, errors } of rejections) {
       const tooLarge = errors.some((e) => e.code === 'file-too-large');
       toast.error(
-        tooLarge ? `${file.name}: ${MAX_UPLOAD_MESSAGE}` : `${file.name}: File type not supported`
+        tooLarge ? `${file.name}: ${FILE_TOO_LARGE_MESSAGE}` : `${file.name}: File type not supported`
       );
     }
   }, []);

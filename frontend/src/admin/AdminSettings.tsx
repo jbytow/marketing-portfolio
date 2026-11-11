@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { adminSettingsApi } from '@/services/api';
 import { SiteSettingsUpdateRequest, StatItemInput } from '@/types';
@@ -86,8 +87,8 @@ export default function AdminSettings() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.settings() });
       toast.success(t('admin.settings.title') + ' updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to update settings');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update settings'));
     },
   });
 

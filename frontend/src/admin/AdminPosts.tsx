@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import {
   Plus,
   Search,
@@ -39,8 +40,8 @@ export default function AdminPosts() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
       toast.success('Post deleted successfully');
     },
-    onError: () => {
-      toast.error('Failed to delete post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete post'));
     },
   });
 
@@ -53,8 +54,8 @@ export default function AdminPosts() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
       toast.success('Post status updated');
     },
-    onError: () => {
-      toast.error('Failed to update post status');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update post status'));
     },
   });
 

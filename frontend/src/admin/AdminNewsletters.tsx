@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 import { adminNewslettersApi } from '@/services/api';
@@ -29,8 +30,8 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       toast.success('Newsletter deleted successfully');
     },
-    onError: () => {
-      toast.error('Failed to delete newsletter');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to delete newsletter'));
     },
     // Close the modal on failure too, otherwise it stays open with no feedback
     onSettled: () => {
@@ -49,8 +50,8 @@ export default function AdminNewsletters() {
       queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       toast.success('Newsletter status updated');
     },
-    onError: () => {
-      toast.error('Failed to update newsletter status');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Failed to update newsletter status'));
     },
   });
 
