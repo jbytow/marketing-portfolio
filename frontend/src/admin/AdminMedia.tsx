@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Upload, Trash2, Image, Film, FileText, X, Youtube } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -10,6 +11,19 @@ import { Media, MediaType } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_MESSAGE = 'File too large (max 50 MB)';
+
+// Surface the server's reason instead of a generic failure; 413 comes from the proxy without a body
+function getUploadErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 413) return MAX_UPLOAD_MESSAGE;
+    const message = error.response?.data?.message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
+}
 
 const mediaTypeIcons: Record<MediaType, typeof Image> = {
   [MediaType.IMAGE]: Image,
@@ -35,8 +49,8 @@ export default function AdminMedia() {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
       toast.success(t('admin.media.upload') + ' successful');
     },
-    onError: () => {
-      toast.error('Failed to upload file');
+    onError: (error) => {
+      toast.error(getUploadErrorMessage(error, 'Failed to upload file'));
     },
   });
 
@@ -55,16 +69,34 @@ export default function AdminMedia() {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       setIsUploading(true);
-      for (const file of acceptedFiles) {
-        await uploadMutation.mutateAsync(file);
+      try {
+        for (const file of acceptedFiles) {
+          try {
+            await uploadMutation.mutateAsync(file);
+          } catch {
+            // onError already showed the reason; keep going with the remaining files
+          }
+        }
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     },
     [uploadMutation]
   );
 
+  const onDropRejected = useCallback((rejections: FileRejection[]) => {
+    for (const { file, errors } of rejections) {
+      const tooLarge = errors.some((e) => e.code === 'file-too-large');
+      toast.error(
+        tooLarge ? `${file.name}: ${MAX_UPLOAD_MESSAGE}` : `${file.name}: File type not supported`
+      );
+    }
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
+    maxSize: MAX_UPLOAD_BYTES,
     accept: {
       'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
       'video/*': ['.mp4', '.webm'],

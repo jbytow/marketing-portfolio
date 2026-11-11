@@ -18,11 +18,25 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Upload, Youtube, X, GripVertical, Image as ImageIcon } from 'lucide-react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import { queryKeys } from '@/lib/queryKeys';
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MAX_UPLOAD_MESSAGE = 'File too large (max 50 MB)';
+
+// Surface the server's reason instead of a generic failure; 413 comes from the proxy without a body
+function getUploadErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 413) return MAX_UPLOAD_MESSAGE;
+    const message = error.response?.data?.message;
+    if (typeof message === 'string' && message) return message;
+  }
+  return fallback;
+}
 
 interface MediaManagerProps {
   postId: string;
@@ -135,8 +149,8 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
         toast.success('Media uploaded');
       }
     },
-    onError: () => {
-      toast.error('Failed to upload media');
+    onError: (error) => {
+      toast.error(getUploadErrorMessage(error, 'Failed to upload media'));
     },
   });
 
@@ -179,10 +193,21 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
       setIsUploading(true);
-      for (const file of Array.from(files)) {
-        await uploadMutation.mutateAsync(file);
+      try {
+        for (const file of Array.from(files)) {
+          if (file.size > MAX_UPLOAD_BYTES) {
+            toast.error(`${file.name}: ${MAX_UPLOAD_MESSAGE}`);
+            continue;
+          }
+          try {
+            await uploadMutation.mutateAsync(file);
+          } catch {
+            // onError already showed the reason; keep going with the remaining files
+          }
+        }
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     },
     [uploadMutation]
   );
@@ -242,7 +267,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
           type="file"
           id="media-upload"
           multiple
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
           onChange={(e) => handleFileUpload(e.target.files)}
           className="hidden"
         />
@@ -259,7 +284,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
                 Drop files here or click to upload
               </span>
               <span className="text-sm text-dark-500 mt-1">
-                Images and videos supported
+                JPEG, PNG, GIF, WebP, MP4 and WebM, up to 50 MB
               </span>
             </>
           )}
