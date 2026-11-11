@@ -62,6 +62,7 @@ server:
   servlet:
     session:
       timeout: 5m
+  forward-headers-strategy: framework
   shutdown: graceful
 
 # Application specific configuration
