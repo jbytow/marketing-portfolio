@@ -46,17 +46,17 @@ public class MediaService {
 
     public Page<MediaDto> getAllMedia(Pageable pageable, String locale) {
         return mediaRepository.findAll(pageable)
-                .map(media -> mapToDto(media, locale));
+                .map(media -> MediaDto.from(media, locale));
     }
 
     public Page<MediaDto> getUnassignedMedia(Pageable pageable, String locale) {
         return mediaRepository.findByPostIdIsNull(pageable)
-                .map(media -> mapToDto(media, locale));
+                .map(media -> MediaDto.from(media, locale));
     }
 
     public Page<MediaDto> getMediaByType(MediaType type, Pageable pageable, String locale) {
         return mediaRepository.findByType(type, pageable)
-                .map(media -> mapToDto(media, locale));
+                .map(media -> MediaDto.from(media, locale));
     }
 
     @Transactional
@@ -100,7 +100,7 @@ public class MediaService {
             }
             throw e;
         }
-        return mapToDto(media, locale);
+        return MediaDto.from(media, locale);
     }
 
     private static void requireAltTextsFit(String altTextEn, String altTextPl) {
@@ -148,7 +148,7 @@ public class MediaService {
                 .build();
 
         media = mediaRepository.save(media);
-        return mapToDto(media, locale);
+        return MediaDto.from(media, locale);
     }
 
     @Transactional
@@ -191,7 +191,7 @@ public class MediaService {
         }
 
         media = mediaRepository.save(media);
-        return mapToDto(media, locale);
+        return MediaDto.from(media, locale);
     }
 
     @Transactional
@@ -221,24 +221,5 @@ public class MediaService {
         } catch (IOException | RuntimeException e) {
             log.warn("Media row deleted but its file could not be removed: {} ({})", filename, e.getMessage());
         }
-    }
-
-    private MediaDto mapToDto(Media media, String locale) {
-        return MediaDto.builder()
-                .id(media.getId())
-                .postId(media.getPost() != null ? media.getPost().getId() : null)
-                .type(media.getType())
-                .filename(media.getFilename())
-                .originalName(media.getOriginalName())
-                .mimeType(media.getMimeType())
-                .size(media.getSize())
-                .url(media.getUrl())
-                .altText(media.getAltText(locale))
-                .altTextEn(media.getAltTextEn())
-                .altTextPl(media.getAltTextPl())
-                .displayOrder(media.getDisplayOrder())
-                .videoUrl(media.getVideoUrl())
-                .createdAt(media.getCreatedAt())
-                .build();
     }
 }

@@ -9,6 +9,8 @@ import com.portfolio.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -116,6 +118,29 @@ class PostControllerTest {
                     .andExpect(jsonPath("$.data[0].category").value("CAMPAIGNS"));
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = {"foo", "campaigns ", "1"})
+        @DisplayName("should answer 400 for an unknown category")
+        void shouldRejectUnknownCategory(String category) throws Exception {
+            mockMvc.perform(get("/api/posts").param("category", category))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false));
+
+            org.mockito.Mockito.verifyNoInteractions(postService);
+        }
+
+        @Test
+        @DisplayName("should look up posts by hashtag when the hashtag parameter is set")
+        void shouldFilterByHashtag() throws Exception {
+            given(postService.getPostsByHashtag("seo", "en")).willReturn(List.of(createSamplePostDto()));
+
+            mockMvc.perform(get("/api/posts").param("hashtag", "seo"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", hasSize(1)));
+
+            org.mockito.Mockito.verify(postService).getPostsByHashtag("seo", "en");
+        }
+
         @Test
         @DisplayName("should use Polish locale when Accept-Language is pl")
         void shouldUsePolishLocale() throws Exception {
@@ -178,6 +203,18 @@ class PostControllerTest {
             mockMvc.perform(get("/api/posts/non-existent")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
+        }
+        @ParameterizedTest
+        @ValueSource(strings = {"paged", "hashtags"})
+        @DisplayName("should treat former list routes as slugs and answer 404")
+        void shouldTreatRemovedRoutesAsSlugs(String path) throws Exception {
+            given(postService.getPostBySlug(path, "en"))
+                    .willThrow(new jakarta.persistence.EntityNotFoundException("Post not found: " + path));
+
+            mockMvc.perform(get("/api/posts/" + path))
+                    .andExpect(status().isNotFound());
+
+            org.mockito.Mockito.verify(postService).getPostBySlug(path, "en");
         }
     }
 

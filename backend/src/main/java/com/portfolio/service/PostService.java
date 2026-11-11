@@ -1,13 +1,12 @@
 package com.portfolio.service;
 
-import com.github.slugify.Slugify;
 import com.portfolio.dto.*;
 import com.portfolio.entity.*;
 import com.portfolio.repository.PostRepository;
+import com.portfolio.util.SlugUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,71 +21,57 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final Slugify slugify = Slugify.builder().build();
 
     public List<PostDto> getAllPublishedPosts(String locale) {
         return postRepository.findAllPublished().stream()
-                .map(post -> mapToDto(post, locale, false))
+                .map(post -> mapToDto(post, locale, View.PUBLIC_LIST))
                 .toList();
-    }
-
-    public Page<PostDto> getPublishedPosts(Pageable pageable, String locale) {
-        return postRepository.findByPublishedTrue(pageable)
-                .map(post -> mapToDto(post, locale, false));
     }
 
     public List<PostDto> getPostsByCategory(Category category, String locale) {
         return postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(category).stream()
-                .map(post -> mapToDto(post, locale, false))
+                .map(post -> mapToDto(post, locale, View.PUBLIC_LIST))
                 .toList();
-    }
-
-    public Page<PostDto> getPostsByCategory(Category category, Pageable pageable, String locale) {
-        return postRepository.findByCategoryAndPublishedTrue(category, pageable)
-                .map(post -> mapToDto(post, locale, false));
     }
 
     public List<PostDto> getPostsByHashtag(String hashtag, String locale) {
         return postRepository.findByHashtagAndPublishedTrue(hashtag).stream()
-                .map(post -> mapToDto(post, locale, false))
+                .map(post -> mapToDto(post, locale, View.PUBLIC_LIST))
                 .toList();
-    }
-
-    public List<String> getAllHashtags() {
-        return postRepository.findAllUniqueHashtags();
     }
 
     public PostDto getPostBySlug(String slug, String locale) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + slug));
-        return mapToDto(post, locale, true);
+        return mapToDto(post, locale, View.PUBLIC_DETAIL);
     }
 
     public PostDto getPostById(UUID id, String locale) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + id));
-        return mapToDto(post, locale, true);
+        return mapToDto(post, locale, View.ADMIN_DETAIL);
     }
 
     // Admin methods
     public List<PostDto> getAllPosts(String locale) {
-        return postRepository.findAll().stream()
-                .map(post -> mapToDto(post, locale, false))
+        // displayOrder is per category (see getMaxDisplayOrder), so it only gives a stable order within one.
+        return postRepository.findAll(Sort.by("category", "displayOrder")).stream()
+                .map(post -> mapToDto(post, locale, View.ADMIN_LIST))
                 .toList();
     }
 
     public List<PostDto> getAllPostsByCategory(Category category, String locale) {
         return postRepository.findAllByCategory(category).stream()
-                .map(post -> mapToDto(post, locale, false))
+                .map(post -> mapToDto(post, locale, View.ADMIN_LIST))
                 .toList();
     }
 
     @Transactional
     public PostDto createPost(PostCreateRequest request, String locale) {
-        String slug = request.getSlug();
-        if (slug == null || slug.isBlank()) {
-            slug = generateUniqueSlug(request.getTitleEn());
-        }
+        String slugSource = request.getSlug() == null || request.getSlug().isBlank()
+                ? request.getTitleEn()
+                : request.getSlug();
+        String slug = generateUniqueSlug(slugSource);
 
         Post post = Post.builder()
                 .category(request.getCategory())
@@ -114,7 +99,7 @@ public class PostService {
                 .build();
 
         post = postRepository.save(post);
-        return mapToDto(post, locale, true);
+        return mapToDto(post, locale, View.ADMIN_DETAIL);
     }
 
     @Transactional
@@ -131,8 +116,17 @@ public class PostService {
         if (request.getTitlePl() != null) {
             post.setTitlePl(request.getTitlePl());
         }
-        if (request.getSlug() != null) {
-            post.setSlug(request.getSlug());
+        // A cleared or resent slug keeps the current one, so a published URL never silently changes or empties.
+        // The raw comparison comes first: legacy slugs stored before normalization must survive unrelated edits.
+        if (request.getSlug() != null && !request.getSlug().isBlank()
+                && !request.getSlug().equals(post.getSlug())) {
+            String slug = SlugUtils.toSlug(request.getSlug());
+            if (!slug.equals(post.getSlug())) {
+                if (postRepository.existsBySlug(slug)) {
+                    throw new IllegalArgumentException("Slug already in use");
+                }
+                post.setSlug(slug);
+            }
         }
         if (request.getExcerptEn() != null) {
             post.setExcerptEn(request.getExcerptEn());
@@ -188,7 +182,7 @@ public class PostService {
         }
 
         post = postRepository.save(post);
-        return mapToDto(post, locale, true);
+        return mapToDto(post, locale, View.ADMIN_DETAIL);
     }
 
     @Transactional
@@ -205,7 +199,7 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + id));
         post.setPublished(!post.getPublished());
         post = postRepository.save(post);
-        return mapToDto(post, locale, true);
+        return mapToDto(post, locale, View.ADMIN_DETAIL);
     }
 
     @Transactional
@@ -215,8 +209,8 @@ public class PostService {
         }
     }
 
-    private String generateUniqueSlug(String title) {
-        String baseSlug = slugify.slugify(title);
+    private String generateUniqueSlug(String source) {
+        String baseSlug = SlugUtils.toSlug(source);
         String slug = baseSlug;
         int counter = 1;
 
@@ -227,43 +221,67 @@ public class PostService {
         return slug;
     }
 
-    private PostDto mapToDto(Post post, String locale, boolean includeContent) {
+    /**
+     * Public responses carry only the locale-resolved texts: the site never reads the raw *En/*Pl fields, and
+     * lists never show case-study texts or content. Admin responses keep the raw fields the edit form needs.
+     */
+    private enum View {
+        PUBLIC_LIST(false, false), PUBLIC_DETAIL(false, true), ADMIN_LIST(true, false), ADMIN_DETAIL(true, true);
+
+        private final boolean admin;
+        private final boolean detail;
+
+        View(boolean admin, boolean detail) {
+            this.admin = admin;
+            this.detail = detail;
+        }
+    }
+
+    private PostDto mapToDto(Post post, String locale, View view) {
         PostDto.PostDtoBuilder builder = PostDto.builder()
                 .id(post.getId())
                 .category(post.getCategory())
                 .categoryLabel(post.getCategory().getLabel(locale))
                 .title(post.getTitle(locale))
-                .titleEn(post.getTitleEn())
-                .titlePl(post.getTitlePl())
                 .slug(post.getSlug())
                 .excerpt(post.getExcerpt(locale))
-                .excerptEn(post.getExcerptEn())
-                .excerptPl(post.getExcerptPl())
                 .featuredImage(post.getFeaturedImage())
                 .published(post.getPublished())
                 .displayOrder(post.getDisplayOrder())
                 .hashtags(post.getHashtags() != null ? Arrays.asList(post.getHashtags()) : new ArrayList<>())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
-                .hasCaseStudy(post.hasCaseStudy())
-                .caseStudyChallenge(post.getCaseStudyChallenge(locale))
-                .caseStudyChallengeEn(post.getCaseStudyChallengeEn())
-                .caseStudyChallengePl(post.getCaseStudyChallengePl())
-                .caseStudySolution(post.getCaseStudySolution(locale))
-                .caseStudySolutionEn(post.getCaseStudySolutionEn())
-                .caseStudySolutionPl(post.getCaseStudySolutionPl())
-                .caseStudyResults(post.getCaseStudyResults(locale))
-                .caseStudyResultsEn(post.getCaseStudyResultsEn())
-                .caseStudyResultsPl(post.getCaseStudyResultsPl())
-                .caseStudyTestimonial(post.getCaseStudyTestimonial(locale))
-                .caseStudyTestimonialEn(post.getCaseStudyTestimonialEn())
-                .caseStudyTestimonialPl(post.getCaseStudyTestimonialPl())
-                .caseStudyTestimonialAuthor(post.getCaseStudyTestimonialAuthor());
+                .hasCaseStudy(post.hasCaseStudy(locale));
 
-        if (includeContent) {
-            builder.content(post.getContent(locale))
-                    .contentEn(post.getContentEn())
-                    .contentPl(post.getContentPl());
+        if (view.admin || view.detail) {
+            builder.caseStudyChallenge(post.getCaseStudyChallenge(locale))
+                    .caseStudySolution(post.getCaseStudySolution(locale))
+                    .caseStudyResults(post.getCaseStudyResults(locale))
+                    .caseStudyTestimonial(post.getCaseStudyTestimonial(locale))
+                    .caseStudyTestimonialAuthor(post.getCaseStudyTestimonialAuthor());
+        }
+
+        if (view.admin) {
+            builder.titleEn(post.getTitleEn())
+                    .titlePl(post.getTitlePl())
+                    .excerptEn(post.getExcerptEn())
+                    .excerptPl(post.getExcerptPl())
+                    .caseStudyChallengeEn(post.getCaseStudyChallengeEn())
+                    .caseStudyChallengePl(post.getCaseStudyChallengePl())
+                    .caseStudySolutionEn(post.getCaseStudySolutionEn())
+                    .caseStudySolutionPl(post.getCaseStudySolutionPl())
+                    .caseStudyResultsEn(post.getCaseStudyResultsEn())
+                    .caseStudyResultsPl(post.getCaseStudyResultsPl())
+                    .caseStudyTestimonialEn(post.getCaseStudyTestimonialEn())
+                    .caseStudyTestimonialPl(post.getCaseStudyTestimonialPl());
+        }
+
+        if (view.detail) {
+            builder.content(post.getContent(locale));
+            if (view.admin) {
+                builder.contentEn(post.getContentEn())
+                        .contentPl(post.getContentPl());
+            }
 
             // Map media ordered by displayOrder
             if (post.getMedia() != null && !post.getMedia().isEmpty()) {
@@ -273,30 +291,11 @@ public class PostService {
                             int orderB = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
                             return Integer.compare(orderA, orderB);
                         })
-                        .map(media -> mapMediaToDto(media, locale))
+                        .map(media -> MediaDto.from(media, locale))
                         .toList());
             }
         }
 
         return builder.build();
-    }
-
-    private MediaDto mapMediaToDto(Media media, String locale) {
-        return MediaDto.builder()
-                .id(media.getId())
-                .postId(media.getPost() != null ? media.getPost().getId() : null)
-                .type(media.getType())
-                .filename(media.getFilename())
-                .originalName(media.getOriginalName())
-                .mimeType(media.getMimeType())
-                .size(media.getSize())
-                .url(media.getUrl())
-                .altText(media.getAltText(locale))
-                .altTextEn(media.getAltTextEn())
-                .altTextPl(media.getAltTextPl())
-                .displayOrder(media.getDisplayOrder())
-                .videoUrl(media.getVideoUrl())
-                .createdAt(media.getCreatedAt())
-                .build();
     }
 }

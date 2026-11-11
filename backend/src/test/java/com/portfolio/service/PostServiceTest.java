@@ -3,6 +3,7 @@ package com.portfolio.service;
 import com.portfolio.dto.PostCreateRequest;
 import com.portfolio.dto.PostDto;
 import com.portfolio.dto.PostUpdateRequest;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Category;
 import com.portfolio.entity.Post;
 import com.portfolio.repository.PostRepository;
@@ -12,14 +13,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -171,6 +177,50 @@ class PostServiceTest {
     }
 
     @Nested
+    @DisplayName("hasCaseStudy")
+    class HasCaseStudy {
+
+        @ParameterizedTest
+        @CsvSource({"en,true", "pl,false"})
+        @DisplayName("should report an English-only case study only for the en locale")
+        void englishOnlyCaseStudy(String locale, boolean expected) {
+            samplePost.setCaseStudyChallengeEn("Challenge EN");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", locale).getHasCaseStudy()).isEqualTo(expected);
+        }
+
+        @ParameterizedTest
+        @CsvSource({"en,false", "pl,true"})
+        @DisplayName("should report a Polish-only case study only for the pl locale")
+        void polishOnlyCaseStudy(String locale, boolean expected) {
+            samplePost.setCaseStudyResultsPl("Wyniki PL");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", locale).getHasCaseStudy()).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("should count a testimonial-only case study")
+        void testimonialOnlyCaseStudy() {
+            samplePost.setCaseStudyTestimonialPl("Polecam");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", "pl").getHasCaseStudy()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should ignore blank case-study fields")
+        void blankCaseStudy() {
+            samplePost.setCaseStudyChallengeEn("   ");
+            samplePost.setCaseStudySolutionEn("");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", "en").getHasCaseStudy()).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("getPostById")
     class GetPostById {
 
@@ -294,6 +344,72 @@ class PostServiceTest {
             verify(postRepository).save(postCaptor.capture());
             assertThat(postCaptor.getValue().getPublished()).isFalse();
         }
+
+        @Test
+        @DisplayName("should normalize a provided slug")
+        void shouldNormalizeProvidedSlug() {
+            PostCreateRequest request = newCreateRequest("Some Title");
+            request.setSlug(" My Slug ");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("my-slug");
+        }
+
+        @Test
+        @DisplayName("should append a number to a provided slug that is already taken")
+        void shouldMakeProvidedSlugUnique() {
+            PostCreateRequest request = newCreateRequest("Some Title");
+            request.setSlug("taken-slug");
+            stubSaveForCreate();
+            given(postRepository.existsBySlug("taken-slug")).willReturn(true);
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("taken-slug-1");
+        }
+
+        @Test
+        @DisplayName("should generate the slug from the title when the provided slug is blank")
+        void shouldGenerateSlugWhenProvidedSlugIsBlank() {
+            PostCreateRequest request = newCreateRequest("Campaign for Łódź");
+            request.setSlug("   ");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("campaign-for-lodz");
+        }
+
+        @Test
+        @DisplayName("should never store a blank slug for a symbol-only title")
+        void shouldNotStoreBlankSlugForSymbolTitle() {
+            PostCreateRequest request = newCreateRequest("!!! ???");
+            stubSaveForCreate();
+
+            postService.createPost(request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isNotBlank().doesNotStartWith("-");
+        }
+
+        private PostCreateRequest newCreateRequest(String titleEn) {
+            PostCreateRequest request = new PostCreateRequest();
+            request.setCategory(Category.CAMPAIGNS);
+            request.setTitleEn(titleEn);
+            request.setTitlePl(titleEn);
+            return request;
+        }
+
+        private void stubSaveForCreate() {
+            lenient().when(postRepository.existsBySlug(anyString())).thenReturn(false);
+            given(postRepository.getMaxDisplayOrder(any())).willReturn(0);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+        }
     }
 
     @Nested
@@ -331,6 +447,83 @@ class PostServiceTest {
             verify(postRepository).save(postCaptor.capture());
             assertThat(postCaptor.getValue().getTitleEn()).isEqualTo(originalTitle);
             assertThat(postCaptor.getValue().getExcerptEn()).isEqualTo("New Excerpt");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"", "   "})
+        @DisplayName("should keep the existing slug when the slug field is cleared")
+        void shouldKeepSlugWhenBlank(String blankSlug) {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(blankSlug);
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("test-title-en");
+        }
+
+        @Test
+        @DisplayName("should normalize a new slug")
+        void shouldNormalizeNewSlug() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.existsBySlug("my-slug")).willReturn(false);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(" My Slug ");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("my-slug");
+        }
+
+        @Test
+        @DisplayName("should reject a slug owned by another post")
+        void shouldRejectSlugOfAnotherPost() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.existsBySlug("other-post")).willReturn(true);
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug("Other Post");
+
+            assertThatThrownBy(() -> postService.updatePost(postId, request, "en"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Slug already in use");
+            verify(postRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should accept the post's own unchanged slug")
+        void shouldAcceptOwnSlug() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            lenient().when(postRepository.existsBySlug("test-title-en")).thenReturn(true);
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug("test-title-en");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo("test-title-en");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"Kampania-Łódź", "My Post", "My-Post"})
+        @DisplayName("should keep a legacy non-canonical slug when it is sent back unchanged")
+        void shouldKeepLegacySlugWhenUnchanged(String legacySlug) {
+            samplePost.setSlug(legacySlug);
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+            given(postRepository.save(any(Post.class))).willAnswer(invocation -> invocation.getArgument(0));
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setSlug(legacySlug);
+            request.setExcerptEn("Changed excerpt");
+
+            postService.updatePost(postId, request, "en");
+
+            verify(postRepository).save(postCaptor.capture());
+            assertThat(postCaptor.getValue().getSlug()).isEqualTo(legacySlug);
+            verify(postRepository, never()).existsBySlug(anyString());
         }
 
         @Test
@@ -434,11 +627,185 @@ class PostServiceTest {
                     .published(true)
                     .build();
 
-            given(postRepository.findAll()).willReturn(List.of(unpublished, published));
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of(unpublished, published));
 
             List<PostDto> result = postService.getAllPosts("en");
 
             assertThat(result).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("should request a stable order: category, then display order")
+        void shouldRequestStableOrder() {
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of());
+
+            postService.getAllPosts("en");
+
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            verify(postRepository).findAll(sortCaptor.capture());
+            assertThat(sortCaptor.getValue()).isEqualTo(Sort.by("category", "displayOrder"));
+        }
+    }
+
+    @Nested
+    @DisplayName("response shape")
+    class ResponseShape {
+
+        @BeforeEach
+        void fillBothLanguages() {
+            samplePost.setContentEn(Map.of("type", "doc-en"));
+            samplePost.setContentPl(Map.of("type", "doc-pl"));
+            samplePost.setCaseStudyChallengeEn("Challenge EN");
+            samplePost.setCaseStudyChallengePl("Wyzwanie PL");
+            samplePost.setCaseStudySolutionEn("Solution EN");
+            samplePost.setCaseStudySolutionPl("Rozwiązanie PL");
+            samplePost.setCaseStudyResultsEn("Results EN");
+            samplePost.setCaseStudyResultsPl("Wyniki PL");
+            samplePost.setCaseStudyTestimonialEn("Testimonial EN");
+            samplePost.setCaseStudyTestimonialPl("Opinia PL");
+            samplePost.setCaseStudyTestimonialAuthor("Jane Doe");
+        }
+
+        @Test
+        @DisplayName("public lists should carry only the resolved title and excerpt, without case-study texts")
+        void publicListIsLean() {
+            given(postRepository.findAllPublished()).willReturn(List.of(samplePost));
+            given(postRepository.findByCategoryAndPublishedTrueOrderByDisplayOrderAsc(Category.CAMPAIGNS))
+                    .willReturn(List.of(samplePost));
+            given(postRepository.findByHashtagAndPublishedTrue("seo")).willReturn(List.of(samplePost));
+
+            List<PostDto> lists = List.of(
+                    postService.getAllPublishedPosts("pl").get(0),
+                    postService.getPostsByCategory(Category.CAMPAIGNS, "pl").get(0),
+                    postService.getPostsByHashtag("seo", "pl").get(0));
+
+            assertThat(lists).allSatisfy(dto -> {
+                assertThat(dto.getTitle()).isEqualTo("Test Title PL");
+                assertThat(dto.getExcerpt()).isEqualTo("Excerpt PL");
+                assertThat(dto.getHasCaseStudy()).isTrue();
+                assertThat(dto).extracting(
+                                PostDto::getTitleEn, PostDto::getTitlePl,
+                                PostDto::getExcerptEn, PostDto::getExcerptPl,
+                                PostDto::getContent, PostDto::getContentEn, PostDto::getContentPl,
+                                PostDto::getCaseStudyChallenge, PostDto::getCaseStudyChallengeEn,
+                                PostDto::getCaseStudyChallengePl,
+                                PostDto::getCaseStudySolution, PostDto::getCaseStudySolutionEn,
+                                PostDto::getCaseStudySolutionPl,
+                                PostDto::getCaseStudyResults, PostDto::getCaseStudyResultsEn,
+                                PostDto::getCaseStudyResultsPl,
+                                PostDto::getCaseStudyTestimonial, PostDto::getCaseStudyTestimonialEn,
+                                PostDto::getCaseStudyTestimonialPl, PostDto::getCaseStudyTestimonialAuthor)
+                        .containsOnlyNulls();
+            });
+        }
+
+        @Test
+        @DisplayName("public detail should carry the resolved content and case study but no raw language fields")
+        void publicDetailHasOnlyResolvedFields() {
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            PostDto dto = postService.getPostBySlug("test-title-en", "pl");
+
+            assertThat(dto.getContent()).isEqualTo(Map.of("type", "doc-pl"));
+            assertThat(dto).extracting(
+                            PostDto::getCaseStudyChallenge, PostDto::getCaseStudySolution,
+                            PostDto::getCaseStudyResults, PostDto::getCaseStudyTestimonial,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly("Wyzwanie PL", "Rozwiązanie PL", "Wyniki PL", "Opinia PL", "Jane Doe");
+            assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getContentEn, PostDto::getContentPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudySolutionEn, PostDto::getCaseStudySolutionPl,
+                            PostDto::getCaseStudyResultsEn, PostDto::getCaseStudyResultsPl,
+                            PostDto::getCaseStudyTestimonialEn, PostDto::getCaseStudyTestimonialPl)
+                    .containsOnlyNulls();
+        }
+
+        @Test
+        @DisplayName("admin detail should keep every raw language field")
+        void adminDetailKeepsRawFields() {
+            given(postRepository.findById(postId)).willReturn(Optional.of(samplePost));
+
+            PostDto dto = postService.getPostById(postId, "en");
+
+            assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudySolutionEn, PostDto::getCaseStudySolutionPl,
+                            PostDto::getCaseStudyResultsEn, PostDto::getCaseStudyResultsPl,
+                            PostDto::getCaseStudyTestimonialEn, PostDto::getCaseStudyTestimonialPl,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly(
+                            "Test Title EN", "Test Title PL", "Excerpt EN", "Excerpt PL",
+                            "Challenge EN", "Wyzwanie PL", "Solution EN", "Rozwiązanie PL",
+                            "Results EN", "Wyniki PL", "Testimonial EN", "Opinia PL", "Jane Doe");
+            assertThat(dto.getContentEn()).isEqualTo(Map.of("type", "doc-en"));
+            assertThat(dto.getContentPl()).isEqualTo(Map.of("type", "doc-pl"));
+        }
+
+        @Test
+        @DisplayName("admin list should keep every raw language field")
+        void adminListKeepsRawFields() {
+            given(postRepository.findAll(any(Sort.class))).willReturn(List.of(samplePost));
+            given(postRepository.findAllByCategory(Category.CAMPAIGNS)).willReturn(List.of(samplePost));
+
+            List<PostDto> lists = List.of(
+                    postService.getAllPosts("en").get(0),
+                    postService.getAllPostsByCategory(Category.CAMPAIGNS, "en").get(0));
+
+            assertThat(lists).allSatisfy(dto -> assertThat(dto).extracting(
+                            PostDto::getTitleEn, PostDto::getTitlePl,
+                            PostDto::getExcerptEn, PostDto::getExcerptPl,
+                            PostDto::getCaseStudyChallengeEn, PostDto::getCaseStudyChallengePl,
+                            PostDto::getCaseStudyTestimonialAuthor)
+                    .containsExactly("Test Title EN", "Test Title PL", "Excerpt EN", "Excerpt PL",
+                            "Challenge EN", "Wyzwanie PL", "Jane Doe"));
+        }
+    }
+
+    @Nested
+    @DisplayName("reorderPosts")
+    class ReorderPosts {
+
+        @Test
+        @DisplayName("should update the display order of every item")
+        void shouldUpdateEveryItem() {
+            UUID secondId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(postId, 2),
+                    new ReorderRequest.OrderItem(secondId, 1)));
+
+            postService.reorderPosts(request);
+
+            verify(postRepository).updateDisplayOrder(postId, 2);
+            verify(postRepository).updateDisplayOrder(secondId, 1);
+            verifyNoMoreInteractions(postRepository);
+        }
+    }
+
+    @Nested
+    @DisplayName("getPostsByHashtag")
+    class GetPostsByHashtag {
+
+        @Test
+        @DisplayName("should return the published posts the repository finds for the tag")
+        void shouldDelegateToRepository() {
+            given(postRepository.findByHashtagAndPublishedTrue("seo")).willReturn(List.of(samplePost));
+
+            List<PostDto> result = postService.getPostsByHashtag("seo", "en");
+
+            assertThat(result).extracting(PostDto::getSlug).containsExactly("test-title-en");
+        }
+
+        @Test
+        @DisplayName("should return an empty list for an unknown tag")
+        void shouldReturnEmptyForUnknownTag() {
+            given(postRepository.findByHashtagAndPublishedTrue("missing")).willReturn(List.of());
+
+            assertThat(postService.getPostsByHashtag("missing", "en")).isEmpty();
         }
     }
 }
