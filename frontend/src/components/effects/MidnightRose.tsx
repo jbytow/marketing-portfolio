@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const CHECK_INTERVAL_MS = 60000;
@@ -11,6 +12,7 @@ function isLateNight(date = new Date()) {
 
 export default function MidnightRose() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [midnight, setMidnight] = useState(() => isLateNight());
   const [showBanner, setShowBanner] = useState(false);
 
@@ -22,7 +24,6 @@ export default function MidnightRose() {
   const active = theme === 'rose' && midnight;
 
   useEffect(() => {
-    document.documentElement.classList.toggle('rose-midnight', active);
     if (active) {
       setShowBanner(true);
       const timeout = setTimeout(() => setShowBanner(false), BANNER_DURATION_MS);
@@ -36,7 +37,7 @@ export default function MidnightRose() {
   return (
     <>
       <span className="rose-midnight-moon" aria-hidden="true">🌙</span>
-      {showBanner && <div className="rose-midnight-chip">🌙 Late night marketing magic detected</div>}
+      {showBanner && <div className="rose-midnight-chip">{t('rose.midnightBanner')}</div>}
     </>
   );
 }
