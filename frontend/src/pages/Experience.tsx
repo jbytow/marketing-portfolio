@@ -8,8 +8,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+// Backend sends LocalDate (YYYY-MM-DD); new Date('YYYY-MM-DD') is UTC midnight and shifts the month west of UTC.
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day || 1);
+}
+
 function formatDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
   return date.toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US', {
     month: 'short',
     year: 'numeric',
@@ -17,8 +23,8 @@ function formatDate(dateStr: string, locale: string): string {
 }
 
 function calculateMonthsDuration(startDate: string, endDate: string | null): number {
-  const start = new Date(startDate);
-  const end = endDate ? new Date(endDate) : new Date();
+  const start = parseLocalDate(startDate);
+  const end = endDate ? parseLocalDate(endDate) : new Date();
   const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
   return Math.max(1, months + 1); // At least 1 month
 }
@@ -43,7 +49,7 @@ export default function Experience() {
 
   // Sort by start date descending (most recent first)
   const experiences = [...(data?.data || [])].sort((a, b) => {
-    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    return parseLocalDate(b.startDate).getTime() - parseLocalDate(a.startDate).getTime();
   });
 
   if (isPending) {
