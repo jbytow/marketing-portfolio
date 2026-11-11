@@ -157,6 +157,7 @@ class PostServiceTest {
         @Test
         @DisplayName("should return post when found by slug")
         void shouldReturnPostWhenFound() {
+            samplePost.setPublished(true);
             given(postRepository.findBySlug("test-slug")).willReturn(Optional.of(samplePost));
 
             PostDto result = postService.getPostBySlug("test-slug", "en");
@@ -174,11 +175,27 @@ class PostServiceTest {
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("non-existent");
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"en", "pl"})
+        @DisplayName("should hide a draft behind the same not-found answer as a missing slug")
+        void shouldHideDraft(String locale) {
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThatThrownBy(() -> postService.getPostBySlug("test-title-en", locale))
+                    .isInstanceOf(EntityNotFoundException.class)
+                    .hasMessage("Post not found: test-title-en");
+        }
     }
 
     @Nested
     @DisplayName("hasCaseStudy")
     class HasCaseStudy {
+
+        @BeforeEach
+        void publish() {
+            samplePost.setPublished(true);
+        }
 
         @ParameterizedTest
         @CsvSource({"en,true", "pl,false"})
@@ -702,6 +719,7 @@ class PostServiceTest {
         @Test
         @DisplayName("public detail should carry the resolved content and case study but no raw language fields")
         void publicDetailHasOnlyResolvedFields() {
+            samplePost.setPublished(true);
             given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
 
             PostDto dto = postService.getPostBySlug("test-title-en", "pl");

@@ -41,7 +41,9 @@ public class PostService {
     }
 
     public PostDto getPostBySlug(String slug, String locale) {
+        // Public route: a draft answers exactly like a missing slug so a guessed or shared link reveals nothing.
         Post post = postRepository.findBySlug(slug)
+                .filter(found -> Boolean.TRUE.equals(found.getPublished()))
                 .orElseThrow(() -> new EntityNotFoundException("Post not found: " + slug));
         return mapToDto(post, locale, View.PUBLIC_DETAIL);
     }
