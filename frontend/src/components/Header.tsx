@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
@@ -44,11 +44,30 @@ export default function Header() {
   const { t } = useTranslation();
   const { language, toggleLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { pathname } = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
   const logoClicks = useRef<number[]>([]);
   const explosionThreshold = useRef(randomExplosionThreshold());
 
+  // Back/forward and programmatic navigation change the path without a click inside the menu
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      setIsMenuOpen(false);
+      menuToggleRef.current?.focus();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
+
   function handleLogoClick() {
+    setIsMenuOpen(false);
     if (theme !== 'rose') return;
     const now = Date.now();
     logoClicks.current = [...logoClicks.current, now].filter((clickedAt) => now - clickedAt < LOGO_CLICK_WINDOW_MS);
@@ -146,6 +165,7 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
+              ref={menuToggleRef}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="lg:hidden p-2 text-dark-300 hover:text-dark-100 rounded-lg hover:bg-dark-800 transition-colors"
               aria-label={t('a11y.menu')}

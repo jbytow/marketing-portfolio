@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Flower2 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+
+// Full-screen spinners wait this long so fast loads do not flash an overlay
+const FULL_SCREEN_DELAY_MS = 200;
 
 interface LoadingSpinnerProps {
   fullScreen?: boolean;
@@ -7,6 +11,13 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({ fullScreen = false }: LoadingSpinnerProps) {
   const { theme } = useTheme();
+  const [delayElapsed, setDelayElapsed] = useState(!fullScreen);
+
+  useEffect(() => {
+    if (!fullScreen) return;
+    const timer = setTimeout(() => setDelayElapsed(true), FULL_SCREEN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [fullScreen]);
 
   const spinner =
     theme === 'rose' ? (
@@ -22,6 +33,7 @@ export default function LoadingSpinner({ fullScreen = false }: LoadingSpinnerPro
     );
 
   if (fullScreen) {
+    if (!delayElapsed) return null;
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-dark-900 z-50">
         {spinner}

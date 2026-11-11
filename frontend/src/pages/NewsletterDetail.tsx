@@ -51,7 +51,7 @@ export default function NewsletterDetail() {
         <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('newsletter.notFound')}</h1>
         <Link to="/newsletter" className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
-          {t('common.backTo')} {t('newsletter.title')}
+          {t('newsletter.backToArchive')}
         </Link>
       </div>
     );
@@ -79,7 +79,7 @@ export default function NewsletterDetail() {
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              {t('common.backTo')} {t('newsletter.title')}
+              {t('newsletter.backToArchive')}
             </Link>
           </motion.div>
 

@@ -82,4 +82,18 @@ describe('i18n resources', () => {
     const copied = mustDiffer.filter((key) => plFlat[key] === enFlat[key]);
     expect(copied).toEqual([]);
   });
+
+  it('has back links as full sentences per section, not a prefix glued to a section name', () => {
+    const backLinks = {
+      'post.backToProjects': ['Back to projects', 'Powrót do projektów'],
+      'post.backToContent': ['Back to content', 'Powrót do treści'],
+      'newsletter.backToArchive': ['Back to newsletters', 'Powrót do newsletterów'],
+    };
+    for (const [key, [english, polish]] of Object.entries(backLinks)) {
+      expect(enFlat[key]).toBe(english);
+      expect(plFlat[key]).toBe(polish);
+    }
+    expect(enFlat['common.backTo']).toBeUndefined();
+    expect(plFlat['common.backTo']).toBeUndefined();
+  });
 });

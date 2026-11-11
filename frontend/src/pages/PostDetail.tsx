@@ -25,7 +25,7 @@ export default function PostDetail() {
   // PostDetail is routed under /projects/:slug and /content/:slug only; newsletters have their own page
   const isContent = location.pathname.startsWith('/content');
   const backPath = isContent ? '/content' : '/projects';
-  const backLabelKey = isContent ? 'content.title' : 'projects.title';
+  const backLabelKey = isContent ? 'post.backToContent' : 'post.backToProjects';
 
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.post(language, slug!),
@@ -59,7 +59,7 @@ export default function PostDetail() {
         <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('post.notFound')}</h1>
         <Link to={backPath} className="btn-secondary">
           <ArrowLeft className="mr-2 w-5 h-5" />
-          {t('common.backTo')} {t(backLabelKey)}
+          {t(backLabelKey)}
         </Link>
       </div>
     );
@@ -85,7 +85,7 @@ export default function PostDetail() {
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              {t('common.backTo')} {t(backLabelKey)}
+              {t(backLabelKey)}
             </Link>
           </motion.div>
 

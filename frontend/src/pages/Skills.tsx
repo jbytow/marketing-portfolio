@@ -127,34 +127,8 @@ export default function Skills() {
             </motion.div>
           ))}
 
-          {categories.every(cat => cat.skills.length === 0) && (
-            <div className="text-center">
-              {/* Default skills when no skills exist */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { icon: Lightbulb, title: 'Creative Thinking', desc: 'Innovative solutions to marketing challenges' },
-                  { icon: Users, title: 'Team Collaboration', desc: 'Working effectively with cross-functional teams' },
-                  { icon: MessageSquare, title: 'Communication', desc: 'Clear and compelling messaging' },
-                  { icon: Target, title: 'Strategic Planning', desc: 'Data-driven decision making' },
-                  { icon: Clock, title: 'Time Management', desc: 'Delivering projects on schedule' },
-                  { icon: Heart, title: 'Passion', desc: 'Genuine enthusiasm for marketing excellence' },
-                ].map((skill, index) => (
-                  <motion.div
-                    key={skill.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="card-hover text-center"
-                  >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-pink/20 mb-6">
-                      <skill.icon className="w-8 h-8 text-primary-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-dark-100 mb-3">{skill.title}</h3>
-                    <p className="text-dark-400">{skill.desc}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+          {!isError && categories.every(cat => cat.skills.length === 0) && (
+            <p className="text-center text-dark-400">{t('skills.empty')}</p>
           )}
         </div>
       </section>
