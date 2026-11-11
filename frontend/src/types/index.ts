@@ -254,7 +254,7 @@ export interface SoftSkillCreateRequest {
   professionalUsagePl?: string;
   icon?: string;
   displayOrder?: number;
-  categoryId?: string;
+  categoryId?: string | null;
 }
 
 export type SoftSkillUpdateRequest = Partial<SoftSkillCreateRequest>;

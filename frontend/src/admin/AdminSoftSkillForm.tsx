@@ -88,7 +88,7 @@ export default function AdminSoftSkillForm() {
     e.preventDefault();
     const submitData = {
       ...formData,
-      categoryId: formData.categoryId || undefined,
+      categoryId: formData.categoryId || null,
     };
     if (isEditing) {
       updateMutation.mutate(submitData);
@@ -233,7 +233,7 @@ export default function AdminSoftSkillForm() {
               <label className="label">Category</label>
               <select
                 name="categoryId"
-                value={formData.categoryId}
+                value={formData.categoryId ?? ''}
                 onChange={handleChange}
                 className="input"
               >
