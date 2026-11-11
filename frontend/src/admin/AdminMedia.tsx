@@ -25,14 +25,14 @@ export default function AdminMedia() {
   const [isUploading, setIsUploading] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.admin.media(),
+    queryKey: queryKeys.admin.media(0, 100),
     queryFn: () => adminMediaApi.getAll(0, 100),
   });
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => adminMediaApi.upload(file),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.media() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
       toast.success(t('admin.media.upload') + ' successful');
     },
     onError: () => {
@@ -43,7 +43,7 @@ export default function AdminMedia() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.media() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.mediaAll() });
       setSelectedMedia(null);
       toast.success('Media deleted successfully');
     },

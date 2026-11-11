@@ -41,7 +41,7 @@ export default function AdminSkillCategoryForm() {
     mutationFn: (data: SkillCategoryCreateRequest) => adminSkillCategoriesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategories() });
-      queryClient.invalidateQueries({ queryKey: ['skillCategories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Category created successfully');
       navigate('/admin/skill-categories');
     },
@@ -55,7 +55,7 @@ export default function AdminSkillCategoryForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategories() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.skillCategory(id!) });
-      queryClient.invalidateQueries({ queryKey: ['skillCategories'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Category updated successfully');
       navigate('/admin/skill-categories');
     },

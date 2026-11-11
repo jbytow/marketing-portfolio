@@ -124,6 +124,7 @@ export default function AdminInterests() {
     mutationFn: (id: string) => adminInterestsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
       toast.success('Interest deleted');
     },
     onError: () => {
@@ -134,6 +135,10 @@ export default function AdminInterests() {
   const reorderMutation = useMutation({
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminInterestsApi.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+    },
     onError: () => {
       toast.error('Failed to reorder');
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });

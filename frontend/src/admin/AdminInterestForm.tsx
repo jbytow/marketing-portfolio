@@ -49,6 +49,7 @@ export default function AdminInterestForm() {
     mutationFn: (data: InterestCreateRequest) => adminInterestsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
       toast.success('Interest created');
       navigate('/admin/interests');
     },
@@ -61,6 +62,8 @@ export default function AdminInterestForm() {
     mutationFn: (data: InterestCreateRequest) => adminInterestsApi.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interest(id!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
       toast.success('Interest updated');
       navigate('/admin/interests');
     },

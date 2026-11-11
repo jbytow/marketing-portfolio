@@ -82,7 +82,7 @@ export default function AdminSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings() });
       // Invalidate all public settings queries (matches all languages)
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.settings() });
       toast.success(t('admin.settings.title') + ' updated successfully');
     },
     onError: () => {

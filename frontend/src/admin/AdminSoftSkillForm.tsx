@@ -60,7 +60,7 @@ export default function AdminSoftSkillForm() {
     mutationFn: (data: SoftSkillCreateRequest) => adminSoftSkillsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkills() });
-      queryClient.invalidateQueries({ queryKey: ['softSkills'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Soft skill created successfully');
       navigate('/admin/soft-skills');
     },
@@ -74,7 +74,7 @@ export default function AdminSoftSkillForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkills() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.softSkill(id!) });
-      queryClient.invalidateQueries({ queryKey: ['softSkills'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.skills() });
       toast.success('Soft skill updated successfully');
       navigate('/admin/soft-skills');
     },

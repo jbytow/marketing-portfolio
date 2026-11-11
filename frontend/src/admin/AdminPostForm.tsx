@@ -87,9 +87,8 @@ export default function AdminPostForm() {
   const createMutation = useMutation({
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
       toast.success('Post created successfully');
       navigate('/admin/posts');
     },
@@ -101,11 +100,10 @@ export default function AdminPostForm() {
   const updateMutation = useMutation({
     mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['post'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
       toast.success('Post updated successfully');
       navigate('/admin/posts');
     },

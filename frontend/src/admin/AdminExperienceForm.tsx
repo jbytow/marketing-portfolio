@@ -58,7 +58,7 @@ export default function AdminExperienceForm() {
     mutationFn: (data: ExperienceCreateRequest) => adminExperiencesApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
       toast.success('Experience created successfully');
       navigate('/admin/experiences');
     },
@@ -72,7 +72,7 @@ export default function AdminExperienceForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experience(id!) });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
       toast.success('Experience updated successfully');
       navigate('/admin/experiences');
     },

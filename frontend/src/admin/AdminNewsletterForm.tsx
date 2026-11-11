@@ -55,6 +55,8 @@ export default function AdminNewsletterForm() {
     mutationFn: (data: NewsletterCreateRequest) => adminNewslettersApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       navigate('/admin/newsletters');
     },
   });
@@ -64,6 +66,8 @@ export default function AdminNewsletterForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       navigate('/admin/newsletters');
     },
   });

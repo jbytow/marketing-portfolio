@@ -23,6 +23,9 @@ export default function AdminNewsletters() {
     mutationFn: (id: string) => adminNewslettersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
       setDeleteId(null);
     },
   });
@@ -33,6 +36,9 @@ export default function AdminNewsletters() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
     },
   });
 
