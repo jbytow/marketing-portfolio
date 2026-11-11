@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '@/lib/apiError';
-import { Save, ArrowLeft, Upload, X } from 'lucide-react';
+import { Save, ArrowLeft, ExternalLink, Upload, X } from 'lucide-react';
 import { adminNewslettersApi, adminMediaApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
@@ -156,6 +156,18 @@ export default function AdminNewsletterForm() {
         <h1 className="text-2xl font-bold text-dark-100">
           {isEditing ? t('admin.newsletters.editNewsletter') : t('admin.newsletters.newNewsletter')}
         </h1>
+        {isEditing && (
+          // A new tab keeps this form and its unsaved edits; the preview shows the last saved state
+          <Link
+            to={`/admin/newsletters/${id}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary ml-auto"
+          >
+            <ExternalLink className="w-5 h-5 mr-2" />
+            {t('admin.preview.button')}
+          </Link>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

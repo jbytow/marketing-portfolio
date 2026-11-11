@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { AxiosError } from 'axios';
+import type { Newsletter } from '@/types';
 import { newslettersApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
@@ -13,49 +14,16 @@ import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ImageLightbox from '@/components/ImageLightbox';
 
-export default function NewsletterDetail() {
-  const { slug } = useParams<{ slug: string }>();
-  const { language } = useLanguage();
+interface NewsletterDetailViewProps {
+  newsletter: Newsletter;
+  backPath: string;
+  backLabel: string;
+}
+
+// Presentation only, so the admin draft preview renders exactly what the public page renders.
+export function NewsletterDetailView({ newsletter, backPath, backLabel }: NewsletterDetailViewProps) {
   const { t } = useTranslation();
   const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null);
-
-  const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: queryKeys.newsletter(language, slug!),
-    queryFn: () => newslettersApi.getBySlug(slug!),
-    enabled: !!slug,
-  });
-
-  const newsletter = data?.data;
-
-  if (isPending) {
-    return <LoadingSpinner fullScreen />;
-  }
-
-  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
-  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !newsletter);
-
-  if (isError && !isNotFound) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
-        <button type="button" onClick={() => refetch()} className="btn-secondary">
-          {t('common.retry')}
-        </button>
-      </div>
-    );
-  }
-
-  if (isNotFound || !newsletter) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('newsletter.notFound')}</h1>
-        <Link to="/newsletter" className="btn-secondary">
-          <ArrowLeft className="mr-2 w-5 h-5" />
-          {t('newsletter.backToArchive')}
-        </Link>
-      </div>
-    );
-  }
 
   // Get the 3 images
   const images = [newsletter.image1, newsletter.image2, newsletter.image3].filter(Boolean) as string[];
@@ -75,11 +43,11 @@ export default function NewsletterDetail() {
             className="mb-8"
           >
             <Link
-              to="/newsletter"
+              to={backPath}
               className="inline-flex items-center text-dark-400 hover:text-primary-400 transition-colors"
             >
               <ArrowLeft className="mr-2 w-5 h-5" />
-              {t('newsletter.backToArchive')}
+              {backLabel}
             </Link>
           </motion.div>
 
@@ -145,5 +113,57 @@ export default function NewsletterDetail() {
         onClose={() => setLightboxImage(null)}
       />
     </>
+  );
+}
+
+export default function NewsletterDetail() {
+  const { slug } = useParams<{ slug: string }>();
+  const { language } = useLanguage();
+  const { t } = useTranslation();
+
+  const { data, isPending, isError, error, refetch } = useQuery({
+    queryKey: queryKeys.newsletter(language, slug!),
+    queryFn: () => newslettersApi.getBySlug(slug!),
+    enabled: !!slug,
+  });
+
+  const newsletter = data?.data;
+
+  if (isPending) {
+    return <LoadingSpinner fullScreen />;
+  }
+
+  // Only a 404 (or an empty body) is a missing page; 5xx and network errors are retryable.
+  const isNotFound = (error as AxiosError | null)?.response?.status === 404 || (!isError && !newsletter);
+
+  if (isError && !isNotFound) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-secondary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (isNotFound || !newsletter) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-dark-100 mb-4">{t('newsletter.notFound')}</h1>
+        <Link to="/newsletter" className="btn-secondary">
+          <ArrowLeft className="mr-2 w-5 h-5" />
+          {t('newsletter.backToArchive')}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <NewsletterDetailView
+      newsletter={newsletter}
+      backPath="/newsletter"
+      backLabel={t('newsletter.backToArchive')}
+    />
   );
 }

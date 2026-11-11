@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { getApiErrorMessage } from '@/lib/apiError';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import { adminNewslettersApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
@@ -143,6 +143,16 @@ export default function AdminNewsletters() {
                     <Eye className="w-5 h-5" />
                   )}
                 </button>
+                <Link
+                  to={`/admin/newsletters/${newsletter.id}/preview`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t('admin.preview.button')}
+                  title={t('admin.preview.button')}
+                  className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                </Link>
                 <Link
                   to={`/admin/newsletters/${newsletter.id}/edit`}
                   className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
