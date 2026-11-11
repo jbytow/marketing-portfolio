@@ -1,5 +1,10 @@
 package com.portfolio;
 
+import com.portfolio.entity.Category;
+import com.portfolio.entity.Media;
+import com.portfolio.entity.MediaType;
+import com.portfolio.entity.Post;
+import jakarta.persistence.EntityManager;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,6 +36,9 @@ class MigrationSchemaTest extends IntegrationTestBase {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("application context starts with ddl-auto=validate on the migrated schema")
@@ -75,6 +84,37 @@ class MigrationSchemaTest extends IntegrationTestBase {
                 String.class);
 
         assertThat(nullable).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("stores enum fields as their names in the VARCHAR columns and reads them back")
+    void roundTripsEnumColumns() {
+        Post post = Post.builder()
+                .category(Category.CONTENT_COPY)
+                .titleEn("Enum round trip")
+                .titlePl("Enum round trip")
+                .slug("enum-round-trip")
+                .build();
+        Media media = Media.builder()
+                .post(post)
+                .type(MediaType.YOUTUBE)
+                .url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                .videoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                .build();
+        entityManager.persist(post);
+        entityManager.persist(media);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT category FROM posts WHERE id = ?", String.class, post.getId()))
+                .isEqualTo("CONTENT_COPY");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT type FROM media WHERE id = ?", String.class, media.getId()))
+                .isEqualTo("YOUTUBE");
+        assertThat(entityManager.find(Post.class, post.getId()).getCategory()).isEqualTo(Category.CONTENT_COPY);
+        assertThat(entityManager.find(Media.class, media.getId()).getType()).isEqualTo(MediaType.YOUTUBE);
     }
 
     private static int highestMigrationVersion() throws IOException {
