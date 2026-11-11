@@ -149,7 +149,7 @@ public class StorageService {
     // upload root even if the HTTP firewall that rejects ".." is ever relaxed.
     private Path resolveInsideRoot(String filename) {
         Path file = rootLocation.resolve(filename).normalize();
-        if (!file.startsWith(rootLocation)) {
+        if (!file.startsWith(rootLocation) || file.equals(rootLocation)) {
             throw new EntityNotFoundException("Media file not found: " + filename);
         }
         return file;

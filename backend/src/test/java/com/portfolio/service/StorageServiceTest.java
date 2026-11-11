@@ -249,6 +249,15 @@ class StorageServiceTest {
         }
 
         @ParameterizedTest
+        @ValueSource(strings = {"", ".", "images/.."})
+        @DisplayName("names resolving to the upload root itself are rejected and the root survives")
+        void rootItselfIsRejected(String name) {
+            assertThatThrownBy(() -> storageService.delete(name))
+                    .isInstanceOf(EntityNotFoundException.class);
+            assertThat(root).isDirectory();
+        }
+
+        @ParameterizedTest
         @ValueSource(strings = {"../outside.txt", "images/../../outside.txt"})
         @DisplayName("names escaping the upload root are rejected and the target survives")
         void pathOutsideRootIsRejected(String name) throws Exception {
