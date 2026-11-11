@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -169,6 +170,50 @@ class PostServiceTest {
             assertThatThrownBy(() -> postService.getPostBySlug("non-existent", "en"))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("non-existent");
+        }
+    }
+
+    @Nested
+    @DisplayName("hasCaseStudy")
+    class HasCaseStudy {
+
+        @ParameterizedTest
+        @CsvSource({"en,true", "pl,false"})
+        @DisplayName("should report an English-only case study only for the en locale")
+        void englishOnlyCaseStudy(String locale, boolean expected) {
+            samplePost.setCaseStudyChallengeEn("Challenge EN");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", locale).getHasCaseStudy()).isEqualTo(expected);
+        }
+
+        @ParameterizedTest
+        @CsvSource({"en,false", "pl,true"})
+        @DisplayName("should report a Polish-only case study only for the pl locale")
+        void polishOnlyCaseStudy(String locale, boolean expected) {
+            samplePost.setCaseStudyResultsPl("Wyniki PL");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", locale).getHasCaseStudy()).isEqualTo(expected);
+        }
+
+        @Test
+        @DisplayName("should count a testimonial-only case study")
+        void testimonialOnlyCaseStudy() {
+            samplePost.setCaseStudyTestimonialPl("Polecam");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", "pl").getHasCaseStudy()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should ignore blank case-study fields")
+        void blankCaseStudy() {
+            samplePost.setCaseStudyChallengeEn("   ");
+            samplePost.setCaseStudySolutionEn("");
+            given(postRepository.findBySlug("test-title-en")).willReturn(Optional.of(samplePost));
+
+            assertThat(postService.getPostBySlug("test-title-en", "en").getHasCaseStudy()).isFalse();
         }
     }
 

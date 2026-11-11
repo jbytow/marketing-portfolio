@@ -251,7 +251,7 @@ public class PostService {
                 .hashtags(post.getHashtags() != null ? Arrays.asList(post.getHashtags()) : new ArrayList<>())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
-                .hasCaseStudy(post.hasCaseStudy())
+                .hasCaseStudy(post.hasCaseStudy(locale))
                 .caseStudyChallenge(post.getCaseStudyChallenge(locale))
                 .caseStudyChallengeEn(post.getCaseStudyChallengeEn())
                 .caseStudyChallengePl(post.getCaseStudyChallengePl())
