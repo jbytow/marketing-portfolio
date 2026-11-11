@@ -5,12 +5,14 @@ import com.portfolio.dto.SiteSettingsUpdateRequest;
 import com.portfolio.dto.StatItemDto;
 import com.portfolio.entity.SiteSettings;
 import com.portfolio.repository.SiteSettingsRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,16 +21,18 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class SiteSettingsService {
 
+    private static final int SETTINGS_ID = 1;
+
     private final SiteSettingsRepository siteSettingsRepository;
 
     public SiteSettingsDto getSettings(String locale) {
-        SiteSettings settings = siteSettingsRepository.getSettings();
+        SiteSettings settings = loadSettings();
         return mapToDto(settings, locale);
     }
 
     @Transactional
     public SiteSettingsDto updateSettings(SiteSettingsUpdateRequest request, String locale) {
-        SiteSettings settings = siteSettingsRepository.getSettings();
+        SiteSettings settings = loadSettings();
 
         if (request.getHeroTitleEn() != null) {
             settings.setHeroTitleEn(request.getHeroTitleEn());
@@ -58,7 +62,14 @@ public class SiteSettingsService {
             settings.setPhone(request.getPhone());
         }
         if (request.getSocialLinks() != null) {
-            settings.setSocialLinks(request.getSocialLinks());
+            // The admin form keeps cleared fields as "", which the site would render as dead icon links
+            Map<String, String> filledLinks = new LinkedHashMap<>();
+            request.getSocialLinks().forEach((platform, url) -> {
+                if (url != null && !url.isBlank()) {
+                    filledLinks.put(platform, url);
+                }
+            });
+            settings.setSocialLinks(filledLinks);
         }
         if (request.getMetaDescriptionEn() != null) {
             settings.setMetaDescriptionEn(request.getMetaDescriptionEn());
@@ -108,6 +119,13 @@ public class SiteSettingsService {
 
         settings = siteSettingsRepository.save(settings);
         return mapToDto(settings, locale);
+    }
+
+    // The singleton row is seeded by V1; a missing row is a data error that must fail visibly, not be recreated
+    // inside a read-only transaction.
+    private SiteSettings loadSettings() {
+        return siteSettingsRepository.findById(SETTINGS_ID)
+                .orElseThrow(() -> new EntityNotFoundException("Site settings row missing"));
     }
 
     private SiteSettingsDto mapToDto(SiteSettings settings, String locale) {
