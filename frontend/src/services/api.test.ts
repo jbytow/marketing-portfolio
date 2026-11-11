@@ -86,3 +86,15 @@ describe('LanguageProvider and the API header', () => {
     expect(seen[seen.length - 1].headers['Accept-Language']).toBe('en');
   });
 });
+
+describe('request timeout', () => {
+  it('applies a 30 s default timeout', async () => {
+    await api.contactApi.submit({ name: 'a', email: 'a@b.c', subject: 's', message: 'hi' });
+    expect(seen[0].timeout).toBe(30000);
+  });
+
+  it('disables the timeout for media uploads', async () => {
+    await api.adminMediaApi.upload(new File(['x'], 'x.png', { type: 'image/png' }));
+    expect(seen[0].timeout).toBe(0);
+  });
+});

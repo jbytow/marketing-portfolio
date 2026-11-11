@@ -49,6 +49,8 @@ const createApiClient = (): AxiosInstance => {
       'Content-Type': 'application/json',
     },
     withCredentials: true, // Send cookies with requests
+    // Estimate: above the server-side SMTP timeouts so the server answers first; surfaces through the existing error toasts
+    timeout: 30000,
   });
 
   client.interceptors.request.use((config) => {
@@ -358,6 +360,7 @@ export const adminMediaApi = {
 
     const { data } = await api.post('/admin/media', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0, // Large files on slow links legitimately exceed the default
     });
     return data;
   },
