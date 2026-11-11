@@ -24,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -92,6 +93,19 @@ class MediaControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(header().string("Content-Type", "image/jpeg"))
                     .andExpect(content().bytes(new byte[]{1, 2, 3}));
+        }
+
+        @Test
+        @DisplayName("UUID-named file is cacheable for a year after the security headers are applied")
+        void servesFileAsImmutable() throws Exception {
+            given(storageService.loadAsResource("images/" + IMAGE_NAME))
+                    .willReturn(new ByteArrayResource(new byte[]{1, 2, 3}));
+
+            mockMvc.perform(get("/api/media/images/" + IMAGE_NAME))
+                    .andExpect(status().isOk())
+                    .andExpect(header().stringValues(HttpHeaders.CACHE_CONTROL, "max-age=31536000, public, immutable"))
+                    .andExpect(header().doesNotExist(HttpHeaders.PRAGMA))
+                    .andExpect(header().doesNotExist(HttpHeaders.EXPIRES));
         }
 
         @Test

@@ -8,12 +8,14 @@ import com.portfolio.util.LocaleUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/media")
@@ -45,7 +47,10 @@ public class MediaController {
 
         String contentType = determineContentType(filename);
 
+        // Stored names are random UUIDs and a replaced file always gets a new name, so a
+        // response can be cached forever; without this Spring Security sends no-store.
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable())
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(resource);
