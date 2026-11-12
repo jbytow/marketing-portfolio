@@ -1,14 +1,14 @@
 # STATE - marketingPortfolioApp
-Aktualizacja: 2026-11-12 (po wdrożeniu fal 1-4 i A-C na prod; fala D scalona: Boot 4.1.2, edge na loopback, CI)
+Aktualizacja: 2026-11-12 (wszystko wdrożone na prod: main 334fd82)
 
 ## Cel bieżący
 Gałąź `audit-2026-11` (z `main` @ 99390e6): audyt + 21 paczek poprawek, poprawki po audycie regresji, docs,
-oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). Fala D (D1 upgrade Boot + CI, D6 porty) scalona, czeka na drugi merge do `main` i wdrożenie przez właściciela (bez migracji; backend i nginx do odtworzenia).
-Otwarte: rola bazy bez superusera (procedura w runbooku), CSP do przełączenia na wymuszający po tygodniu bez naruszeń.
+oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). `main` = 334fd82 (merge `audit-2026-11`), wdrożone 2026-11-12 10:10 UTC przez zdalny skrypt (dump, pull, build backendu, deploy.sh, nginx). Zweryfikowane: Boot 4.1.2, V16+V17 zastosowane, 401 na /api/admin/auth/me, port 80 tylko na 127.0.0.1, CSP-RO, cookie Secure+Lax, brak Google Fonts.
+Otwarte: próbne logowanie admina (email_verified, Origin check), CSP na wymuszający po tygodniu, rola bazy bez superusera, przegląd PR Dependabota, usunięcie `version` z plików compose (ostrzeżenie compose).
 
 ## Ostatnio zrobione
 - 62631ab fala D: Spring Boot 4.1.2 (bez nadpisań Tomcat/Testcontainers, jjwt z Jacksonem 2, sondy wyłączone), edge 127.0.0.1:80 bez 443, .github CI + Dependabot; backend 530 testów, frontend 260
-- Właściciel scalił audit-2026-11 do main i wdrożył na prod (2026-11-12); sprzątanie worktree zrobione
+- 334fd82 merge do main i wdrożenie na prod (2026-11-12); dumpy w /opt/backups; sprzątanie worktree zrobione
 - 4d86841 fala C: podgląd szkiców (/admin/posts/:id/preview, /admin/newsletters/:id/preview); frontend vitest 260/260
 - bb6a458 i18n panelu admina (DeepSeek 10 plików + agent Claude 7 plików, 201 kluczy EN/PL)
 - f04ed51 fala B (health z Actuatora, bez /api/categories; Home/About błędy, menu mobilne, spinner, linki powrotu); 7fb0f78 fala A (Origin check, V17, honeypot, szkice 404, pliki wpisu, strefa contact, CSP RO, sanitizer About, 404, scroll, fonty lokalne, fasada YouTube, modal sesji, unsaved changes)
