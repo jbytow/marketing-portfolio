@@ -6,16 +6,18 @@ import com.portfolio.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthEndpoint;
-import org.springframework.boot.actuate.health.Status;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.IndicatedHealthDescriptor;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         controllers = HealthController.class,
         excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
+                org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration.class
         }
 )
 @Import(TestSecurityConfig.class)
@@ -34,19 +36,19 @@ class HealthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private HealthEndpoint healthEndpoint;
 
-    @MockBean
+    @MockitoBean
     private JwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @Test
     @DisplayName("GET /api/health returns 200 and UP when Actuator reports UP")
     void upReturns200() throws Exception {
-        given(healthEndpoint.health()).willReturn(Health.up().build());
+        endpointReports(Health.up().build());
 
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
@@ -58,7 +60,7 @@ class HealthControllerTest {
     @Test
     @DisplayName("GET /api/health returns 503 and DOWN when Actuator reports DOWN")
     void downReturns503() throws Exception {
-        given(healthEndpoint.health()).willReturn(Health.down().build());
+        endpointReports(Health.down().build());
 
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isServiceUnavailable())
@@ -70,7 +72,7 @@ class HealthControllerTest {
     @Test
     @DisplayName("GET /api/health returns 503 and DOWN when Actuator reports OUT_OF_SERVICE")
     void outOfServiceReturns503() throws Exception {
-        given(healthEndpoint.health()).willReturn(Health.outOfService().build());
+        endpointReports(Health.outOfService().build());
 
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isServiceUnavailable())
@@ -80,7 +82,7 @@ class HealthControllerTest {
     @Test
     @DisplayName("GET /api/health returns 503 and DOWN when Actuator reports UNKNOWN")
     void unknownReturns503() throws Exception {
-        given(healthEndpoint.health()).willReturn(Health.status(Status.UNKNOWN).build());
+        endpointReports(Health.status(Status.UNKNOWN).build());
 
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isServiceUnavailable())
@@ -90,7 +92,7 @@ class HealthControllerTest {
     @Test
     @DisplayName("GET /api/health does not expose Actuator component details")
     void doesNotLeakDetails() throws Exception {
-        given(healthEndpoint.health()).willReturn(
+        endpointReports(
                 Health.down().withDetail("db", "jdbc:postgresql://secret-host/portfolio").build());
 
         mockMvc.perform(get("/api/health"))
@@ -98,5 +100,13 @@ class HealthControllerTest {
                 .andExpect(jsonPath("$.details").doesNotExist())
                 .andExpect(jsonPath("$.components").doesNotExist())
                 .andExpect(jsonPath("$.db").doesNotExist());
+    }
+
+    // The endpoint's descriptor types have package-private constructors, so the test mirrors a Health into one
+    private void endpointReports(Health health) {
+        IndicatedHealthDescriptor descriptor = mock(IndicatedHealthDescriptor.class);
+        given(descriptor.getStatus()).willReturn(health.getStatus());
+        given(descriptor.getDetails()).willReturn(health.getDetails());
+        given(healthEndpoint.health()).willReturn(descriptor);
     }
 }

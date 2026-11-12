@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         controllers = PostController.class,
         excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
+                org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration.class
         }
 )
 @Import(TestSecurityConfig.class)
@@ -44,13 +44,13 @@ class PostControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private PostService postService;
 
-    @MockBean
+    @MockitoBean
     private JwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     private PostDto createSamplePostDto() {
@@ -215,6 +215,38 @@ class PostControllerTest {
                     .andExpect(status().isNotFound());
 
             org.mockito.Mockito.verify(postService).getPostBySlug(path, "en");
+        }
+    }
+
+    // Pins the wire format the frontend reads, so a Jackson upgrade cannot silently change it
+    @Nested
+    @DisplayName("JSON shape")
+    class JsonShape {
+
+        @Test
+        @DisplayName("should keep declaration order, ISO timestamps with their offset and explicit nulls")
+        void shouldKeepWireFormat() throws Exception {
+            PostDto post = PostDto.builder()
+                    .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                    .category(Category.CAMPAIGNS)
+                    .title("Sample Post")
+                    .slug("sample-post")
+                    .content(java.util.Map.of("type", "doc"))
+                    .published(true)
+                    .createdAt(OffsetDateTime.of(2026, 11, 12, 10, 30, 0, 0, java.time.ZoneOffset.ofHours(1)))
+                    .build();
+            given(postService.getPostBySlug("sample-post", "en")).willReturn(post);
+
+            String body = mockMvc.perform(get("/api/posts/sample-post"))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+
+            org.assertj.core.api.Assertions.assertThat(body)
+                    .startsWith("{\"success\":true,\"data\":{\"id\":\"00000000-0000-0000-0000-000000000001\",\"category\":\"CAMPAIGNS\",\"categoryLabel\":null,\"title\":\"Sample Post\"")
+                    .contains("\"content\":{\"type\":\"doc\"}")
+                    .contains("\"createdAt\":\"2026-11-12T10:30:00+01:00\"")
+                    .contains("\"updatedAt\":null")
+                    .doesNotContain("\"message\"");
         }
     }
 
