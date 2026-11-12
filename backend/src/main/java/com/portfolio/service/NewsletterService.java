@@ -5,18 +5,19 @@ import com.portfolio.dto.NewsletterDto;
 import com.portfolio.dto.NewsletterUpdateRequest;
 import com.portfolio.entity.Newsletter;
 import com.portfolio.repository.NewsletterRepository;
+import com.portfolio.util.SlugUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NewsletterService {
 
     private final NewsletterRepository newsletterRepository;
@@ -36,14 +37,16 @@ public class NewsletterService {
     }
 
     public NewsletterDto getBySlug(String slug, String locale) {
+        // Public route: a draft answers exactly like a missing slug so a guessed or shared link reveals nothing.
         Newsletter newsletter = newsletterRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + slug));
+                .filter(found -> Boolean.TRUE.equals(found.getPublished()))
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + slug));
         return mapToDto(newsletter, locale);
     }
 
     public NewsletterDto getById(UUID id, String locale) {
         Newsletter newsletter = newsletterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + id));
         return mapToDto(newsletter, locale);
     }
 
@@ -52,7 +55,9 @@ public class NewsletterService {
         Newsletter newsletter = Newsletter.builder()
                 .titleEn(request.getTitleEn())
                 .titlePl(request.getTitlePl())
-                .slug(generateSlug(request.getSlug(), request.getTitleEn()))
+                .slug(generateUniqueSlug(request.getSlug() == null || request.getSlug().isBlank()
+                        ? request.getTitleEn()
+                        : request.getSlug()))
                 .contentEn(request.getContentEn())
                 .contentPl(request.getContentPl())
                 .image1(request.getImage1())
@@ -69,7 +74,7 @@ public class NewsletterService {
     @Transactional
     public NewsletterDto update(UUID id, NewsletterUpdateRequest request, String locale) {
         Newsletter newsletter = newsletterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Newsletter not found: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Newsletter not found: " + id));
 
         if (request.getTitleEn() != null) {
             newsletter.setTitleEn(request.getTitleEn());
@@ -77,8 +82,17 @@ public class NewsletterService {
         if (request.getTitlePl() != null) {
             newsletter.setTitlePl(request.getTitlePl());
         }
-        if (request.getSlug() != null) {
-            newsletter.setSlug(request.getSlug());
+        // A cleared or resent slug keeps the current one, so a published URL never silently changes or empties.
+        // The raw comparison comes first: legacy slugs stored before normalization must survive unrelated edits.
+        if (request.getSlug() != null && !request.getSlug().isBlank()
+                && !request.getSlug().equals(newsletter.getSlug())) {
+            String slug = SlugUtils.toSlug(request.getSlug());
+            if (!slug.equals(newsletter.getSlug())) {
+                if (newsletterRepository.existsBySlug(slug)) {
+                    throw new IllegalArgumentException("Slug already in use");
+                }
+                newsletter.setSlug(slug);
+            }
         }
         if (request.getContentEn() != null) {
             newsletter.setContentEn(request.getContentEn());
@@ -109,29 +123,21 @@ public class NewsletterService {
     @Transactional
     public void delete(UUID id) {
         if (!newsletterRepository.existsById(id)) {
-            throw new RuntimeException("Newsletter not found: " + id);
+            throw new EntityNotFoundException("Newsletter not found: " + id);
         }
         newsletterRepository.deleteById(id);
     }
 
-    private String generateSlug(String customSlug, String title) {
-        String baseSlug = customSlug != null && !customSlug.isBlank() ? customSlug : title;
-
-        String slug = Normalizer.normalize(baseSlug, Normalizer.Form.NFD)
-                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
-                .toLowerCase(Locale.ENGLISH)
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
-                .replaceAll("^-|-$", "");
-
-        String finalSlug = slug;
+    private String generateUniqueSlug(String source) {
+        String baseSlug = SlugUtils.toSlug(source);
+        String slug = baseSlug;
         int counter = 1;
-        while (newsletterRepository.existsBySlug(finalSlug)) {
-            finalSlug = slug + "-" + counter++;
+
+        while (newsletterRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter++;
         }
 
-        return finalSlug;
+        return slug;
     }
 
     private NewsletterDto mapToDto(Newsletter newsletter, String locale) {

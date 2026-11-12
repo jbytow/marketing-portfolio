@@ -3,6 +3,7 @@ package com.portfolio.service;
 import com.portfolio.dto.InterestCreateRequest;
 import com.portfolio.dto.InterestDto;
 import com.portfolio.dto.InterestUpdateRequest;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Interest;
 import com.portfolio.repository.InterestRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,8 +25,11 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -260,6 +264,46 @@ class InterestServiceTest {
 
             assertThatThrownBy(() -> interestService.delete(nonExistentId))
                     .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("reorder")
+    class Reorder {
+
+        @Test
+        @DisplayName("should save the new displayOrder of every item")
+        void shouldSaveNewOrderOfEveryItem() {
+            Interest second = Interest.builder()
+                    .id(UUID.randomUUID())
+                    .titleEn("Travel")
+                    .titlePl("Podróże")
+                    .displayOrder(2)
+                    .build();
+            given(interestRepository.findById(interestId)).willReturn(Optional.of(sampleInterest));
+            given(interestRepository.findById(second.getId())).willReturn(Optional.of(second));
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(interestId, 2),
+                    new ReorderRequest.OrderItem(second.getId(), 1)));
+
+            interestService.reorder(request);
+
+            verify(interestRepository, times(2)).save(interestCaptor.capture());
+            assertThat(interestCaptor.getAllValues())
+                    .extracting(Interest::getId, Interest::getDisplayOrder)
+                    .containsExactly(tuple(interestId, 2), tuple(second.getId(), 1));
+        }
+
+        @Test
+        @DisplayName("should throw EntityNotFoundException for an unknown id")
+        void shouldThrowForUnknownId() {
+            UUID unknownId = UUID.randomUUID();
+            given(interestRepository.findById(unknownId)).willReturn(Optional.empty());
+            ReorderRequest request = new ReorderRequest(List.of(new ReorderRequest.OrderItem(unknownId, 1)));
+
+            assertThatThrownBy(() -> interestService.reorder(request))
+                    .isInstanceOf(EntityNotFoundException.class);
+            verify(interestRepository, never()).save(any());
         }
     }
 }

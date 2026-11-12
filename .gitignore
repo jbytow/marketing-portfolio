@@ -1,7 +1,6 @@
 # Backend
 backend/target/
 backend/*.jar
-backend/.mvn/wrapper/maven-wrapper.jar
 
 # Frontend
 frontend/node_modules/
@@ -44,3 +43,6 @@ uploads/
 # Frontend deploy output (accumulated asset generations, see DEPLOY.md)
 frontend/www/
 frontend/.deploy/
+
+# TypeScript incremental build info
+frontend/*.tsbuildinfo

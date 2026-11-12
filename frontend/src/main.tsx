@@ -3,30 +3,12 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from 'react-hot-toast';
 import App from './App';
-import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import './i18n';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemedToaster from './components/ThemedToaster';
+import './i18n/index';
 import './styles/index.css';
-
-function ThemedToaster() {
-  const { theme } = useTheme();
-  return (
-    <Toaster
-      position="top-right"
-      toastOptions={{
-        duration: 4000,
-        style: theme === 'rose'
-          ? { background: '#fff5f4', color: '#2d1a1a', border: '1px solid rgba(115, 25, 27, 0.2)' }
-          : theme === 'light'
-          ? { background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0' }
-          : { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' },
-      }}
-    />
-  );
-}
 
 // A tab opened before a deploy may request chunks that were pruned since; reloading fetches the
 // current index.html. The timestamp guard stops a reload loop if the chunk is missing for real.
@@ -55,10 +37,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
           <ThemeProvider>
             <LanguageProvider>
-              <AuthProvider>
-                <App />
-                <ThemedToaster />
-              </AuthProvider>
+              <App />
+              <ThemedToaster />
             </LanguageProvider>
           </ThemeProvider>
         </BrowserRouter>

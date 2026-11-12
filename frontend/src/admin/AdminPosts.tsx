@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import {
   Plus,
   Search,
   Edit,
+  ExternalLink,
   Trash2,
   Eye,
   EyeOff,
@@ -33,22 +35,28 @@ export default function AdminPosts() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminPostsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      toast.success('Post deleted successfully');
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
+      toast.success(t('admin.posts.deleteSuccess'));
     },
-    onError: () => {
-      toast.error('Failed to delete post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.posts.deleteFailed')));
     },
   });
 
   const togglePublishMutation = useMutation({
     mutationFn: (id: string) => adminPostsApi.togglePublish(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      toast.success('Post status updated');
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
+      toast.success(t('admin.posts.statusUpdated'));
     },
-    onError: () => {
-      toast.error('Failed to update post status');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.posts.statusUpdateFailed')));
     },
   });
 
@@ -58,7 +66,7 @@ export default function AdminPosts() {
   );
 
   const handleDelete = (post: Post) => {
-    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
+    if (window.confirm(t('admin.posts.deleteConfirm', { title: post.title }))) {
       deleteMutation.mutate(post.id);
     }
   };
@@ -125,13 +133,13 @@ export default function AdminPosts() {
                     <GripVertical className="w-4 h-4" />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-dark-400 uppercase tracking-wider">
-                    Title
+                    {t('admin.posts.columnTitle')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-dark-400 uppercase tracking-wider">
-                    Category
+                    {t('admin.posts.columnCategory')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-dark-400 uppercase tracking-wider">
-                    Status
+                    {t('admin.posts.columnStatus')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-dark-400 uppercase tracking-wider">
                     {t('common.actions')}
@@ -188,8 +196,9 @@ export default function AdminPosts() {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => togglePublishMutation.mutate(post.id)}
-                          className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors"
-                          title={post.published ? 'Unpublish' : 'Publish'}
+                          disabled={togglePublishMutation.isPending}
+                          className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors disabled:opacity-50"
+                          title={post.published ? t('admin.common.unpublish') : t('admin.common.publish')}
                         >
                           {post.published ? (
                             <EyeOff className="w-5 h-5" />
@@ -197,6 +206,16 @@ export default function AdminPosts() {
                             <Eye className="w-5 h-5" />
                           )}
                         </button>
+                        <Link
+                          to={`/admin/posts/${post.id}/preview`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t('admin.preview.button')}
+                          title={t('admin.preview.button')}
+                          className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                        </Link>
                         <Link
                           to={`/admin/posts/${post.id}/edit`}
                           className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors"

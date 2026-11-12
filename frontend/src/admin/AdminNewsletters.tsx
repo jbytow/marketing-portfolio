@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import { adminNewslettersApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ConfirmDeleteModal from '@/admin/components/ConfirmDeleteModal';
 
 export default function AdminNewsletters() {
   const { t } = useTranslation();
@@ -23,6 +26,16 @@ export default function AdminNewsletters() {
     mutationFn: (id: string) => adminNewslettersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success(t('admin.newsletters.deleteSuccess'));
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.deleteFailed')));
+    },
+    // Close the modal on failure too, otherwise it stays open with no feedback
+    onSettled: () => {
       setDeleteId(null);
     },
   });
@@ -33,6 +46,13 @@ export default function AdminNewsletters() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletterAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletters() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.newsletter() });
+      toast.success(t('admin.newsletters.statusUpdated'));
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.newsletters.statusUpdateFailed')));
     },
   });
 
@@ -84,7 +104,7 @@ export default function AdminNewsletters() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-500">
-                    No img
+                    {t('admin.common.noImage')}
                   </div>
                 )}
               </div>
@@ -115,7 +135,7 @@ export default function AdminNewsletters() {
                 <button
                   onClick={() => togglePublishMutation.mutate({ id: newsletter.id, published: newsletter.published })}
                   className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
-                  title={newsletter.published ? 'Unpublish' : 'Publish'}
+                  title={newsletter.published ? t('admin.common.unpublish') : t('admin.common.publish')}
                 >
                   {newsletter.published ? (
                     <EyeOff className="w-5 h-5" />
@@ -123,6 +143,16 @@ export default function AdminNewsletters() {
                     <Eye className="w-5 h-5" />
                   )}
                 </button>
+                <Link
+                  to={`/admin/newsletters/${newsletter.id}/preview`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t('admin.preview.button')}
+                  title={t('admin.preview.button')}
+                  className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                </Link>
                 <Link
                   to={`/admin/newsletters/${newsletter.id}/edit`}
                   className="p-2 text-dark-400 hover:text-dark-100 rounded-lg hover:bg-dark-700 transition-colors"
@@ -142,33 +172,14 @@ export default function AdminNewsletters() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-dark-900/80 flex items-center justify-center z-50">
-          <div className="card max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-dark-100 mb-4">
-              Delete Newsletter?
-            </h3>
-            <p className="text-dark-400 mb-6">
-              This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="btn-secondary"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => deleteMutation.mutate(deleteId)}
-                className="btn-primary bg-red-500 hover:bg-red-600"
-                disabled={deleteMutation.isPending}
-              >
-                {t('common.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteModal
+        open={deleteId !== null}
+        title={t('admin.newsletters.deleteTitle')}
+        message={t('admin.newsletters.deleteMessage')}
+        isPending={deleteMutation.isPending}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

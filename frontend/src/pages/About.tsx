@@ -2,20 +2,24 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { settingsApi, interestsApi } from '@/services/api';
+import { interestsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import { getMediaUrl } from '@/lib/mediaUrl';
+import { renderAboutText } from '@/lib/aboutText';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function About() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const {
+    data: settingsData,
+    isPending: settingsPending,
+    isError: settingsError,
+    refetch: refetchSettings,
+  } = useSiteSettings();
 
   const { data: interestsData } = useQuery({
     queryKey: queryKeys.interests(language),
@@ -25,8 +29,23 @@ export default function About() {
   const settings = settingsData?.data;
   const interests = interestsData?.data || [];
 
-  if (settingsLoading) {
+  if (settingsPending) {
     return <LoadingSpinner fullScreen />;
+  }
+
+  if (settingsError && !settingsData) {
+    return (
+      <section className="py-20">
+        <div className="container">
+          <div className="text-center py-12">
+            <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+            <button type="button" onClick={() => refetchSettings()} className="btn-secondary">
+              {t('common.retry')}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -57,8 +76,8 @@ export default function About() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-pink rounded-2xl transform rotate-3" />
                   <img
-                    src={settings.profileImage}
-                    alt="Profile"
+                    src={getMediaUrl(settings.profileImage)}
+                    alt={t('about.profileImageAlt')}
                     className="relative rounded-2xl w-full object-cover shadow-xl"
                   />
                 </div>
@@ -78,7 +97,7 @@ export default function About() {
               <div
                 className="prose prose-invert prose-lg max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: settings?.aboutText || '<p>About content coming soon...</p>',
+                  __html: renderAboutText(settings?.aboutText, t('about.placeholder')),
                 }}
               />
 

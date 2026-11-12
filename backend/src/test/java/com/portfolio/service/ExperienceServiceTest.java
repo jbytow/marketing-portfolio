@@ -3,6 +3,7 @@ package com.portfolio.service;
 import com.portfolio.dto.ExperienceCreateRequest;
 import com.portfolio.dto.ExperienceDto;
 import com.portfolio.dto.ExperienceUpdateRequest;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Experience;
 import com.portfolio.repository.ExperienceRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ExperienceService")
@@ -312,6 +314,38 @@ class ExperienceServiceTest {
 
             assertThatThrownBy(() -> experienceService.deleteExperience(nonExistentId))
                     .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("reorderExperiences")
+    class ReorderExperiences {
+
+        @Test
+        @DisplayName("should update displayOrder of every item")
+        void shouldUpdateDisplayOrderOfEveryItem() {
+            UUID secondId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(experienceId, 2),
+                    new ReorderRequest.OrderItem(secondId, 1)));
+
+            experienceService.reorderExperiences(request);
+
+            verify(experienceRepository).updateDisplayOrder(experienceId, 2);
+            verify(experienceRepository).updateDisplayOrder(secondId, 1);
+            verifyNoMoreInteractions(experienceRepository);
+        }
+
+        @Test
+        @DisplayName("should silently ignore an unknown id (the UPDATE matches no row)")
+        void shouldIgnoreUnknownId() {
+            UUID unknownId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(new ReorderRequest.OrderItem(unknownId, 1)));
+
+            experienceService.reorderExperiences(request);
+
+            verify(experienceRepository).updateDisplayOrder(unknownId, 1);
+            verifyNoMoreInteractions(experienceRepository);
         }
     }
 }

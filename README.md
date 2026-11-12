@@ -32,6 +32,8 @@ that updates itself.
   - Rich text editor (TipTap) for content creation
   - Media library with image/video/PDF uploads
   - Customizable site settings (hero, stats, footer, SEO)
+  - Draft preview for posts and newsletters, unsaved-changes warnings, session-expiry dialog that keeps the form
+  - Panel available in English and Polish
 - **Content Sections**:
   - About Me with editable tags and interests gallery
   - Professional Experience timeline with achievements
@@ -42,7 +44,7 @@ that updates itself.
 - **Modern UI/UX**:
   - Responsive mobile-first design
   - Framer Motion animations
-  - Three switchable themes: Light, Dark, and Rose
+  - Two switchable themes, Dark and Rose, with Rose as the default; the Light theme is disabled in the code
 
 ## 🌸 Rose Theme — Magic Effects
 
@@ -69,11 +71,12 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 
 ### Backend
 - Java 21
-- Spring Boot 3.2
+- Spring Boot 4.1 (Spring Framework 7, Spring Security 7, Hibernate 7, Flyway 11, Tomcat 11)
 - Spring Security with OAuth2 (Google)
 - PostgreSQL 16
 - Flyway migrations
 - JWT authentication
+- Testcontainers (database tests)
 
 ### Frontend
 - React 18
@@ -85,6 +88,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 - i18next (internationalization)
 - TipTap (rich text editor)
 - dnd-kit (drag and drop)
+- Vitest + Testing Library (tests)
 
 ### Deployment Infrastructure
 - **Proxmox VE** - Hypervisor for virtualization
@@ -93,29 +97,40 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 - **NGINX** - Reverse proxy and static file serving
 - **Cloudflare Tunnel** - Secure public access without exposed ports
 
-## Test Coverage
+## Tests and Quality Checks
 
-The project includes comprehensive unit tests for backend services:
+The backend has around 460 tests (as of 2026-11-11; the number changes as the code does):
 
+- Service tests on JUnit 5 and Mockito
+- Controller tests on `@WebMvcTest`
+- `SecurityConfigTest`, which drives the real Spring Security chain
+- Database tests on Testcontainers with PostgreSQL 16: `PostRepositoryTest` and `MigrationSchemaTest`, the latter running the Flyway migrations and validating the resulting schema against the entities
+
+Every push and pull request runs the GitHub Actions workflow in `.github/workflows/ci.yml`: backend tests with PostgreSQL on Testcontainers, frontend typecheck, lint, Vitest and build, and `nginx -t` on the edge config. Dependabot (`.github/dependabot.yml`) opens weekly grouped update PRs for Maven, npm, the Dockerfiles and the Actions.
+
+Database tests need a working Docker daemon. On a machine where Docker runs inside WSL, point the tests at it:
+
+```bash
+export DOCKER_HOST=tcp://127.0.0.1:2375
+export TESTCONTAINERS_RYUK_DISABLED=true
 ```
-Tests run: 125, Failures: 0, Errors: 0
-```
 
-**Test Breakdown:**
-- `PostServiceTest` - 22 tests (CRUD, publishing, slug generation)
-- `ExperienceServiceTest` - 14 tests (CRUD, locale handling)
-- `InterestServiceTest` - 12 tests (CRUD, ordering)
-- `SkillCategoryServiceTest` - 14 tests (CRUD, nested skills)
-- `PostControllerTest` - 9 tests (REST endpoints, localization)
-- `AdminPostControllerTest` - 8 tests (authenticated endpoints)
-- `JwtServiceTest` - 16 tests (token generation, validation)
-- Converter tests - 30 tests (Category, MediaType converters)
-
-**Run tests:**
+**Run backend tests:**
 ```bash
 cd backend
 .\mvnw.cmd test                    # Windows
 ./mvnw test                        # Linux/Mac
+```
+
+The frontend tests run on Vitest with Testing Library on jsdom. They cover i18n key parity between EN and PL and keys that no component consumes, the API client (`Accept-Language`, timeout, 401), the rich text renderer and editor sharing one TipTap extension list, the media components, and accessibility. Lint allows no warnings.
+
+**Run frontend checks:**
+```bash
+cd frontend
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
 ## Configuration Highlights
@@ -131,14 +146,25 @@ cd backend
 - Automatic timestamps with `@PrePersist` and `@PreUpdate`
 
 ### Security
-- JWT-based stateless authentication
-- OAuth2 integration with Google and GitHub
-- Role-based access control (admin email whitelist)
-- CORS configuration for frontend-backend communication
+- Google OAuth2 is the only login provider
+- Admin access is the `ADMIN_EMAILS` allowlist combined with a verified Google e-mail; the list is re-checked on every request, and `/api/admin/**` requires `ROLE_ADMIN`
+- The JWT travels in an HttpOnly cookie (`Secure`, `SameSite=Lax` over HTTPS), so the frontend never handles the token
+- Anonymous calls to `/api/**` answer 401 without a body and without a redirect to the login page
+- `JWT_SECRET` must be at least 32 bytes; the `prod` profile refuses to start with a missing or development secret
+- CORS allows the single origin from `FRONTEND_URL`
+- Uploads are checked against a server-side MIME allowlist and cannot leave the upload directory
+- Rate limiting runs at the edge (nginx), per visitor keyed on `CF-Connecting-IP`, and answers 429; the contact form has its own 5-per-minute bucket and a honeypot field
+- State-changing admin requests with a foreign `Origin` or `Referer` are rejected with 403 (CSRF defence for the cookie session); Google accounts outside the allowlist are never stored
+- A `Content-Security-Policy-Report-Only` header is sent from the edge; the policy switches to enforcing after a violation-free period
+- Fonts are self-hosted and YouTube players load only after a click (from `youtube-nocookie.com`), so visitors contact Google only when they choose to
+- The About text is rendered through an allowlist sanitiser (paragraphs preserved, scripts and event handlers dropped)
 
 ### Media Handling
-- File uploads stored on disk with configurable path
-- Support for images, videos, PDFs, and YouTube embeds
+- Uploads are stored on disk in the directory mounted from a Docker volume
+- Accepted types are `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `video/mp4`, `video/webm` and `application/pdf`
+- Each file is saved under a UUID name with the extension taken from its MIME type
+- Files are served with `Cache-Control: public, immutable` for one year
+- YouTube links are accepted in watch, shorts, live, embed, `youtu.be` and `nocookie` form; the public site shows a thumbnail with a play button and loads the player on click
 - Media URL resolution for both dev and production environments
 
 ### Internationalization
@@ -167,14 +193,23 @@ Implementing optimistic UI updates for drag-and-drop reordering while maintainin
 Configuring secure public access through Cloudflare Tunnel while maintaining proper HTTPS termination and WebSocket support for development hot reload.
 
 ### 7. Returning Visitors Hitting Deleted Chunks
-After deploys, returning visitors got 404s on lazy-loaded chunks and a black screen: their browsers kept an older `index.html`, while each new image shipped only the latest `dist`. Fixed systemically: `index.html` is served with `no-cache`, hashed assets stay `immutable` and accumulate across deploys in a mounted `frontend/www`, and `frontend/deploy.sh` swaps `index.html` atomically only after checking that every file it references is published. Old generations are pruned by policy, and a `vite:preloadError` handler reloads a stale tab once (see [DEPLOY.md](DEPLOY.md)).
+After deploys, returning visitors got 404s on lazy-loaded chunks and a black screen: their browsers kept an older `index.html`, while each new image shipped only the latest `dist`. Fixed systemically: `index.html` is served with `no-cache`, hashed assets stay `immutable` and accumulate across deploys in a mounted `frontend/www`, and `frontend/deploy.sh` swaps `index.html` atomically only after checking that every file it references is published. Old generations are pruned by policy, and a `vite:preloadError` handler reloads a stale tab once (see [docs/operations.md](docs/operations.md)).
+
+### 8. Database Tests That Silently Did Not Run
+`PostRepositoryTest` was marked `disabledWithoutDocker`, and Testcontainers 1.19.3 spoke Docker API 1.32, which Docker 29 rejects. The suite reported success with ten tests skipped, so a drift between entities and the Flyway schema had no way to surface. On Windows, Docker only existed inside WSL. Fixed by forwarding the WSL socket to `127.0.0.1:2375`, bumping Testcontainers, adding `MigrationSchemaTest` (Flyway on a real PostgreSQL plus `ddl-auto: validate`), and treating "0 skipped" as the pass criterion in the README and the runbook.
+
+### 9. Rate Limiting That Counted Every Visitor as One
+`limit_req_zone $binary_remote_addr` behind Cloudflare Tunnel only ever saw the connector's address, so the whole site shared one 10 r/s bucket, images included. The configuration looked textbook; the symptom only appears under traffic. Fixed with `map $http_cf_connecting_ip` (falling back to the remote address), separate zones for media, OAuth and the contact form, 429 instead of 503, and forwarded headers that the edge overwrites instead of appending to. Open: a LAN client reaching port 80 directly could still forge the header (owner decision on binding the port to the cloudflared source).
+
+### 10. Every Visitor Opened a Login Session
+With `oauth2Login` as the only entry point and no `AuthenticationEntryPoint` for `/api/**`, the `GET /api/admin/auth/me` probe that runs on every page view answered 302 to Google and created a server-side HTTP session per visitor; the frontend's 401 handling was dead code. Fixed with `HttpStatusEntryPoint(401)` for `/api/**`, a `SecurityConfigTest` that drives the real filter chain instead of a test-only configuration, and a 5-minute session timeout for the OAuth handshake.
 
 ## Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose
-- Node.js 20+ (for local frontend development)
-- Java 21+ (for local backend development)
+- Docker and Docker Compose (Compose v2)
+- Node.js 20+ for local frontend development (the Docker image builds on `node:24-alpine`)
+- Java 21 for local backend development (the Docker image and CI use JDK 21; JDK 25 compiles the project too since the Lombok managed by Spring Boot 4.1 supports it)
 
 ### Quick Start with Docker
 
@@ -198,8 +233,10 @@ ADMIN_EMAILS=your_email@example.com
 
 4. Start the application:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
+
+The development compose publishes ports 5432, 8080 and 5173 on `127.0.0.1` only.
 
 5. Access the application:
    - Frontend: http://localhost:5173
@@ -209,7 +246,7 @@ docker-compose up --build
 ### Production Deployment
 
 Production uses `docker-compose.prod.yml`; the frontend is published additively with
-`frontend/deploy.sh` so returning visitors never hit deleted chunks. See [DEPLOY.md](DEPLOY.md).
+`frontend/deploy.sh` so returning visitors never hit deleted chunks. See [docs/operations.md](docs/operations.md).
 
 ### Local Development
 
@@ -239,7 +276,7 @@ npm run dev
 │   │   ├── repository/      # Spring Data repositories
 │   │   ├── security/        # Security & JWT
 │   │   └── service/         # Business logic
-│   ├── src/test/java/       # Unit tests
+│   ├── src/test/java/       # Backend tests
 │   └── src/main/resources/
 │       ├── db/migration/    # Flyway migrations
 │       └── application.yml  # Configuration
@@ -253,7 +290,12 @@ npm run dev
 │   │   ├── pages/           # Public pages
 │   │   ├── services/        # API services
 │   │   └── types/           # TypeScript types
+│   ├── deploy.sh            # Additive frontend deploy
+│   ├── vitest.config.ts     # Test configuration
 │   └── nginx.conf           # Nginx configuration
+├── docs/
+│   ├── api.md               # REST API reference
+│   └── operations.md        # Production runbook
 ├── nginx/                   # Production nginx config
 ├── docker-compose.yml       # Development setup
 └── docker-compose.prod.yml  # Production setup
@@ -261,35 +303,24 @@ npm run dev
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_DB` | Database name | portfolio |
-| `POSTGRES_USER` | Database user | portfolio |
-| `POSTGRES_PASSWORD` | Database password | portfolio123 |
-| `JWT_SECRET` | JWT signing key | (dev key) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | - |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth secret | - |
-| `ADMIN_EMAILS` | Comma-separated admin emails | admin@example.com |
+The production compose file refuses to start without `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS` and `FRONTEND_URL`. Optional entries are `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `CONTACT_EMAIL` and `VITE_API_URL`.
+
+The full list with defaults lives in [`.env.example`](.env.example). Startup checks, log lines and per-variable behaviour are in [docs/operations.md](docs/operations.md).
 
 ## API Endpoints
 
-### Public
-- `GET /api/posts` - List published posts
-- `GET /api/posts/{slug}` - Get post by slug
-- `GET /api/categories` - List categories
-- `GET /api/settings` - Get site settings
-- `GET /api/experiences` - List experiences
-- `GET /api/interests` - List interests
-- `GET /api/skill-categories/with-skills` - Skills grouped by category
+The full REST reference (public and admin endpoints, authentication, response envelope, error codes) lives in [docs/api.md](docs/api.md).
 
-### Admin (requires authentication)
-- `GET/POST/PUT/DELETE /api/admin/posts` - Manage posts
-- `GET/POST/PUT/DELETE /api/admin/experiences` - Manage experiences
-- `GET/POST/PUT/DELETE /api/admin/interests` - Manage interests
-- `GET/POST/PUT/DELETE /api/admin/skill-categories` - Manage skill categories
-- `GET/POST/PUT/DELETE /api/admin/soft-skills` - Manage skills
-- `GET/POST /api/admin/media` - Manage media
-- `GET/PUT /api/admin/settings` - Manage settings
+## Documentation
+
+- [docs/api.md](docs/api.md): REST reference (public and admin endpoints, authentication, response envelope, error codes).
+- [docs/operations.md](docs/operations.md): production runbook (deploying backend, frontend and edge changes, verification, periodic tasks, backups, restore).
+- [docs/decyzje/](docs/decyzje/): owner decisions deferred by the 2026-11 audit (in Polish).
+- `STATE.md`: current working state of the project; `context.md`: append-only project journal.
+
+## Project Status
+
+The public site and the admin panel work end to end in production (Google login, bilingual content, media library, additive frontend deploys). The November 2026 audit hardened authentication, error handling, uploads, the edge proxy and the dependency set, and added database and frontend test suites. Open items are tracked as owner decisions in `docs/decyzje/` (backups, Spring Boot upgrade, admin panel i18n, a 404 page) and in `STATE.md`.
 
 ## License
 

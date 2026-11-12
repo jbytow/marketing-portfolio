@@ -1,15 +1,36 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Save, Eye, EyeOff, X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/apiError';
+import { ArrowLeft, Save, Eye, EyeOff, ExternalLink, X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { adminPostsApi } from '@/services/api';
 import { Category, PostCreateRequest, PostUpdateRequest, Media } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 import MediaManager from '@/admin/components/MediaManager';
 import RichTextEditor from '@/components/RichTextEditor';
+
+// Mirrors the backend rule: the public page counts only the requested language's challenge,
+// solution, results and testimonial. The form edits both languages, so any of them counts.
+type CaseStudyField = 'caseStudyChallenge' | 'caseStudySolution' | 'caseStudyResults' | 'caseStudyTestimonial';
+
+function hasAnyCaseStudyText(
+  post: Partial<Record<`${CaseStudyField}${'En' | 'Pl'}`, string | null>>
+): boolean {
+  return [
+    post.caseStudyChallengeEn,
+    post.caseStudySolutionEn,
+    post.caseStudyResultsEn,
+    post.caseStudyTestimonialEn,
+    post.caseStudyChallengePl,
+    post.caseStudySolutionPl,
+    post.caseStudyResultsPl,
+    post.caseStudyTestimonialPl,
+  ].some((text) => Boolean(text?.trim()));
+}
 
 export default function AdminPostForm() {
   const { id } = useParams<{ id: string }>();
@@ -41,23 +62,38 @@ export default function AdminPostForm() {
     caseStudyTestimonialAuthor: '',
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const [media, setMedia] = useState<Media[]>([]);
   const [newHashtag, setNewHashtag] = useState('');
   const [caseStudyExpanded, setCaseStudyExpanded] = useState(false);
 
-  const { data: postData, isLoading: postLoading } = useQuery({
+  // Post id the form was seeded for. Later refetches (window focus, reconnect, invalidation
+  // after a media operation) must not overwrite unsaved edits.
+  const [seededId, setSeededId] = useState<string | null>(null);
+
+  const {
+    data: postData,
+    isLoading: postLoading,
+    isFetching: postFetching,
+    isError: loadFailed,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.admin.post(id!),
     queryFn: () => adminPostsApi.getById(id!),
     enabled: isEditing,
   });
 
+  // Wait for the fetch to finish: cached data may be stale and about to be replaced.
   useEffect(() => {
-    if (postData?.data) {
+    if (postData?.data && !postFetching && seededId !== id) {
       const post = postData.data;
-      setFormData({
+      const seeded: PostCreateRequest = {
         category: post.category,
-        titleEn: post.titleEn,
-        titlePl: post.titlePl,
+        titleEn: post.titleEn ?? '',
+        titlePl: post.titlePl ?? '',
         slug: post.slug,
         excerptEn: post.excerptEn || '',
         excerptPl: post.excerptPl || '',
@@ -75,51 +111,56 @@ export default function AdminPostForm() {
         caseStudyTestimonialEn: post.caseStudyTestimonialEn || '',
         caseStudyTestimonialPl: post.caseStudyTestimonialPl || '',
         caseStudyTestimonialAuthor: post.caseStudyTestimonialAuthor || '',
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
       setMedia(post.media || []);
-      // Auto-expand if there's existing case study content
-      if (post.hasCaseStudy) {
+      setSeededId(id ?? null);
+      // Auto-expand if there's existing case study content in either language
+      if (hasAnyCaseStudyText(post)) {
         setCaseStudyExpanded(true);
       }
     }
-  }, [postData]);
+  }, [postData, postFetching, seededId, id]);
 
   const createMutation = useMutation({
     mutationFn: (data: PostCreateRequest) => adminPostsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
-      toast.success('Post created successfully');
+      setBaseline(JSON.stringify(formData));
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      toast.success(t('admin.posts.createSuccess'));
       navigate('/admin/posts');
     },
-    onError: () => {
-      toast.error('Failed to create post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.posts.createFailed')));
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: PostUpdateRequest) => adminPostsApi.update(id!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'posts'] });
+      setBaseline(JSON.stringify(formData));
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.postsAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(id!) });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['post'] });
-      queryClient.invalidateQueries({ queryKey: ['hashtags'] });
-      toast.success('Post updated successfully');
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
+      toast.success(t('admin.posts.updateSuccess'));
       navigate('/admin/posts');
     },
-    onError: () => {
-      toast.error('Failed to update post');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.posts.updateFailed')));
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // A blank slug is omitted so update keeps the stored one and create lets the backend generate it
+    const submitData = { ...formData, slug: formData.slug?.trim() || undefined };
     if (isEditing) {
-      updateMutation.mutate(formData);
+      updateMutation.mutate(submitData);
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -158,14 +199,22 @@ export default function AdminPostForm() {
     }
   };
 
-  const hasCaseStudyContent = Boolean(
-    formData.caseStudyChallengeEn ||
-    formData.caseStudySolutionEn ||
-    formData.caseStudyResultsEn
-  );
+  const hasCaseStudyContent = hasAnyCaseStudyText(formData);
 
-  if (postLoading) {
+  if (postLoading || (isEditing && postData?.data && seededId !== id)) {
     return <LoadingSpinner />;
+  }
+
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !postData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -174,7 +223,7 @@ export default function AdminPostForm() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate('/admin/posts')}
+            onClick={() => confirmLeave() && navigate('/admin/posts')}
             className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -184,6 +233,18 @@ export default function AdminPostForm() {
           </h1>
         </div>
         <div className="flex items-center space-x-3">
+          {isEditing && (
+            // A new tab keeps this form and its unsaved edits; the preview shows the last saved state
+            <Link
+              to={`/admin/posts/${id}/preview`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+            >
+              <ExternalLink className="w-5 h-5 mr-2" />
+              {t('admin.preview.button')}
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setFormData((prev) => ({ ...prev, published: !prev.published }))}
@@ -208,7 +269,7 @@ export default function AdminPostForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Category */}
         <div className="card">
-          <label className="label">Category</label>
+          <label className="label">{t('admin.posts.category')}</label>
           <select
             name="category"
             value={formData.category}
@@ -226,10 +287,10 @@ export default function AdminPostForm() {
 
         {/* Titles */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Titles</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.titles')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Title (English)</label>
+              <label className="label">{t('admin.posts.titleEn')}</label>
               <input
                 type="text"
                 name="titleEn"
@@ -240,7 +301,7 @@ export default function AdminPostForm() {
               />
             </div>
             <div>
-              <label className="label">Title (Polish)</label>
+              <label className="label">{t('admin.posts.titlePl')}</label>
               <input
                 type="text"
                 name="titlePl"
@@ -252,28 +313,28 @@ export default function AdminPostForm() {
             </div>
           </div>
           <div>
-            <label className="label">Slug (URL)</label>
+            <label className="label">{t('admin.posts.slug')}</label>
             <input
               type="text"
               name="slug"
               value={formData.slug}
               onChange={handleChange}
               className="input"
-              placeholder="auto-generated-from-title"
+              placeholder={t('admin.posts.slugPlaceholder')}
             />
           </div>
         </div>
 
         {/* Hashtags */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Hashtags</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.hashtags')}</h3>
           <div className="flex gap-2">
             <input
               type="text"
               value={newHashtag}
               onChange={(e) => setNewHashtag(e.target.value)}
               onKeyDown={handleHashtagKeyDown}
-              placeholder="Add hashtag..."
+              placeholder={t('admin.posts.addHashtag')}
               className="input flex-1"
             />
             <button
@@ -307,10 +368,10 @@ export default function AdminPostForm() {
 
         {/* Excerpts */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Excerpts</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.excerpts')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Excerpt (English)</label>
+              <label className="label">{t('admin.posts.excerptEn')}</label>
               <textarea
                 name="excerptEn"
                 value={formData.excerptEn}
@@ -320,7 +381,7 @@ export default function AdminPostForm() {
               />
             </div>
             <div>
-              <label className="label">Excerpt (Polish)</label>
+              <label className="label">{t('admin.posts.excerptPl')}</label>
               <textarea
                 name="excerptPl"
                 value={formData.excerptPl}
@@ -334,22 +395,22 @@ export default function AdminPostForm() {
 
         {/* Content */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Content</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.content')}</h3>
           <div className="space-y-4">
             <div>
-              <label className="label">Content (English)</label>
+              <label className="label">{t('admin.posts.contentEn')}</label>
               <RichTextEditor
                 content={formData.contentEn || {}}
                 onChange={(content) => setFormData((prev) => ({ ...prev, contentEn: content }))}
-                placeholder="Write your content in English..."
+                placeholder={t('admin.posts.contentEnPlaceholder')}
               />
             </div>
             <div>
-              <label className="label">Content (Polish)</label>
+              <label className="label">{t('admin.posts.contentPl')}</label>
               <RichTextEditor
                 content={formData.contentPl || {}}
                 onChange={(content) => setFormData((prev) => ({ ...prev, contentPl: content }))}
-                placeholder="Napisz treść po polsku..."
+                placeholder={t('admin.posts.contentPlPlaceholder')}
               />
             </div>
           </div>
@@ -357,7 +418,7 @@ export default function AdminPostForm() {
 
         {/* Featured Image */}
         <div className="card">
-          <label className="label">Featured Image URL</label>
+          <label className="label">{t('admin.posts.featuredImageUrl')}</label>
           <input
             type="text"
             name="featuredImage"
@@ -369,7 +430,7 @@ export default function AdminPostForm() {
           {formData.featuredImage && (
             <img
               src={formData.featuredImage}
-              alt="Preview"
+              alt={t('admin.posts.imagePreview')}
               className="mt-4 max-h-48 rounded-lg object-cover"
             />
           )}
@@ -378,9 +439,9 @@ export default function AdminPostForm() {
         {/* Media Manager */}
         {isEditing && id ? (
           <div className="card space-y-4">
-            <h3 className="text-lg font-semibold text-dark-100">Media Gallery</h3>
+            <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.mediaGallery')}</h3>
             <p className="text-sm text-dark-400">
-              Upload images, videos, or add YouTube videos. Drag to reorder.
+              {t('admin.posts.mediaGalleryHint')}
             </p>
             <MediaManager
               postId={id}
@@ -390,9 +451,9 @@ export default function AdminPostForm() {
           </div>
         ) : (
           <div className="card">
-            <h3 className="text-lg font-semibold text-dark-100">Media Gallery</h3>
+            <h3 className="text-lg font-semibold text-dark-100">{t('admin.posts.mediaGallery')}</h3>
             <p className="text-sm text-dark-400 mt-2">
-              Save the post first to add images, videos, or YouTube links.
+              {t('admin.posts.mediaGallerySaveFirst')}
             </p>
           </div>
         )}
@@ -431,25 +492,25 @@ export default function AdminPostForm() {
                 <h4 className="font-medium text-dark-200">{t('caseStudy.challenge')}</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Challenge (English)</label>
+                    <label className="label">{t('admin.posts.caseStudy.challengeEn')}</label>
                     <textarea
                       name="caseStudyChallengeEn"
                       value={formData.caseStudyChallengeEn}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="What problem did the client face?"
+                      placeholder={t('admin.posts.caseStudy.challengeEnPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="label">Challenge (Polish)</label>
+                    <label className="label">{t('admin.posts.caseStudy.challengePl')}</label>
                     <textarea
                       name="caseStudyChallengePl"
                       value={formData.caseStudyChallengePl}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="Jaki problem miał klient?"
+                      placeholder={t('admin.posts.caseStudy.challengePlPlaceholder')}
                     />
                   </div>
                 </div>
@@ -460,25 +521,25 @@ export default function AdminPostForm() {
                 <h4 className="font-medium text-dark-200">{t('caseStudy.solution')}</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Solution (English)</label>
+                    <label className="label">{t('admin.posts.caseStudy.solutionEn')}</label>
                     <textarea
                       name="caseStudySolutionEn"
                       value={formData.caseStudySolutionEn}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="What strategy or approach was used?"
+                      placeholder={t('admin.posts.caseStudy.solutionEnPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="label">Solution (Polish)</label>
+                    <label className="label">{t('admin.posts.caseStudy.solutionPl')}</label>
                     <textarea
                       name="caseStudySolutionPl"
                       value={formData.caseStudySolutionPl}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="Jaka strategia lub podejście zostało zastosowane?"
+                      placeholder={t('admin.posts.caseStudy.solutionPlPlaceholder')}
                     />
                   </div>
                 </div>
@@ -489,25 +550,25 @@ export default function AdminPostForm() {
                 <h4 className="font-medium text-dark-200">{t('caseStudy.results')}</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Results (English)</label>
+                    <label className="label">{t('admin.posts.caseStudy.resultsEn')}</label>
                     <textarea
                       name="caseStudyResultsEn"
                       value={formData.caseStudyResultsEn}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="What were the outcomes and metrics?"
+                      placeholder={t('admin.posts.caseStudy.resultsEnPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="label">Results (Polish)</label>
+                    <label className="label">{t('admin.posts.caseStudy.resultsPl')}</label>
                     <textarea
                       name="caseStudyResultsPl"
                       value={formData.caseStudyResultsPl}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="Jakie były wyniki i metryki?"
+                      placeholder={t('admin.posts.caseStudy.resultsPlPlaceholder')}
                     />
                   </div>
                 </div>
@@ -518,37 +579,37 @@ export default function AdminPostForm() {
                 <h4 className="font-medium text-dark-200">{t('caseStudy.testimonial')} ({t('common.optional')})</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Testimonial (English)</label>
+                    <label className="label">{t('admin.posts.caseStudy.testimonialEn')}</label>
                     <textarea
                       name="caseStudyTestimonialEn"
                       value={formData.caseStudyTestimonialEn}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="Client quote..."
+                      placeholder={t('admin.posts.caseStudy.testimonialEnPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="label">Testimonial (Polish)</label>
+                    <label className="label">{t('admin.posts.caseStudy.testimonialPl')}</label>
                     <textarea
                       name="caseStudyTestimonialPl"
                       value={formData.caseStudyTestimonialPl}
                       onChange={handleChange}
                       className="input"
                       rows={3}
-                      placeholder="Cytat klienta..."
+                      placeholder={t('admin.posts.caseStudy.testimonialPlPlaceholder')}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="label">Testimonial Author</label>
+                  <label className="label">{t('admin.posts.caseStudy.testimonialAuthor')}</label>
                   <input
                     type="text"
                     name="caseStudyTestimonialAuthor"
                     value={formData.caseStudyTestimonialAuthor}
                     onChange={handleChange}
                     className="input"
-                    placeholder="John Doe, CEO at Company"
+                    placeholder={t('admin.posts.caseStudy.testimonialAuthorPlaceholder')}
                   />
                 </div>
               </div>
@@ -560,7 +621,7 @@ export default function AdminPostForm() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/posts')}
+            onClick={() => confirmLeave() && navigate('/admin/posts')}
             className="btn-secondary"
           >
             {t('common.cancel')}

@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save, Upload, X } from 'lucide-react';
 import { adminInterestsApi, adminMediaApi } from '@/services/api';
 import { queryKeys } from '@/lib/queryKeys';
 import { InterestCreateRequest } from '@/types';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 import { getMediaUrl } from '@/lib/mediaUrl';
 
 export default function AdminInterestForm() {
@@ -24,9 +26,13 @@ export default function AdminInterestForm() {
     image2: '',
     image3: '',
   });
+
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.interest(id!),
     queryFn: () => adminInterestsApi.getById(id!),
     enabled: isEditing,
@@ -35,37 +41,44 @@ export default function AdminInterestForm() {
   useEffect(() => {
     if (data?.data) {
       const interest = data.data;
-      setFormData({
+      const seeded: InterestCreateRequest = {
         titleEn: interest.titleEn,
         titlePl: interest.titlePl,
         image1: interest.image1 || '',
         image2: interest.image2 || '',
         image3: interest.image3 || '',
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
     }
   }, [data]);
 
   const createMutation = useMutation({
     mutationFn: (data: InterestCreateRequest) => adminInterestsApi.create(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
-      toast.success('Interest created');
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+      toast.success(t('admin.interests.createSuccess'));
       navigate('/admin/interests');
     },
-    onError: () => {
-      toast.error('Failed to create interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.interests.createFailed')));
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: InterestCreateRequest) => adminInterestsApi.update(id!, data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
-      toast.success('Interest updated');
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.interest(id!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+      toast.success(t('admin.interests.updateSuccess'));
       navigate('/admin/interests');
     },
-    onError: () => {
-      toast.error('Failed to update interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.interests.updateFailed')));
     },
   });
 
@@ -90,8 +103,8 @@ export default function AdminInterestForm() {
       if (response.data) {
         setFormData((prev) => ({ ...prev, [field]: response.data.url }));
       }
-    } catch {
-      toast.error('Failed to upload image');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('admin.common.uploadImageFailed')));
     } finally {
       setUploading((prev) => ({ ...prev, [field]: false }));
     }
@@ -105,13 +118,25 @@ export default function AdminInterestForm() {
     return <LoadingSpinner />;
   }
 
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !data) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <button
-          onClick={() => navigate('/admin/interests')}
+          onClick={() => confirmLeave() && navigate('/admin/interests')}
           className="p-2 text-dark-400 hover:text-dark-100 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -125,7 +150,7 @@ export default function AdminInterestForm() {
         <div className="card space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Title (English)</label>
+              <label className="label">{t('admin.common.titleEn')}</label>
               <input
                 type="text"
                 name="titleEn"
@@ -136,7 +161,7 @@ export default function AdminInterestForm() {
               />
             </div>
             <div>
-              <label className="label">Title (Polish)</label>
+              <label className="label">{t('admin.common.titlePl')}</label>
               <input
                 type="text"
                 name="titlePl"
@@ -149,7 +174,7 @@ export default function AdminInterestForm() {
           </div>
 
           <div>
-            <label className="label">Images (up to 3)</label>
+            <label className="label">{t('admin.interests.imagesUpTo3')}</label>
             <div className="grid grid-cols-3 gap-4">
               {(['image1', 'image2', 'image3'] as const).map((field, idx) => (
                 <div key={field} className="relative">
@@ -157,7 +182,7 @@ export default function AdminInterestForm() {
                     <div className="relative aspect-square rounded-lg overflow-hidden bg-dark-700">
                       <img
                         src={getMediaUrl(formData[field]!)}
-                        alt={`Image ${idx + 1}`}
+                        alt={t('admin.common.image', { number: idx + 1 })}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -175,7 +200,7 @@ export default function AdminInterestForm() {
                       ) : (
                         <>
                           <Upload className="w-6 h-6 text-dark-500 mb-2" />
-                          <span className="text-xs text-dark-500">Image {idx + 1}</span>
+                          <span className="text-xs text-dark-500">{t('admin.common.image', { number: idx + 1 })}</span>
                         </>
                       )}
                       <input
@@ -198,7 +223,7 @@ export default function AdminInterestForm() {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/interests')}
+            onClick={() => confirmLeave() && navigate('/admin/interests')}
             className="btn-secondary"
           >
             {t('common.cancel')}

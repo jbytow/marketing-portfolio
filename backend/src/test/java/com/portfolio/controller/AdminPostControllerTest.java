@@ -1,9 +1,11 @@
 package com.portfolio.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.portfolio.config.TestSecurityConfig;
 import com.portfolio.dto.PostCreateRequest;
 import com.portfolio.dto.PostDto;
+import com.portfolio.dto.PostUpdateRequest;
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.entity.Category;
 import com.portfolio.security.JwtService;
 import com.portfolio.service.PostService;
@@ -12,8 +14,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -28,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         controllers = AdminPostController.class,
         excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
+                org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration.class
         }
 )
 @Import(TestSecurityConfig.class)
@@ -50,13 +53,13 @@ class AdminPostControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private PostService postService;
 
-    @MockBean
+    @MockitoBean
     private JwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     private PostDto createSamplePostDto() {
@@ -218,7 +221,135 @@ class AdminPostControllerTest {
                             .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.message").doesNotExist());
+        }
+    }
+
+    @Nested
+    @DisplayName("PUT /api/admin/posts/{id}")
+    class UpdatePost {
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should update post for authenticated admin")
+        void shouldUpdatePost() throws Exception {
+            UUID postId = UUID.randomUUID();
+            PostUpdateRequest request = new PostUpdateRequest();
+            request.setTitleEn("Updated");
+            given(postService.updatePost(eq(postId), any(PostUpdateRequest.class), eq("en")))
+                    .willReturn(createSamplePostDto());
+
+            mockMvc.perform(put("/api/admin/posts/" + postId)
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for blank titleEn")
+        void shouldRejectBlankTitle() throws Exception {
+            mockMvc.perform(put("/api/admin/posts/" + UUID.randomUUID())
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"titleEn\":\"   \"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.titleEn").exists());
+
+            verify(postService, never()).updatePost(any(), any(), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for over-long title")
+        void shouldRejectOverLongTitle() throws Exception {
+            mockMvc.perform(put("/api/admin/posts/" + UUID.randomUUID())
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"titlePl\":\"" + "x".repeat(256) + "\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.titlePl").exists());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/admin/posts validation")
+    class CreatePostValidation {
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for blank titleEn")
+        void shouldRejectBlankTitle() throws Exception {
+            mockMvc.perform(post("/api/admin/posts")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"category\":\"CAMPAIGNS\",\"titleEn\":\" \",\"titlePl\":\"Nowy\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.titleEn").exists());
+
+            verify(postService, never()).createPost(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /api/admin/posts/reorder")
+    class ReorderPosts {
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for an empty body")
+        void shouldRejectEmptyBody() throws Exception {
+            mockMvc.perform(patch("/api/admin/posts/reorder")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.items").exists());
+
+            verify(postService, never()).reorderPosts(any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for an item without displayOrder")
+        void shouldRejectItemWithoutDisplayOrder() throws Exception {
+            mockMvc.perform(patch("/api/admin/posts/reorder")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"items\":[{\"id\":\"" + UUID.randomUUID() + "\"}]}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors['items[0].displayOrder']").exists());
+
+            verify(postService, never()).reorderPosts(any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should return 400 for an item without id")
+        void shouldRejectItemWithoutId() throws Exception {
+            mockMvc.perform(patch("/api/admin/posts/reorder")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"items\":[{\"displayOrder\":1}]}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors['items[0].id']").exists());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        @DisplayName("should reorder posts for a valid body")
+        void shouldReorderPosts() throws Exception {
+            mockMvc.perform(patch("/api/admin/posts/reorder")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"items\":[{\"id\":\"" + UUID.randomUUID() + "\",\"displayOrder\":2}]}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+
+            verify(postService).reorderPosts(any(ReorderRequest.class));
         }
     }
 }

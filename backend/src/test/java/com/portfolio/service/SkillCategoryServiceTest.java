@@ -1,9 +1,11 @@
 package com.portfolio.service;
 
+import com.portfolio.dto.ReorderRequest;
 import com.portfolio.dto.SkillCategoryCreateRequest;
 import com.portfolio.dto.SkillCategoryDto;
 import com.portfolio.dto.SkillCategoryUpdateRequest;
 import com.portfolio.dto.SkillCategoryWithSkillsDto;
+import com.portfolio.dto.SoftSkillDto;
 import com.portfolio.entity.SkillCategory;
 import com.portfolio.entity.SoftSkill;
 import com.portfolio.repository.SkillCategoryRepository;
@@ -29,7 +31,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SkillCategoryService")
@@ -122,6 +127,26 @@ class SkillCategoryServiceTest {
 
             assertThat(result.get(0).getSkillCount()).isEqualTo(2);
         }
+
+        @Test
+        @DisplayName("should load soft skills once and count them per category")
+        void shouldLoadSkillsOnceForAllCategories() {
+            SkillCategory seo = SkillCategory.builder().id(UUID.randomUUID()).nameEn("SEO").namePl("SEO").build();
+            SkillCategory empty = SkillCategory.builder().id(UUID.randomUUID()).nameEn("Empty").namePl("Pusta").build();
+            given(skillCategoryRepository.findAllByOrderByDisplayOrderAsc())
+                    .willReturn(List.of(sampleCategory, seo, empty));
+            given(softSkillRepository.findAllByOrderByDisplayOrderAsc()).willReturn(List.of(
+                    SoftSkill.builder().id(UUID.randomUUID()).category(sampleCategory).build(),
+                    SoftSkill.builder().id(UUID.randomUUID()).category(seo).build(),
+                    SoftSkill.builder().id(UUID.randomUUID()).category(seo).build(),
+                    SoftSkill.builder().id(UUID.randomUUID()).build()));
+
+            List<SkillCategoryDto> result = skillCategoryService.getAllCategories("en");
+
+            assertThat(result).extracting(SkillCategoryDto::getSkillCount).containsExactly(1, 2, 0);
+            verify(softSkillRepository, times(1)).findAllByOrderByDisplayOrderAsc();
+            verify(softSkillRepository, never()).countByCategoryId(any());
+        }
     }
 
     @Nested
@@ -153,6 +178,42 @@ class SkillCategoryServiceTest {
         }
 
         @Test
+        @DisplayName("should map nested skills with every localized field")
+        void shouldMapNestedSkillsPerLocale() {
+            SoftSkill skill = SoftSkill.builder()
+                    .id(UUID.randomUUID())
+                    .nameEn("Writing")
+                    .namePl("Pisanie")
+                    .descriptionEn("Clear copy")
+                    .descriptionPl("Jasne teksty")
+                    .professionalUsageEn("Blog posts")
+                    .professionalUsagePl("Wpisy na bloga")
+                    .icon("pen")
+                    .category(sampleCategory)
+                    .displayOrder(1)
+                    .build();
+            given(skillCategoryRepository.findAllByOrderByDisplayOrderAsc())
+                    .willReturn(List.of(sampleCategory));
+            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
+                    .willReturn(List.of(skill));
+
+            SoftSkillDto en = skillCategoryService.getAllCategoriesWithSkills("en").get(0).getSkills().get(0);
+            SoftSkillDto pl = skillCategoryService.getAllCategoriesWithSkills("pl").get(0).getSkills().get(0);
+
+            assertThat(en.getName()).isEqualTo("Writing");
+            assertThat(en.getDescription()).isEqualTo("Clear copy");
+            assertThat(en.getProfessionalUsage()).isEqualTo("Blog posts");
+            assertThat(en.getCategoryName()).isEqualTo("Content Creation");
+            assertThat(pl.getName()).isEqualTo("Pisanie");
+            assertThat(pl.getDescription()).isEqualTo("Jasne teksty");
+            assertThat(pl.getProfessionalUsage()).isEqualTo("Wpisy na bloga");
+            assertThat(pl.getCategoryName()).isEqualTo("Tworzenie Treści");
+            assertThat(pl.getCategoryId()).isEqualTo(categoryId);
+            assertThat(pl.getNameEn()).isEqualTo("Writing");
+            assertThat(pl.getIcon()).isEqualTo("pen");
+        }
+
+        @Test
         @DisplayName("should return empty skills list when category has no skills")
         void shouldReturnEmptySkillsList() {
             given(skillCategoryRepository.findAllByOrderByDisplayOrderAsc())
@@ -175,14 +236,15 @@ class SkillCategoryServiceTest {
         void shouldReturnCategoryWhenFound() {
             given(skillCategoryRepository.findById(categoryId))
                     .willReturn(Optional.of(sampleCategory));
-            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
-                    .willReturn(List.of());
+            given(softSkillRepository.countByCategoryId(categoryId)).willReturn(4L);
 
             SkillCategoryDto result = skillCategoryService.getCategoryById(categoryId, "en");
 
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(categoryId);
             assertThat(result.getName()).isEqualTo("Content Creation");
+            assertThat(result.getSkillCount()).isEqualTo(4);
+            verify(softSkillRepository, never()).findAllByOrderByDisplayOrderAsc();
         }
 
         @Test
@@ -215,8 +277,7 @@ class SkillCategoryServiceTest {
                 category.setId(UUID.randomUUID());
                 return category;
             });
-            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
-                    .willReturn(List.of());
+            given(softSkillRepository.countByCategoryId(any(UUID.class))).willReturn(0L);
 
             SkillCategoryDto result = skillCategoryService.createCategory(request, "en");
 
@@ -240,8 +301,7 @@ class SkillCategoryServiceTest {
                 category.setId(UUID.randomUUID());
                 return category;
             });
-            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
-                    .willReturn(List.of());
+            given(softSkillRepository.countByCategoryId(any(UUID.class))).willReturn(0L);
 
             skillCategoryService.createCategory(request, "en");
 
@@ -261,8 +321,7 @@ class SkillCategoryServiceTest {
                     .willReturn(Optional.of(sampleCategory));
             given(skillCategoryRepository.save(any(SkillCategory.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
-            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
-                    .willReturn(List.of());
+            given(softSkillRepository.countByCategoryId(categoryId)).willReturn(0L);
 
             SkillCategoryUpdateRequest request = new SkillCategoryUpdateRequest();
             request.setNameEn("Updated Name");
@@ -281,8 +340,7 @@ class SkillCategoryServiceTest {
                     .willReturn(Optional.of(sampleCategory));
             given(skillCategoryRepository.save(any(SkillCategory.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
-            given(softSkillRepository.findAllByOrderByDisplayOrderAsc())
-                    .willReturn(List.of());
+            given(softSkillRepository.countByCategoryId(categoryId)).willReturn(0L);
 
             SkillCategoryUpdateRequest request = new SkillCategoryUpdateRequest();
             request.setNamePl("Nowa Nazwa");
@@ -329,6 +387,38 @@ class SkillCategoryServiceTest {
 
             assertThatThrownBy(() -> skillCategoryService.deleteCategory(nonExistentId))
                     .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("reorderCategories")
+    class ReorderCategories {
+
+        @Test
+        @DisplayName("should update displayOrder of every item")
+        void shouldUpdateDisplayOrderOfEveryItem() {
+            UUID secondId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(
+                    new ReorderRequest.OrderItem(categoryId, 2),
+                    new ReorderRequest.OrderItem(secondId, 1)));
+
+            skillCategoryService.reorderCategories(request);
+
+            verify(skillCategoryRepository).updateDisplayOrder(categoryId, 2);
+            verify(skillCategoryRepository).updateDisplayOrder(secondId, 1);
+            verifyNoMoreInteractions(skillCategoryRepository);
+        }
+
+        @Test
+        @DisplayName("should silently ignore an unknown id (the UPDATE matches no row)")
+        void shouldIgnoreUnknownId() {
+            UUID unknownId = UUID.randomUUID();
+            ReorderRequest request = new ReorderRequest(List.of(new ReorderRequest.OrderItem(unknownId, 1)));
+
+            skillCategoryService.reorderCategories(request);
+
+            verify(skillCategoryRepository).updateDisplayOrder(unknownId, 1);
+            verifyNoMoreInteractions(skillCategoryRepository);
         }
     }
 }

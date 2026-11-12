@@ -1,3 +1,5 @@
+@import './fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -77,30 +79,6 @@
   .badge-primary {
     @apply badge bg-primary-500/20 text-primary-300 border border-primary-500/30;
   }
-
-  .badge-accent {
-    @apply badge bg-accent-pink/20 text-pink-300 border border-accent-pink/30;
-  }
-}
-
-@layer utilities {
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: gradient 8s ease infinite;
-  }
-
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 /* Custom scrollbar */
@@ -147,8 +125,7 @@
 }
 
 /* ─── Backgrounds ─── */
-[data-theme="rose"] .bg-dark-900,
-[data-theme="rose"] .bg-dark-950 { background-color: #E4D4D1 !important; }
+[data-theme="rose"] .bg-dark-900 { background-color: #E4D4D1 !important; }
 [data-theme="rose"] .bg-dark-900\/80 { background-color: rgba(237, 224, 220, 0.88) !important; }
 [data-theme="rose"] .bg-dark-800 { background-color: rgba(255, 251, 249, 0.78) !important; }
 [data-theme="rose"] .bg-dark-800\/50 { background-color: rgba(255, 251, 249, 0.55) !important; }
@@ -221,7 +198,6 @@
 [data-theme="rose"] .text-primary-300 { color: #73191B !important; }
 [data-theme="rose"] .text-primary-500 { color: #5e1416 !important; }
 [data-theme="rose"] .text-accent-pink { color: #C9A84C !important; }
-[data-theme="rose"] .text-pink-300 { color: #C9A84C !important; }
 
 /* Hover text */
 [data-theme="rose"] .hover\:text-primary-400:hover { color: #C9A84C !important; }
@@ -305,11 +281,6 @@
   background-color: rgba(115, 25, 27, 0.09) !important;
   color: #73191B !important;
   border-color: rgba(115, 25, 27, 0.22) !important;
-}
-[data-theme="rose"] .badge-accent {
-  background-color: rgba(201, 168, 76, 0.1) !important;
-  color: #7a5e10 !important;
-  border-color: rgba(201, 168, 76, 0.3) !important;
 }
 
 /* ─── Links & misc ─── */
@@ -784,7 +755,7 @@ body.page-levitate {
   50% { box-shadow: 0 0 18px rgba(201, 168, 76, 0.6); }
 }
 
-/* Rose's decorative animations respect prefers-reduced-motion by default —
+/* Decorative animations (Rose effects, the hero pulse) respect prefers-reduced-motion by default —
    unless an admin has flipped "always show animations" on in Settings,
    which stamps <html class="rose-force-motion"> and short-circuits all of
    this back off. */
@@ -807,6 +778,7 @@ body.page-levitate {
     animation: none !important;
   }
 
+  html:not(.rose-force-motion) .animate-pulse-slow,
   html:not(.rose-force-motion) .kpi-blessed-glow,
   html:not(.rose-force-motion) body.page-levitate,
   html:not(.rose-force-motion) .rose-logo-link,
@@ -844,8 +816,7 @@ body.page-levitate {
 }
 
 /* ─── Backgrounds ─── */
-[data-theme="light"] .bg-dark-900,
-[data-theme="light"] .bg-dark-950 { background-color: #f4f6ff !important; }
+[data-theme="light"] .bg-dark-900 { background-color: #f4f6ff !important; }
 [data-theme="light"] .bg-dark-900\/80 { background-color: rgba(244, 246, 255, 0.92) !important; }
 [data-theme="light"] .bg-dark-800 { background-color: #ffffff !important; }
 [data-theme="light"] .bg-dark-800\/50 { background-color: rgba(255, 255, 255, 0.75) !important; }
@@ -904,9 +875,6 @@ body.page-levitate {
 /* ─── Nav active state ─── */
 [data-theme="light"] .bg-primary-500\/10 { background-color: rgba(168, 85, 247, 0.09) !important; }
 [data-theme="light"] .bg-primary-500\/20 { background-color: rgba(168, 85, 247, 0.14) !important; }
-
-/* ─── Badges ─── */
-[data-theme="light"] .badge-accent { color: #be185d !important; }
 
 /* ─── Focus ring offset ─── */
 [data-theme="light"] .focus\:ring-offset-dark-900 { --tw-ring-offset-color: #f4f6ff !important; }

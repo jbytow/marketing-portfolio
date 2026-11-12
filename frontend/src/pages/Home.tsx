@@ -24,9 +24,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { settingsApi, postsApi } from '@/services/api';
+import { postsApi } from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSiteSettings } from '@/lib/useSiteSettings';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import KpiBlessing from '@/components/effects/KpiBlessing';
@@ -55,12 +56,19 @@ export default function Home() {
   const { t } = useTranslation();
   const { language } = useLanguage();
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: queryKeys.settings(language),
-    queryFn: () => settingsApi.get(),
-  });
+  const {
+    data: settingsData,
+    isPending: settingsPending,
+    isError: settingsError,
+    refetch: refetchSettings,
+  } = useSiteSettings();
 
-  const { data: postsData, isLoading: postsLoading } = useQuery({
+  const {
+    data: postsData,
+    isPending: postsPending,
+    isError: postsError,
+    refetch: refetchPosts,
+  } = useQuery({
     queryKey: queryKeys.posts(language, 'featured'),
     queryFn: () => postsApi.getAll(),
   });
@@ -68,8 +76,23 @@ export default function Home() {
   const settings = settingsData?.data;
   const featuredPosts = postsData?.data?.slice(0, 6) || [];
 
-  if (settingsLoading) {
+  if (settingsPending) {
     return <LoadingSpinner fullScreen />;
+  }
+
+  if (settingsError && !settingsData) {
+    return (
+      <section className="py-20">
+        <div className="container">
+          <div className="text-center py-12">
+            <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+            <button type="button" onClick={() => refetchSettings()} className="btn-secondary">
+              {t('common.retry')}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -203,8 +226,15 @@ export default function Home() {
             <p className="section-subheading mx-auto">{t('home.featured.subtitle')}</p>
           </motion.div>
 
-          {postsLoading ? (
+          {postsPending ? (
             <LoadingSpinner />
+          ) : postsError && !postsData ? (
+            <div className="text-center py-12">
+              <p className="text-dark-400 mb-4">{t('common.loadError')}</p>
+              <button type="button" onClick={() => refetchPosts()} className="btn-secondary">
+                {t('common.retry')}
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredPosts.map((post, index) => (

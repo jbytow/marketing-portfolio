@@ -12,9 +12,26 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
 });
 
+// Storage access throws when the browser blocks it (privacy modes, sandboxed iframes); it must not unmount the app.
+function readStored(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Persistence is best-effort
+  }
+}
+
 // Light theme is temporarily disabled (see Header's theme switcher) — Rose is the default.
 function getInitialTheme(): Theme {
-  const saved = localStorage.getItem('theme') as Theme;
+  const saved = readStored('theme');
   if (saved === 'dark' || saved === 'rose') return saved;
   return 'rose';
 }
@@ -26,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.removeAttribute('data-theme');
     if (theme !== 'dark') root.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    writeStored('theme', theme);
   }, [theme]);
 
   return (

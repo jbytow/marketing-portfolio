@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -34,6 +35,7 @@ function SortableInterestItem({
   interest: Interest;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: interest.id,
   });
@@ -70,7 +72,7 @@ function SortableInterestItem({
         ))}
         {images.length === 0 && (
           <div className="w-12 h-12 rounded bg-dark-600 flex items-center justify-center text-dark-400 text-xs">
-            No img
+            {t('admin.common.noImage')}
           </div>
         )}
       </div>
@@ -124,19 +126,23 @@ export default function AdminInterests() {
     mutationFn: (id: string) => adminInterestsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
-      toast.success('Interest deleted');
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+      toast.success(t('admin.interests.deleteSuccess'));
     },
-    onError: () => {
-      toast.error('Failed to delete interest');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.interests.deleteFailed')));
     },
   });
 
   const reorderMutation = useMutation({
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminInterestsApi.reorder(items),
-    onError: () => {
-      toast.error('Failed to reorder');
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.interests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.interests() });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.interests.reorderFailed')));
     },
   });
 
@@ -152,12 +158,15 @@ export default function AdminInterests() {
         id: item.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      // The refetch after a failure returns an identical payload, so the [data] effect would not
+      // restore the old order; roll back explicitly.
+      const previous = interests;
+      reorderMutation.mutate(reorderItems, { onError: () => setInterests(previous) });
     }
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this interest?')) {
+    if (confirm(t('admin.interests.deleteConfirm'))) {
       deleteMutation.mutate(id);
     }
   };

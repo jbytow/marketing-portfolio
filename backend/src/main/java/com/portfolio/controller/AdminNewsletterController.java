@@ -8,6 +8,7 @@ import com.portfolio.service.NewsletterService;
 import com.portfolio.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,13 +45,13 @@ public class AdminNewsletterController {
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         NewsletterDto newsletter = newsletterService.create(request, LocaleUtils.extractLocale(locale));
-        return ResponseEntity.ok(ApiResponse.success(newsletter));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newsletter));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<NewsletterDto>> update(
             @PathVariable UUID id,
-            @RequestBody NewsletterUpdateRequest request,
+            @Valid @RequestBody NewsletterUpdateRequest request,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale) {
 
         NewsletterDto newsletter = newsletterService.update(id, request, LocaleUtils.extractLocale(locale));

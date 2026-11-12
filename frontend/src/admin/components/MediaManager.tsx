@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   DndContext,
   closestCenter,
@@ -19,9 +20,13 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Upload, Youtube, X, GripVertical, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { FILE_TOO_LARGE_MESSAGE, getApiErrorMessage } from '@/lib/apiError';
 import { adminMediaApi } from '@/services/api';
 import { Media, MediaType } from '@/types';
 import { getMediaUrl } from '@/lib/mediaUrl';
+import { queryKeys } from '@/lib/queryKeys';
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 interface MediaManagerProps {
   postId: string;
@@ -69,6 +74,7 @@ function SortableMediaItem({ item, onDelete }: SortableMediaItemProps) {
 
       {/* Delete button */}
       <button
+        type="button"
         onClick={() => onDelete(item.id)}
         className="absolute top-2 right-2 p-1 rounded bg-red-500/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 z-10"
       >
@@ -102,8 +108,18 @@ function SortableMediaItem({ item, onDelete }: SortableMediaItemProps) {
 }
 
 export default function MediaManager({ postId, media, onMediaChange }: MediaManagerProps) {
+  const { t } = useTranslation();
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // The mounted post form seeds its fields only once per post, so refetching the detail
+  // here keeps the cache fresh without touching unsaved edits.
+  const invalidatePostQueries = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.post(postId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.prefix.post() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.prefix.posts() });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -117,11 +133,12 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     onSuccess: (response) => {
       if (response.data) {
         onMediaChange([...media, response.data]);
-        toast.success('Media uploaded');
+        invalidatePostQueries();
+        toast.success(t('admin.mediaManager.uploadSuccess'));
       }
     },
-    onError: () => {
-      toast.error('Failed to upload media');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.mediaManager.uploadFailed')));
     },
   });
 
@@ -130,12 +147,13 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     onSuccess: (response) => {
       if (response.data) {
         onMediaChange([...media, response.data]);
+        invalidatePostQueries();
         setYoutubeUrl('');
-        toast.success('YouTube video added');
+        toast.success(t('admin.mediaManager.youtubeAdded'));
       }
     },
-    onError: () => {
-      toast.error('Failed to add YouTube video');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.mediaManager.youtubeAddFailed')));
     },
   });
 
@@ -143,18 +161,20 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     mutationFn: (id: string) => adminMediaApi.delete(id),
     onSuccess: (_, deletedId) => {
       onMediaChange(media.filter((m) => m.id !== deletedId));
-      toast.success('Media deleted');
+      invalidatePostQueries();
+      toast.success(t('admin.mediaManager.deleteSuccess'));
     },
-    onError: () => {
-      toast.error('Failed to delete media');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.mediaManager.deleteFailed')));
     },
   });
 
   const reorderMutation = useMutation({
     mutationFn: (items: { id: string; displayOrder: number }[]) =>
       adminMediaApi.reorder(postId, items),
-    onError: () => {
-      toast.error('Failed to save order');
+    onSuccess: invalidatePostQueries,
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.mediaManager.reorderFailed')));
     },
   });
 
@@ -162,10 +182,21 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
       setIsUploading(true);
-      for (const file of Array.from(files)) {
-        await uploadMutation.mutateAsync(file);
+      try {
+        for (const file of Array.from(files)) {
+          if (file.size > MAX_UPLOAD_BYTES) {
+            toast.error(`${file.name}: ${FILE_TOO_LARGE_MESSAGE}`);
+            continue;
+          }
+          try {
+            await uploadMutation.mutateAsync(file);
+          } catch {
+            // onError already showed the reason; keep going with the remaining files
+          }
+        }
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     },
     [uploadMutation]
   );
@@ -188,7 +219,9 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    if (window.confirm(t('admin.mediaManager.confirmDelete'))) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -199,6 +232,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       const newIndex = media.findIndex((m) => m.id === over.id);
       const newMedia = arrayMove(media, oldIndex, newIndex);
 
+      const previous = media;
       // Update local state immediately
       onMediaChange(newMedia);
 
@@ -207,7 +241,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
         id: m.id,
         displayOrder: index,
       }));
-      reorderMutation.mutate(reorderItems);
+      reorderMutation.mutate(reorderItems, { onError: () => onMediaChange(previous) });
     }
   };
 
@@ -223,7 +257,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
           type="file"
           id="media-upload"
           multiple
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
           onChange={(e) => handleFileUpload(e.target.files)}
           className="hidden"
         />
@@ -237,10 +271,10 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
             <>
               <Upload className="w-10 h-10 text-dark-400 mb-2" />
               <span className="text-dark-300">
-                Drop files here or click to upload
+                {t('admin.mediaManager.dropHere')}
               </span>
               <span className="text-sm text-dark-500 mt-1">
-                Images and videos supported
+                {t('admin.mediaManager.acceptedFormats')}
               </span>
             </>
           )}
@@ -255,7 +289,13 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
             type="text"
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder="Paste YouTube URL..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleYouTubeAdd();
+              }
+            }}
+            placeholder={t('admin.mediaManager.youtubePlaceholder')}
             className="input pl-10"
           />
         </div>
@@ -265,7 +305,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
           disabled={!youtubeUrl.trim() || youTubeMutation.isPending}
           className="btn-secondary disabled:opacity-50"
         >
-          {youTubeMutation.isPending ? 'Adding...' : 'Add'}
+          {youTubeMutation.isPending ? t('admin.mediaManager.adding') : t('admin.common.add')}
         </button>
       </div>
 
@@ -293,7 +333,7 @@ export default function MediaManager({ postId, media, onMediaChange }: MediaMana
       {media.length === 0 && (
         <div className="text-center py-8 text-dark-400">
           <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
-          <p>No media added yet</p>
+          <p>{t('admin.mediaManager.empty')}</p>
         </div>
       )}
     </div>

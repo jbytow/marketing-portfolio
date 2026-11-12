@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '@/lib/apiError';
 import { ArrowLeft, Save, Plus, X } from 'lucide-react';
 import { adminExperiencesApi } from '@/services/api';
 import { ExperienceCreateRequest } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { useUnsavedChanges } from './hooks/useUnsavedChanges';
 
 export default function AdminExperienceForm() {
   const { id } = useParams<{ id: string }>();
@@ -28,10 +30,14 @@ export default function AdminExperienceForm() {
     achievementsPl: [],
   });
 
+  // Last loaded or saved state; the form is dirty while it differs from this
+  const [baseline, setBaseline] = useState(() => JSON.stringify(formData));
+  const { confirmLeave } = useUnsavedChanges(JSON.stringify(formData) !== baseline);
+
   const [newAchievementEn, setNewAchievementEn] = useState('');
   const [newAchievementPl, setNewAchievementPl] = useState('');
 
-  const { data: expData, isLoading: expLoading } = useQuery({
+  const { data: expData, isLoading: expLoading, isError: loadFailed, refetch } = useQuery({
     queryKey: queryKeys.admin.experience(id!),
     queryFn: () => adminExperiencesApi.getById(id!),
     enabled: isEditing,
@@ -40,7 +46,7 @@ export default function AdminExperienceForm() {
   useEffect(() => {
     if (expData?.data) {
       const exp = expData.data;
-      setFormData({
+      const seeded: ExperienceCreateRequest = {
         titleEn: exp.titleEn,
         titlePl: exp.titlePl,
         company: exp.company,
@@ -50,34 +56,38 @@ export default function AdminExperienceForm() {
         descriptionPl: exp.descriptionPl || '',
         achievementsEn: exp.achievementsEn || [],
         achievementsPl: exp.achievementsPl || [],
-      });
+      };
+      setFormData(seeded);
+      setBaseline(JSON.stringify(seeded));
     }
   }, [expData]);
 
   const createMutation = useMutation({
     mutationFn: (data: ExperienceCreateRequest) => adminExperiencesApi.create(data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
-      toast.success('Experience created successfully');
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
+      toast.success(t('admin.experiences.createSuccess'));
       navigate('/admin/experiences');
     },
-    onError: () => {
-      toast.error('Failed to create experience');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.experiences.createFailed')));
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: ExperienceCreateRequest) => adminExperiencesApi.update(id!, data),
     onSuccess: () => {
+      setBaseline(JSON.stringify(formData));
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experiences() });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.experience(id!) });
-      queryClient.invalidateQueries({ queryKey: ['experiences'] });
-      toast.success('Experience updated successfully');
+      queryClient.invalidateQueries({ queryKey: queryKeys.prefix.experiences() });
+      toast.success(t('admin.experiences.updateSuccess'));
       navigate('/admin/experiences');
     },
-    onError: () => {
-      toast.error('Failed to update experience');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, t('admin.experiences.updateFailed')));
     },
   });
 
@@ -142,12 +152,24 @@ export default function AdminExperienceForm() {
     return <LoadingSpinner />;
   }
 
+  // A failed load must not fall through to the form: saving it would overwrite stored data with blanks
+  if (loadFailed && !expData) {
+    return (
+      <div className="card text-center py-12">
+        <p className="text-dark-400 mb-4">{t('common.loadError', 'Failed to load data')}</p>
+        <button type="button" onClick={() => refetch()} className="btn-primary">
+          {t('common.retry')}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => navigate('/admin/experiences')}
+          onClick={() => confirmLeave() && navigate('/admin/experiences')}
           className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-700 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -161,10 +183,10 @@ export default function AdminExperienceForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Titles */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Titles</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.common.titles')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Title (English) *</label>
+              <label className="label">{t('admin.common.titleEn')} *</label>
               <input
                 type="text"
                 name="titleEn"
@@ -175,7 +197,7 @@ export default function AdminExperienceForm() {
               />
             </div>
             <div>
-              <label className="label">Title (Polish) *</label>
+              <label className="label">{t('admin.common.titlePl')} *</label>
               <input
                 type="text"
                 name="titlePl"
@@ -190,9 +212,9 @@ export default function AdminExperienceForm() {
 
         {/* Company */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Company</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.common.company')}</h3>
           <div>
-            <label className="label">Company *</label>
+            <label className="label">{t('admin.common.company')} *</label>
             <input
               type="text"
               name="company"
@@ -206,10 +228,10 @@ export default function AdminExperienceForm() {
 
         {/* Dates */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Dates</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.common.dates')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Start Date *</label>
+              <label className="label">{t('admin.common.startDate')} *</label>
               <input
                 type="date"
                 name="startDate"
@@ -220,7 +242,7 @@ export default function AdminExperienceForm() {
               />
             </div>
             <div>
-              <label className="label">End Date (leave empty for current position)</label>
+              <label className="label">{t('admin.experiences.endDateHint')}</label>
               <input
                 type="date"
                 name="endDate"
@@ -234,10 +256,10 @@ export default function AdminExperienceForm() {
 
         {/* Descriptions */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Descriptions</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.common.descriptions')}</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="label">Description (English)</label>
+              <label className="label">{t('admin.common.descriptionEn')}</label>
               <textarea
                 name="descriptionEn"
                 value={formData.descriptionEn}
@@ -247,7 +269,7 @@ export default function AdminExperienceForm() {
               />
             </div>
             <div>
-              <label className="label">Description (Polish)</label>
+              <label className="label">{t('admin.common.descriptionPl')}</label>
               <textarea
                 name="descriptionPl"
                 value={formData.descriptionPl}
@@ -261,11 +283,11 @@ export default function AdminExperienceForm() {
 
         {/* Achievements */}
         <div className="card space-y-4">
-          <h3 className="text-lg font-semibold text-dark-100">Achievements</h3>
+          <h3 className="text-lg font-semibold text-dark-100">{t('admin.common.achievements')}</h3>
           <div className="grid md:grid-cols-2 gap-6">
             {/* English Achievements */}
             <div>
-              <label className="label">Achievements (English)</label>
+              <label className="label">{t('admin.common.achievementsEn')}</label>
               <div className="space-y-2 mb-3">
                 {formData.achievementsEn?.map((achievement, index) => (
                   <div key={index} className="flex items-center space-x-2 bg-dark-700 rounded-lg px-3 py-2">
@@ -286,7 +308,7 @@ export default function AdminExperienceForm() {
                   value={newAchievementEn}
                   onChange={(e) => setNewAchievementEn(e.target.value)}
                   className="input flex-1"
-                  placeholder="Add achievement..."
+                  placeholder={t('admin.experiences.addAchievementEn')}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAchievementEn())}
                 />
                 <button
@@ -301,7 +323,7 @@ export default function AdminExperienceForm() {
 
             {/* Polish Achievements */}
             <div>
-              <label className="label">Achievements (Polish)</label>
+              <label className="label">{t('admin.common.achievementsPl')}</label>
               <div className="space-y-2 mb-3">
                 {formData.achievementsPl?.map((achievement, index) => (
                   <div key={index} className="flex items-center space-x-2 bg-dark-700 rounded-lg px-3 py-2">
@@ -322,7 +344,7 @@ export default function AdminExperienceForm() {
                   value={newAchievementPl}
                   onChange={(e) => setNewAchievementPl(e.target.value)}
                   className="input flex-1"
-                  placeholder="Dodaj osiągnięcie..."
+                  placeholder={t('admin.experiences.addAchievementPl')}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAchievementPl())}
                 />
                 <button
@@ -341,7 +363,7 @@ export default function AdminExperienceForm() {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/admin/experiences')}
+            onClick={() => confirmLeave() && navigate('/admin/experiences')}
             className="btn-secondary"
           >
             {t('common.cancel')}

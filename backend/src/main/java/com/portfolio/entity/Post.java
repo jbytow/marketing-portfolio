@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import com.portfolio.config.CategoryConverter;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "posts")
@@ -26,7 +25,7 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Convert(converter = CategoryConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private Category category;
 
@@ -56,7 +55,7 @@ public class Post {
     @Column(name = "featured_image")
     private String featuredImage;
 
-    @Column(name = "published")
+    @Column(name = "published", nullable = false)
     @Builder.Default
     private Boolean published = false;
 
@@ -144,9 +143,10 @@ public class Post {
         return "pl".equalsIgnoreCase(locale) ? caseStudyTestimonialPl : caseStudyTestimonialEn;
     }
 
-    public boolean hasCaseStudy() {
-        return (caseStudyChallengeEn != null && !caseStudyChallengeEn.isBlank()) ||
-               (caseStudySolutionEn != null && !caseStudySolutionEn.isBlank()) ||
-               (caseStudyResultsEn != null && !caseStudyResultsEn.isBlank());
+    // Checked per locale because the page shows only that locale's fields (no fallback between languages).
+    public boolean hasCaseStudy(String locale) {
+        return Stream.of(getCaseStudyChallenge(locale), getCaseStudySolution(locale),
+                        getCaseStudyResults(locale), getCaseStudyTestimonial(locale))
+                .anyMatch(text -> text != null && !text.isBlank());
     }
 }

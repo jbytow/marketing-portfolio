@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Additive frontend deploy. New hashed chunks are added next to the old ones and index.html is
 # swapped last, so browsers still holding an older index.html keep loading their own chunks
-# instead of getting 404s. See DEPLOY.md.
+# instead of getting 404s. See docs/operations.md.
 #
 #   frontend/deploy.sh                    build, publish into frontend/www, (re)start the container
 #   frontend/deploy.sh prune              delete assets that are outside the last KEEP_GENERATIONS
@@ -143,6 +143,12 @@ prune() {
   find "$GENERATIONS" -maxdepth 1 -type f -name '*.txt' | sort | head -n -"$KEEP_GENERATIONS" \
     | while IFS= read -r f; do rm -f -- "$f"; done
 }
+
+# Deploy and prune share one lock: prune could otherwise delete an old chunk that a running
+# deploy has just re-used (touch) but not yet recorded in its generation manifest.
+mkdir -p "$FRONTEND_DIR/.deploy"
+exec 9>"$FRONTEND_DIR/.deploy/lock"
+flock -n 9 || { echo 'another deploy/prune is running' >&2; exit 1; }
 
 case "${1:-deploy}" in
   deploy) deploy ;;

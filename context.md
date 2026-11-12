@@ -165,3 +165,30 @@ Deployment steps:
 - Configure OAuth redirect URIs for production domain
 - Set proper `JWT_SECRET` (min 32 characters)
 - Configure `ADMIN_EMAILS` for admin access
+
+## 2026-11-11: audit and upgrade (branch audit-2026-11)
+
+A multi-agent audit (22 auditors, 311 verified findings) followed by 21 fix packages in four waves. Changes that
+supersede earlier notes in this file:
+
+- Security: unauthenticated `/api/**` calls answer 401 with an empty body (no redirect to Google); `/api/admin/**` requires
+  `ROLE_ADMIN`; the `ADMIN_EMAILS` allowlist is re-checked on every request; `JWT_SECRET` must be at least 32 bytes
+  and the `prod` profile refuses the development default; Google e-mails must be verified; GitHub login code removed.
+- Errors: client errors map to 4xx with `ApiResponse` bodies (400/404/405/409/413/415/503) and one WARN line, no
+  stack traces; contact mail failure answers 503.
+- Media: YouTube media delete fixed (NPE); file and DB row kept consistent on upload/delete; one MIME map; paths
+  confined to the upload root; uploaded files served as `public, immutable`.
+- Database: V16 drops redundant indexes and makes `published` NOT NULL; `MigrationSchemaTest` runs Flyway on
+  Testcontainers and validates the schema; `CategoryConverter`/`MediaTypeConverter` replaced by
+  `@Enumerated(EnumType.STRING)`; `baseline-on-migrate` is off.
+- API: removed unused public endpoints (`/api/soft-skills*`, `/api/skill-categories` list/get, `/api/experiences/{id}`,
+  `/api/interests/{id}`, `/api/media/{id}`, `/api/posts/paged`, `/api/posts/hashtags`); public post and newsletter
+  responses carry only the requested locale; see `docs/api.md`.
+- Frontend: public strings through i18n (EN and PL) with a key-parity test; tiles are real links; error states separate
+  from empty states; admin forms show server messages and share one delete modal; MediaManager buttons no longer submit
+  the post form; Rose effects respect reduced motion and ship WebP assets; vendor chunk splitting (entry 95 kB);
+  Vitest + Testing Library suite.
+- Infra: per-visitor rate limiting keyed on `CF-Connecting-IP`, upstream re-resolution, log rotation,
+  `no-new-privileges`, pinned base images, `.dockerignore`, checksum-verified Maven wrapper, dependency cleanup
+  (MapStruct, H2, `@tiptap/html`, `i18next-http-backend` removed; Testcontainers and Tomcat bumped).
+- Docs: `DEPLOY.md` replaced by `docs/operations.md`; `docs/api.md` added; deferred owner decisions in `docs/decyzje/`.

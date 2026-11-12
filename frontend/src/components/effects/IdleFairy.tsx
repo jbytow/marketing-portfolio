@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import FxPortal from './FxPortal';
-import { spawnSpark } from './sparkLayer';
-import fairyFacingLeft from '@/assets/effects/fairy-facing-left.png';
-import fairyFacingRight from '@/assets/effects/fairy-facing-right.png';
+import { useSparkTrail } from './sparkLayer';
+import fairySprite from '@/assets/effects/fairy-facing-left.webp';
 
 const IDLE_THRESHOLD_MS = 30000;
 const REPEAT_IDLE_MS = 45000;
 const FLIGHT_DURATION_MS = 5000;
-const SPARK_INTERVAL_MS = 110;
+const SPARK_TRAIL = {
+  spread: 30,
+  rise: { min: 14, range: 18 },
+  size: { min: 0.6, range: 0.3 },
+  duration: 0.6,
+};
 const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
 
 interface Point {
@@ -45,7 +49,6 @@ export default function IdleFairy() {
   const removeTimer = useRef<ReturnType<typeof setTimeout>>();
   const counter = useRef(0);
   const fairyElRef = useRef<HTMLDivElement | null>(null);
-  const sparkleFrame = useRef<number>();
 
   useEffect(() => {
     if (theme !== 'rose') {
@@ -87,32 +90,7 @@ export default function IdleFairy() {
     };
   }, [theme]);
 
-  useEffect(() => {
-    if (!flight) return;
-
-    let lastSparkTime = 0;
-
-    function tick() {
-      const el = fairyElRef.current;
-      const now = performance.now();
-      if (el && now - lastSparkTime > SPARK_INTERVAL_MS) {
-        lastSparkTime = now;
-        const rect = el.getBoundingClientRect();
-        spawnSpark(rect.left + rect.width / 2, rect.top + rect.height / 2, {
-          dx: (Math.random() - 0.5) * 30,
-          dy: 14 + Math.random() * 18,
-          fontSize: 0.6 + Math.random() * 0.3,
-          duration: 0.6,
-        });
-      }
-      sparkleFrame.current = requestAnimationFrame(tick);
-    }
-
-    sparkleFrame.current = requestAnimationFrame(tick);
-    return () => {
-      if (sparkleFrame.current != null) cancelAnimationFrame(sparkleFrame.current);
-    };
-  }, [flight]);
+  useSparkTrail(fairyElRef, flight != null, SPARK_TRAIL);
 
   if (!flight) return null;
 
@@ -134,7 +112,7 @@ export default function IdleFairy() {
         }
         aria-hidden="true"
       >
-        <img src={flight.facing === 'left' ? fairyFacingLeft : fairyFacingRight} alt="" />
+        <img src={fairySprite} alt="" className={flight.facing === 'right' ? '-scale-x-100' : undefined} />
       </div>
     </FxPortal>
   );
