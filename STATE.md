@@ -1,12 +1,14 @@
 # STATE - marketingPortfolioApp
-Aktualizacja: 2026-11-11 (audyt i decyzje właściciela wdrożone; czeka na merge do main przez właściciela)
+Aktualizacja: 2026-11-12 (po wdrożeniu fal 1-4 i A-C na prod; fala D scalona: Boot 4.1.2, edge na loopback, CI)
 
 ## Cel bieżący
 Gałąź `audit-2026-11` (z `main` @ 99390e6): audyt + 21 paczek poprawek, poprawki po audycie regresji, docs,
-oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). Fala C (podgląd szkiców w panelu) scalona.
-Właściciel sam scala do `main` i wdraża (runbook `docs/operations.md`); otwarte D1 (upgrade Boot/CI) i D6 (porty, rola bazy).
+oraz wdrożone decyzje właściciela (fale A i B: 7 paczek + i18n panelu). Fala D (D1 upgrade Boot + CI, D6 porty) scalona, czeka na drugi merge do `main` i wdrożenie przez właściciela (bez migracji; backend i nginx do odtworzenia).
+Otwarte: rola bazy bez superusera (procedura w runbooku), CSP do przełączenia na wymuszający po tygodniu bez naruszeń.
 
 ## Ostatnio zrobione
+- 62631ab fala D: Spring Boot 4.1.2 (bez nadpisań Tomcat/Testcontainers, jjwt z Jacksonem 2, sondy wyłączone), edge 127.0.0.1:80 bez 443, .github CI + Dependabot; backend 530 testów, frontend 260
+- Właściciel scalił audit-2026-11 do main i wdrożył na prod (2026-11-12); sprzątanie worktree zrobione
 - 4d86841 fala C: podgląd szkiców (/admin/posts/:id/preview, /admin/newsletters/:id/preview); frontend vitest 260/260
 - bb6a458 i18n panelu admina (DeepSeek 10 plików + agent Claude 7 plików, 201 kluczy EN/PL)
 - f04ed51 fala B (health z Actuatora, bez /api/categories; Home/About błędy, menu mobilne, spinner, linki powrotu); 7fb0f78 fala A (Origin check, V17, honeypot, szkice 404, pliki wpisu, strefa contact, CSP RO, sanitizer About, 404, scroll, fonty lokalne, fasada YouTube, modal sesji, unsaved changes)

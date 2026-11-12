@@ -71,7 +71,7 @@ Switching to the Rose theme (🌸 in the header) unlocks a set of just-for-fun a
 
 ### Backend
 - Java 21
-- Spring Boot 3.2
+- Spring Boot 4.1 (Spring Framework 7, Spring Security 7, Hibernate 7, Flyway 11, Tomcat 11)
 - Spring Security with OAuth2 (Google)
 - PostgreSQL 16
 - Flyway migrations
@@ -105,6 +105,8 @@ The backend has around 460 tests (as of 2026-11-11; the number changes as the co
 - Controller tests on `@WebMvcTest`
 - `SecurityConfigTest`, which drives the real Spring Security chain
 - Database tests on Testcontainers with PostgreSQL 16: `PostRepositoryTest` and `MigrationSchemaTest`, the latter running the Flyway migrations and validating the resulting schema against the entities
+
+Every push and pull request runs the GitHub Actions workflow in `.github/workflows/ci.yml`: backend tests with PostgreSQL on Testcontainers, frontend typecheck, lint, Vitest and build, and `nginx -t` on the edge config. Dependabot (`.github/dependabot.yml`) opens weekly grouped update PRs for Maven, npm, the Dockerfiles and the Actions.
 
 Database tests need a working Docker daemon. On a machine where Docker runs inside WSL, point the tests at it:
 
@@ -207,7 +209,7 @@ With `oauth2Login` as the only entry point and no `AuthenticationEntryPoint` for
 ### Prerequisites
 - Docker and Docker Compose (Compose v2)
 - Node.js 20+ for local frontend development (the Docker image builds on `node:24-alpine`)
-- Java 21 for local backend development: Lombok in Spring Boot 3.2.1 fails on JDK 22 and newer, so `JAVA_HOME` has to point at a JDK 21 installation
+- Java 21 for local backend development (the Docker image and CI use JDK 21; JDK 25 compiles the project too since the Lombok managed by Spring Boot 4.1 supports it)
 
 ### Quick Start with Docker
 

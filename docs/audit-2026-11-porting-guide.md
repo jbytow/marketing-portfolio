@@ -12,7 +12,7 @@ konkretnej zmiany: `git log --oneline --grep="<fragment tematu commitu>"` i `git
 ## Prompt do wklejenia w sesji w forku
 
 ```
-Pracujemy w repo forka aplikacji marketing-portfolio (ten sam stos: Spring Boot 3.2 + React/Vite).
+Pracujemy w repo forka aplikacji marketing-portfolio (ten sam stos: Spring Boot + React/Vite; oryginał jest po upgrade do Boot 4.1, fork może być jeszcze na 3.2).
 W oryginale zrobiono audyt i upgrade; opis wszystkich zmian jest w załączonym pliku
 docs/audit-2026-11-porting-guide.md (sekcje "Zmiany do przeniesienia"). Oryginalne repo z gotowym kodem:
 D:/Dev/Projects/Java/marketingPortfolioApp (gałąź audit-2026-11), możesz z niego czytać i kopiować.
@@ -115,7 +115,7 @@ i abstrakcji "na zapas", nowe zachowanie zawsze z testem, zmiany schematu tylko 
 ### I. Zależności, build, obrazy
 
 44. **npm:** `npm audit fix` bez `--force`; usunięte `@tiptap/html`, `@tiptap/extension-image`, `i18next-http-backend`; dodane dev: `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/dom`, `@types/node`; skrypty `test`, `typecheck`; `lint` z `--max-warnings 0`. Sprawdź: `npm ls --depth=0` i `npm audit`.
-45. **Maven:** usunięte MapStruct (3 artefakty), H2, jawne `jackson-datatype-jsr310`; `<testcontainers.version>` podbity (Testcontainers 1.19.3 nie działa z Dockerem 29: "client version 1.32 is too old"), `<tomcat.version>10.1.61</tomcat.version>` (łatki CVE przy Boot 3.2.1). Sprawdź: `grep -n "mapstruct\|h2\|testcontainers.version\|tomcat.version" backend/pom.xml`.
+45. **Maven:** usunięte MapStruct (3 artefakty), H2, jawne `jackson-datatype-jsr310`; Testcontainers podbity ponad wersję z Boot 3.2.1 (1.19.3 nie działa z Dockerem 29: "client version 1.32 is too old"); po upgrade do Boot 4.1 oba nadpisania (`testcontainers.version`, `tomcat.version`) są zbędne i usunięte. Sprawdź: `grep -n "mapstruct\|h2\|testcontainers.version\|tomcat.version" backend/pom.xml`.
 46. **Obrazy:** `node:24-alpine`, `nginx:1.30-alpine` (potrzebny do `resolve` w upstream), `.dockerignore` dla frontu i backendu, `app.jar` należy do roota (bez `chown -R /app`), oficjalny `mvnw` only-script z `distributionSha256Sum`, `.gitignore` bez `maven-wrapper.jar`.
 
 ### J. Edge nginx, compose, deploy
@@ -126,7 +126,13 @@ i abstrakcji "na zapas", nowe zachowanie zawsze z testem, zmiany schematu tylko 
 50. **Compose prod:** `${VAR:?}` dla wymaganych zmiennych, rotacja logów json-file (10m x 3), `security_opt: no-new-privileges` (nie na Postgresie), dev: porty tylko na 127.0.0.1. **deploy.sh:** `flock` na `frontend/.deploy/lock`.
 51. **Runbook:** `docs/operations.md` zamiast `DEPLOY.md` (deploy backendu z `pg_dump` przed nową migracją, `up -d --force-recreate nginx` po zmianie `nginx.conf`, weryfikacja curl, backup i restore), `docs/api.md` z inwentarza tras, README opisujący stan obecny (bez liczb testów per klasa).
 
-### K. Testy
+### K. Upgrade Spring Boot i CI (decyzje D1, D6)
+
+54. **Spring Boot 3.2.1 -> 4.1.2** (OSS do 31 lipca 2027). Co się zmienia w kodzie: startery `spring-boot-starter-web` -> `spring-boot-starter-webmvc`, `spring-boot-starter-oauth2-client` -> `spring-boot-starter-security-oauth2-client`, Flyway przez `spring-boot-starter-flyway` + `flyway-database-postgresql`, testy przez `spring-boot-starter-webmvc-test`, `-data-jpa-test`, `-security-test`; Jackson 3 (`tools.jackson`) domyślnie, jjwt 0.12.3 zostaje z własnym Jacksonem 2 w runtime (brak wydania jjwt dla Jacksona 3); `management.endpoint.health.probes.enabled: false` (Boot 4 włącza sondy Kubernetes, Compose ich nie potrzebuje); `AntPathRequestMatcher` -> `PathPatternRequestMatcher`; `@MockBean` -> `@MockitoBean`. Zanim zaczniesz: test pinujący format JSON publicznych odpowiedzi (w oryginale commit "Pin the post JSON wire format before the Spring Boot upgrade"), potem pełne testy z bazą i smoke jarem. Widoczna zmiana: JSON z nadmiarowymi tokenami daje 400 "Invalid request" zamiast listy błędów walidacji.
+55. **CI i Dependabot:** `.github/workflows/ci.yml` (joby backend z Testcontainers, frontend typecheck/lint/test/build, `nginx -t`) i `.github/dependabot.yml` (maven, npm, docker, github-actions, tygodniowo, grupowane). Sprawdź: `ls .github/workflows`.
+56. **Edge tylko na 127.0.0.1:80**, bez 443 i bez montowania `nginx/ssl` (cloudflared działa na tej samej VM). Sprawdź: `grep -n '"80:80"' docker-compose.prod.yml`. Rola bazy bez superusera: procedura w `docs/operations.md` (do wykonania przy pracy z bazą).
+
+### L. Testy
 
 52. **Backend:** `SecurityConfigTest` na realnym łańcuchu (nie na `TestSecurityConfig`), `MigrationSchemaTest`, testy kontrolerów admina, mediów, kontaktu, `LocaleUtilsTest`, `SlugUtilsTest`; w oryginale 136 -> 460 testów, 0 pominiętych (Docker w WSL przez forwarder socat na 127.0.0.1:2375, zobacz README "Tests and Quality Checks").
 53. **Frontend:** Vitest + Testing Library (jsdom): parytet i18n, klient API, rich text, komponenty mediów, dostępność, bootstrap motywu; 0 -> 132 testy.
