@@ -95,10 +95,11 @@ services:
       - no-new-privileges:true
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+    # TLS terminates at Cloudflare; cloudflared runs on this host and forwards to port 80,
+    # so the edge listens on loopback only (a LAN client cannot bypass Cloudflare or forge
+    # CF-Connecting-IP). No 443 and no ssl mount: nginx.conf has no active TLS listener.
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:80:80"
     depends_on:
       - frontend
       - backend
