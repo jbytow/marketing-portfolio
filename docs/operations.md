@@ -174,7 +174,7 @@ docker compose -f docker-compose.prod.yml up -d --force-recreate nginx
 
 - `Content-Security-Policy-Report-Only` is sent from the edge (same block as the other security headers). Violations show up in the browser console only (no report endpoint yet). The policy allows the inline theme script in `frontend/index.html` through its sha256 hash in `script-src`; `frontend/src/test/csp-hash.test.ts` fails when the script and the hash drift apart, so after editing the script recompute the hash (`node -e "const c=require('crypto');const h=require('fs').readFileSync('frontend/index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];console.log('sha256-'+c.createHash('sha256').update(h).digest('base64'))"`) and update `nginx/nginx.conf`. Switch to the enforcing `Content-Security-Policy` header after a week without violations.
 - Forwarded headers are overwritten at the edge: single-value `X-Forwarded-For` with the visitor IP, plus `X-Forwarded-Host`, `X-Forwarded-Port` 443 and `X-Forwarded-Proto` https.
-- Residual risk: port 80 is published on all interfaces, so a LAN client reaching the edge directly could forge `CF-Connecting-IP` and dodge the rate limits. The owner decision is to restrict port 80 to the cloudflared source and add `set_real_ip_from`.
+- The edge publishes port 80 on 127.0.0.1 only (cloudflared runs as a systemd service on the same VM and forwards to localhost:80) and nothing on 443, so a LAN client cannot bypass Cloudflare or forge `CF-Connecting-IP`. Diagnostics from another host must go through the public hostname; on the VM itself `curl -H 'Host: zakulecka.pl' http://127.0.0.1/` works.
 - The development compose publishes 5432, 8080 and 5173 on 127.0.0.1 only.
 
 ## Verification after deploy
@@ -221,6 +221,29 @@ docker compose -f docker-compose.prod.yml build --pull
 docker exec portfolio-db-prod pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB" > /opt/backups/portfolio-$(date +%F).dump
 docker run --rm -v uploads_data_prod:/u -v /opt/backups:/b alpine tar czf /b/uploads-$(date +%F).tgz -C /u .
 ```
+
+## Database role without superuser (planned)
+
+The backend and Flyway connect as the role created by the postgres image (`POSTGRES_USER`), which is a superuser. The owner decided to move the application to a least-privilege role at the next database task. Procedure (one-off on the server, during a maintenance window, after a dump):
+
+```bash
+set -a; . ./.env; set +a
+docker exec -i portfolio-db-prod psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" <<'SQL'
+CREATE ROLE portfolio_app LOGIN PASSWORD 'CHANGE_ME';
+GRANT CONNECT ON DATABASE portfolio TO portfolio_app;
+GRANT USAGE, CREATE ON SCHEMA public TO portfolio_app;
+DO $$ DECLARE r record; BEGIN
+  FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP
+    EXECUTE format('ALTER TABLE public.%I OWNER TO portfolio_app', r.tablename);
+  END LOOP;
+  FOR r IN SELECT sequencename FROM pg_sequences WHERE schemaname = 'public' LOOP
+    EXECUTE format('ALTER SEQUENCE public.%I OWNER TO portfolio_app', r.sequencename);
+  END LOOP;
+END $$;
+SQL
+```
+
+Flyway must own the tables it alters, hence the ownership transfer (including `flyway_schema_history`). Then point the backend at the new role: add `APP_DB_USER=portfolio_app` and `APP_DB_PASSWORD=...` to `.env`, change `SPRING_DATASOURCE_USERNAME`/`SPRING_DATASOURCE_PASSWORD` of the `backend` service in `docker-compose.prod.yml` to those variables (the `postgres` service keeps `POSTGRES_USER`), run `docker compose -f docker-compose.prod.yml up -d backend` and check the startup log for Flyway validation and the first requests. Rollback: switch the two variables back and restart the backend. Not applied yet: the compose file still uses `POSTGRES_USER` for the backend.
 
 ## When something breaks
 
