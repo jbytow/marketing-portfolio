@@ -21,8 +21,7 @@ Właściciel sam scala do `main` i wdraża (runbook `docs/operations.md`); otwar
 - LESSONS.md: 21 lekcji (L12-L21 nowe), sekcja "Audyt 2026-11-11"; zsynchronizowane do D:\Dev\_lekcje.
 
 ## W toku
-- Sprzątanie po audycie (po akceptacji raportu): `bash C:/Users/localnode/AppData/Local/Temp/mpa-audit/cleanup.sh`
-  (21 worktree w `.worktrees/`, gałęzie `audit/*`, kontener `mpa-tc-socat`). Artefakty audytu w `%TEMP%\mpa-audit`.
+- Sprzątanie po audycie zrobione 2026-11-12: 29 worktree i gałęzi `audit/*` usunięte, forwarder Dockera zatrzymany. Artefakty audytu nadal w `%TEMP%\mpa-audit` (raporty, recenzje, briefy) do usunięcia ręcznie.
 
 ## Otwarte decyzje właściciela
 - Merge `audit-2026-11` -> `main` i wdrożenie (tylko na polecenie "wdrażaj"); przed wdrożeniem: prod .env z JWT_SECRET >= 32 bajty, pg_dump (V16), `up -d --force-recreate nginx`, próbne logowanie admina.
@@ -37,7 +36,7 @@ Właściciel sam scala do `main` i wdraża (runbook `docs/operations.md`); otwar
 ## Znane problemy / pułapki
 - Lokalny `java` to JDK 25; Lombok z Boot 3.2.1 nie kompiluje na nim. Zawsze `JAVA_HOME="/c/Program Files/Java/latest/jdk-21"`.
 - Testy DB z Windows: forwarder socat w WSL (patrz auto-memory "DB tests via WSL Docker forwarder"); WSL gasi VM po ostatniej sesji.
-- Junction `node_modules` w worktree usuwać tylko `[System.IO.Directory]::Delete(...)` (rmwt.sh), nigdy `rm -rf`.
+- Junction `node_modules` w worktree: najpierw usunąć sam link (`cmd /c rmdir`) i sprawdzić, że znikł, dopiero potem `git worktree remove`; `git worktree remove --force` z istniejącym junction wyczyścił główne `node_modules` (odtworzone `npm ci`, 2026-11-12).
 - Duplikat sluga: 400 z jawnego sprawdzenia, 409 tylko przy wyścigu na constraincie DB.
 - npm audit: 2 critical dev-only (tinypool z vitest 3) wymagają Vite 6+ (decyzja D1/D37).
 
