@@ -218,6 +218,38 @@ class PostControllerTest {
         }
     }
 
+    // Pins the wire format the frontend reads, so a Jackson upgrade cannot silently change it
+    @Nested
+    @DisplayName("JSON shape")
+    class JsonShape {
+
+        @Test
+        @DisplayName("should keep declaration order, ISO timestamps with their offset and explicit nulls")
+        void shouldKeepWireFormat() throws Exception {
+            PostDto post = PostDto.builder()
+                    .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                    .category(Category.CAMPAIGNS)
+                    .title("Sample Post")
+                    .slug("sample-post")
+                    .content(java.util.Map.of("type", "doc"))
+                    .published(true)
+                    .createdAt(OffsetDateTime.of(2026, 11, 12, 10, 30, 0, 0, java.time.ZoneOffset.ofHours(1)))
+                    .build();
+            given(postService.getPostBySlug("sample-post", "en")).willReturn(post);
+
+            String body = mockMvc.perform(get("/api/posts/sample-post"))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+
+            org.assertj.core.api.Assertions.assertThat(body)
+                    .startsWith("{\"success\":true,\"data\":{\"id\":\"00000000-0000-0000-0000-000000000001\",\"category\":\"CAMPAIGNS\",\"categoryLabel\":null,\"title\":\"Sample Post\"")
+                    .contains("\"content\":{\"type\":\"doc\"}")
+                    .contains("\"createdAt\":\"2026-11-12T10:30:00+01:00\"")
+                    .contains("\"updatedAt\":null")
+                    .doesNotContain("\"message\"");
+        }
+    }
+
     @Nested
     @DisplayName("Language parsing")
     class LanguageParsing {
